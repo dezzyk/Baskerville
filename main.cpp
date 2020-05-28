@@ -1,4 +1,6 @@
 
+#define NOMINMAX
+
 #include "common.h"
 
 #include <iostream>
@@ -10,12 +12,17 @@
 #include "event.h"
 #include "window.h"
 #include "widget.h"
+#include "font.h"
 
 Event::Manager event;
 Window window;
 
+Font font;
+
 int main() {
+    std::cout << (int)'A' << std::endl;
     window.startup(event);
+    font = Font("LibreBaskerville-Regular.ttf");
     while (!window.shouldQuit()) {
         window.pollEvents();
     }
