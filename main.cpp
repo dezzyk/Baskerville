@@ -22,7 +22,7 @@ Font font;
 int main() {
     std::cout << (int)'A' << std::endl;
     window.startup(event);
-    font = Font("LibreBaskerville-Regular.ttf");
+    font = Font("LibreBaskerville-Regular.ttf", 96, 96, 64);
     while (!window.shouldQuit()) {
         window.pollEvents();
     }
