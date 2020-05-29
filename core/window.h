@@ -12,7 +12,7 @@
 
 class Window {
 public:
-    void startup(Event::Manager& event);
+    b32 startup(Event::Manager& event);
     void shutdown();
     void pollEvents();
     b32 shouldQuit();

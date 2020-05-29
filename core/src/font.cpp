@@ -11,16 +11,22 @@
 #include "stb/stb_truetype.h"
 #include "stb/stb_image_write.h"
 #include "msdfgen/msdfgen.h"
+#include "glad/glad.h"
+
+#include "gl_err.h"
 
 #include <fstream>
 #include <filesystem>
 #include <iostream>
+#include <thread>
+#include <future>
 
 Font::Font() {}
 
 Font::Font(std::string font_name, u32 w, u32 h, u32 pixel_height) : m_w(w), m_h(h), m_pixel_height(pixel_height) {
     std::string full_path = "data/" + font_name;
     if(std::filesystem::exists(full_path)) {
+
         std::vector<char> buffer;
         std::ifstream file;
         file.open(full_path, std::ios::binary);
@@ -30,16 +36,89 @@ Font::Font(std::string font_name, u32 w, u32 h, u32 pixel_height) : m_w(w), m_h(
         buffer.resize(length);
         file.read(buffer.data(), buffer.size());
         file.close();
-        stbtt_fontinfo font_info;
-        stbtt_InitFont(&font_info, reinterpret_cast<unsigned char*>(buffer.data()), 0);
-        m_scale = stbtt_ScaleForPixelHeight(&font_info, pixel_height);
+
+        stbtt_InitFont(&m_font_info, reinterpret_cast<unsigned char*>(buffer.data()), 0);
+        m_scale = stbtt_ScaleForPixelHeight(&m_font_info, pixel_height);
         int x0, y0, x1, y1;
-        stbtt_GetFontBoundingBox(&font_info, &x0, &y0, &x1, &y1);
+        stbtt_GetFontBoundingBox(&m_font_info, &x0, &y0, &x1, &y1);
         m_baseline = m_scale*-y0;
 
-        auto bitmap = generateBitmap(font_info, 103);
+        const auto core_count = std::thread::hardware_concurrency();
 
-        stbi_write_bmp("test.bmp", w, h, 3, reinterpret_cast<void*>(bitmap.data()));
+        struct Workload {
+            std::vector<std::vector<unsigned char>> bitmaps;
+            u32 codepoint = 0;
+        };
+
+        std::vector<Workload> workloads;
+        std::vector<std::thread> threads;
+        workloads.resize(core_count);
+        threads.resize(core_count-1);
+
+        int base_count = (127-33) / core_count;
+        int rem = ((127-33) % core_count);
+        if(rem > 0) {
+            for(auto& workload : workloads) {
+                workload.bitmaps.reserve(base_count + 1);
+                workload.bitmaps.resize(base_count);
+            }
+            rem += 1;
+            int cur_index = 0;
+            while(rem--) {
+                workloads[cur_index].bitmaps.resize(base_count + 1);
+                cur_index++;
+            }
+        } else {
+            for(auto& workload : workloads) {
+                workload.bitmaps.resize(base_count);
+            }
+        }
+
+        u32 cur_codepoint = 33;
+        for(auto& workload : workloads) {
+            workload.codepoint = cur_codepoint;
+            cur_codepoint += workload.bitmaps.size();
+        }
+
+        int i = 1;
+        for(auto& thread : threads) {
+            thread = std::thread([](Workload* workload, Font* font) {
+                for(auto& bitmap : workload->bitmaps) {
+                    bitmap = font->generateBitmap(workload->codepoint);
+                    workload->codepoint++;
+                }
+            }, &workloads[i], this);
+            i++;
+        }
+
+        for(auto& bitmap : workloads[0].bitmaps) {
+            bitmap = generateBitmap(workloads[0].codepoint);
+            workloads[0].codepoint++;
+        }
+
+        for(auto& thread : threads) {
+            thread.join();
+        }
+
+        stbi_write_bmp("test.bmp", m_w, m_h, 3, reinterpret_cast<void*>(workloads[6].bitmaps[2].data()));
+
+        // Not working fix later when not almost midnight
+
+        // Generate array texture
+        /*u32 texture;
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGB8, m_w, m_h, 126-33);
+
+        for(int i = 33; i < 127; ++i) {
+            auto bitmap = generateBitmap(i);
+            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, m_w, m_h, 1, GL_RGB, GL_UNSIGNED_BYTE, bitmap.data());
+        }
+
+        m_texture_handle = texture; CheckGLError();*/
+
     }
 }
 
@@ -67,21 +146,25 @@ glm::vec2 Font::getBitmapSize() {
     return { m_w, m_h };
 }
 
-std::vector<unsigned char> Font::generateBitmap(stbtt_fontinfo& font_info, u32 codepoint) {
+u32 Font::getKernOffset(u32 c0, u32 c1) {
+    return stbtt_GetCodepointKernAdvance(&m_font_info, c0, c1);
+}
+
+std::vector<unsigned char> Font::generateBitmap(u32 codepoint) {
     // Calculate position/scalers
     msdfgen::Vector2 position;
     int x0, y0, x1, y1;
-    stbtt_GetCodepointBox(&font_info, codepoint, &x0, &y0, &x1, &y1);
+    stbtt_GetCodepointBox(&m_font_info, codepoint, &x0, &y0, &x1, &y1);
     int ascent, descent, lineGap;
-    if(stbtt_GetFontVMetricsOS2(&font_info, &ascent, &descent, &lineGap) == 0) {
-        stbtt_GetFontVMetrics(&font_info, &ascent, &descent, &lineGap);
+    if(stbtt_GetFontVMetricsOS2(&m_font_info, &ascent, &descent, &lineGap) == 0) {
+        stbtt_GetFontVMetrics(&m_font_info, &ascent, &descent, &lineGap);
     }
     position.y = m_baseline - (descent * m_scale); // Start with baseline
     position.x = (m_w/2) - ((abs(x0 * m_scale) + abs(x1 * m_scale))/2);
 
     // Build the MSDF shape
     stbtt_vertex* vertices = nullptr;
-    int vertex_count = stbtt_GetCodepointShape(&font_info, codepoint, &vertices);
+    int vertex_count = stbtt_GetCodepointShape(&m_font_info, codepoint, &vertices);
     std::cout << vertex_count << std::endl;
     msdfgen::Shape shape;
     msdfgen::Contour* cur_contour;
@@ -108,7 +191,7 @@ std::vector<unsigned char> Font::generateBitmap(stbtt_fontinfo& font_info, u32 c
             cur_contour->addEdge(new_edge);
         }
     }
-    stbtt_FreeShape(&font_info, vertices);
+    stbtt_FreeShape(&m_font_info, vertices);
     shape.normalize();
     msdfgen::edgeColoringSimple(shape, 3.0);
 

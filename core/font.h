@@ -30,9 +30,11 @@ public:
     f32 getScale();
     f32 getBaseline();
     glm::vec2 getBitmapSize();
+    u32 getKernOffset(u32 c0, u32 c1);
+    std::vector<unsigned char> generateBitmap(u32 codepoint);
 private:
-    std::vector<unsigned char> generateBitmap(stbtt_fontinfo& font_info, u32 codepoint);
     std::vector<Glyph> m_glyphs;
+    stbtt_fontinfo m_font_info;
     std::optional<u32> m_texture_handle;
     f32 m_scale = 0.0f;
     f32 m_baseline = 0.0f;

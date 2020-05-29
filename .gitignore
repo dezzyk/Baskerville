@@ -22,7 +22,10 @@
 
 .vs
 .idea
-cmake-build-debug
 bin
 tool
 out
+/cmake-build-minsizerel/
+/cmake-build-debug/
+/cmake-build-release/
+/cmake-build-relwithdebinfo/
