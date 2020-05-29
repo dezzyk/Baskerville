@@ -19,7 +19,7 @@ Font font;
 int main() {
     std::cout << (int)'A' << std::endl;
     if(window.startup(event)) {
-        font = Font("LibreBaskerville-Regular.ttf", 96, 96, 64);
+        font = Font("LibreBaskerville-Regular.ttf", 32, 48, 32);
         while (!window.shouldQuit()) {
             window.pollEvents();
         }

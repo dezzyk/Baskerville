@@ -57,26 +57,15 @@ Font::Font(std::string font_name, u32 w, u32 h, u32 pixel_height) : m_w(w), m_h(
 
         int base_count = (127-33) / core_count;
         int rem = ((127-33) % core_count);
-        if(rem > 0) {
-            for(auto& workload : workloads) {
-                workload.bitmaps.reserve(base_count + 1);
-                workload.bitmaps.resize(base_count);
-            }
-            rem += 1;
-            int cur_index = 0;
-            while(rem--) {
-                workloads[cur_index].bitmaps.resize(base_count + 1);
-                cur_index++;
-            }
-        } else {
-            for(auto& workload : workloads) {
-                workload.bitmaps.resize(base_count);
-            }
-        }
-
         u32 cur_codepoint = 33;
         for(auto& workload : workloads) {
+            workload.bitmaps = std::vector<std::vector<unsigned char>>(base_count + 1, std::vector<unsigned char>(m_w * m_h * 3));
             workload.codepoint = cur_codepoint;
+            if(rem > 0) {
+                rem--;
+            } else {
+                workload.bitmaps.resize(base_count);
+            }
             cur_codepoint += workload.bitmaps.size();
         }
 
@@ -100,7 +89,7 @@ Font::Font(std::string font_name, u32 w, u32 h, u32 pixel_height) : m_w(w), m_h(
             thread.join();
         }
 
-        stbi_write_bmp("test.bmp", m_w, m_h, 3, reinterpret_cast<void*>(workloads[6].bitmaps[2].data()));
+        stbi_write_bmp("test.bmp", m_w, m_h, 3, reinterpret_cast<void*>(workloads[5].bitmaps[2].data()));
 
         // Not working fix later when not almost midnight
 
@@ -165,14 +154,16 @@ std::vector<unsigned char> Font::generateBitmap(u32 codepoint) {
     // Build the MSDF shape
     stbtt_vertex* vertices = nullptr;
     int vertex_count = stbtt_GetCodepointShape(&m_font_info, codepoint, &vertices);
-    std::cout << vertex_count << std::endl;
+    //std::cout << vertex_count << std::endl;
     msdfgen::Shape shape;
+    //msdfgen::Contour* cur_contour;
     msdfgen::Contour* cur_contour;
     msdfgen::Point2 last = {0.0, 0.0};
     msdfgen::Point2 cur = {0.0, 0.0};
     for(int i = 0; i < vertex_count; ++i) {
         if(vertices[i].type == STBTT_vmove) {
             cur_contour = &shape.addContour();
+            cur_contour->edges.reserve(vertex_count); // ez optimization lul
             cur = { (double)(vertices[i].x * m_scale), (double)(vertices[i].y  * m_scale)};
         } else if (vertices[i].type == STBTT_vline) {
             last = cur;
