@@ -21,7 +21,32 @@
 #include <thread>
 #include <future>
 
+const Font& Font::Cache::load(std::string font_name, std::string filename, u32 w, u32 h, u32 pixel_height) {
+    if(m_font_cache.find(font_name) == m_font_cache.end()) {
+        m_font_cache.emplace(font_name, Font(filename, w, h, pixel_height));
+    }
+    return m_font_cache[font_name];
+}
+
+void Font::Cache::clear() {
+    m_font_cache.clear();
+}
+
+std::unordered_map<std::string, Font> Font::Cache::m_font_cache;
+
 Font::Font() {}
+
+Font::Font(Font&& other) noexcept :
+    m_font_info(other.m_font_info),
+    m_texture_handle(other.m_texture_handle),
+    m_scale(other.m_scale),
+    m_baseline(other.m_baseline),
+    m_w(other.m_w),
+    m_h(other.m_h),
+    m_pixel_height(other.m_pixel_height)
+    {
+    other.m_texture_handle = std::nullopt;
+}
 
 Font::Font(std::string font_name, u32 w, u32 h, u32 pixel_height) : m_w(w), m_h(h), m_pixel_height(pixel_height) {
     std::string full_path = "data/" + font_name;
@@ -55,8 +80,8 @@ Font::Font(std::string font_name, u32 w, u32 h, u32 pixel_height) : m_w(w), m_h(
         workloads.resize(core_count);
         threads.resize(core_count-1);
 
-        int base_count = (127-33) / core_count;
-        int rem = ((127-33) % core_count);
+        int base_count = (126-33) / core_count;
+        int rem = ((126-33) % core_count);
         u32 cur_codepoint = 33;
         for(auto& workload : workloads) {
             workload.bitmaps = std::vector<std::vector<unsigned char>>(base_count + 1, std::vector<unsigned char>(m_w * m_h * 3));
@@ -89,38 +114,33 @@ Font::Font(std::string font_name, u32 w, u32 h, u32 pixel_height) : m_w(w), m_h(
             thread.join();
         }
 
-        stbi_write_bmp("test.bmp", m_w, m_h, 3, reinterpret_cast<void*>(workloads[5].bitmaps[2].data()));
-
-        // Not working fix later when not almost midnight
-
         // Generate array texture
-        /*u32 texture;
-        glGenTextures(1, &texture);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
-        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGB8, m_w, m_h, 126-33);
+        u32 texture;
+        glGenTextures(1, &texture); CheckGLError();
+        glBindTexture(GL_TEXTURE_2D_ARRAY, texture); CheckGLError();
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST); CheckGLError();
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST); CheckGLError();
+        glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGB8, m_w, m_h, 126-33); CheckGLError();
 
-        for(int i = 33; i < 127; ++i) {
-            auto bitmap = generateBitmap(i);
-            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, m_w, m_h, 1, GL_RGB, GL_UNSIGNED_BYTE, bitmap.data());
+        int depth = 0;
+        for(auto& workload : workloads) {
+            for(auto& bitmap : workload.bitmaps) {
+                glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, depth, m_w, m_h, 1, GL_RGB, GL_UNSIGNED_BYTE, bitmap.data()); CheckGLError();
+                std::cout << depth << std::endl;
+                std::cout << bitmap.size() << std::endl;
+                depth++;
+            }
         }
 
-        m_texture_handle = texture; CheckGLError();*/
+        m_texture_handle = texture; CheckGLError();
 
     }
 }
 
 Font::~Font() {
-
-}
-
-b32 Font::isCompiled() {
-    return m_compiled;
-}
-
-b32 Font::getGlyph(u32 index, Glyph& glyph) {
-    return false;
+    if(m_texture_handle.has_value()) {
+        glDeleteTextures(1, &m_texture_handle.value());
+    }
 }
 
 const std::optional<u32>& Font::getTextureHandle() {
@@ -129,6 +149,10 @@ const std::optional<u32>& Font::getTextureHandle() {
 
 f32 Font::getScale() {
     return m_scale;
+}
+
+f32 Font::getBaseline() {
+    return m_baseline;
 }
 
 glm::vec2 Font::getBitmapSize() {

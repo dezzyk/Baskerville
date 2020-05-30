@@ -9,6 +9,8 @@
 #include <string>
 #include <optional>
 #include <vector>
+#include <unordered_map>
+
 #include "stb/stb_truetype.h"
 #include "glm/glm.hpp"
 
@@ -18,22 +20,27 @@
 
 class Font {
 public:
-    struct Glyph {
-
+    class Cache {
+    public:
+        static const Font &load(std::string font_name, std::string filename, u32 w, u32 h, u32 pixel_height);
+        static void clear();
+    private:
+        static std::unordered_map<std::string, Font> m_font_cache;
     };
-    Font();
-    Font(std::string font_name, u32 w, u32 h, u32 pixel_height);
-    ~Font();
-    b32 isCompiled();
-    b32 getGlyph(u32 index, Glyph& glyph);
     const std::optional<u32>& getTextureHandle();
     f32 getScale();
     f32 getBaseline();
     glm::vec2 getBitmapSize();
     u32 getKernOffset(u32 c0, u32 c1);
     std::vector<unsigned char> generateBitmap(u32 codepoint);
+    Font();
+    Font(Font&& other) noexcept;
+    ~Font();
+    //friend class std::unordered_map<std::string, Font>;
+    Font(const Font&) =delete;
+    Font& operator=(const Font&) =delete;
 private:
-    std::vector<Glyph> m_glyphs;
+    Font(std::string font_name, u32 w, u32 h, u32 pixel_height);
     stbtt_fontinfo m_font_info;
     std::optional<u32> m_texture_handle;
     f32 m_scale = 0.0f;
@@ -41,5 +48,4 @@ private:
     u32 m_w = 0;
     u32 m_h = 0;
     u32 m_pixel_height = 0;
-    b32 m_compiled = false;
 };

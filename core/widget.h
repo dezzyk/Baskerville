@@ -16,6 +16,7 @@
 class Widget {
 public:
     Widget();
+    Widget(Widget& widget);
     ~Widget();
     enum class Anchor {
         Top,
@@ -25,40 +26,33 @@ public:
         TopLeft,
         TopRight,
         BottomLeft,
-        BottomRight
+        BottomRight,
+        Center
     };
-    struct DrawParams {
-        glm::vec2 m_offset = {0.0f, 0.0f};
-        Anchor m_anchor = Anchor::Top;
-        std::optional<u32> shader;
-        std::optional<u32> buffer;
-    };
-    virtual void handleTextInput(u32 value);
-    virtual void handleMacro(Event::Macro value);
-    virtual void handleResize(Event::Resize value);
-    const DrawParams& getDrawParams();
+    virtual void handleCodepoint(Event::Codepoint codepoint) = 0;
+    virtual void handleMacro(Event::Macro macro) = 0;
+    virtual void handleResize(Event::Resize resize) = 0;
+    virtual void draw() = 0;
+    const glm::vec4& getFrame();
+    const glm::vec2& getOffset();
+    const b32 offsetNormalized();
+    const Anchor& getAnchor();
+    const Widget* const getParent();
+
 private:
-    DrawParams m_draw_params;
+    glm::vec4 m_frame = { 0.0f, 0.0f, 0.0f, 0.0f};
+    glm::vec2 m_offset = {0.0f, 0.0f};
+    b32 m_offset_normalized = false;
+    Anchor m_anchor = Anchor::Center;
+    Widget* m_parent = nullptr;
+
 };
 
-inline Widget::Widget() {
-    u32 buffer;
-    glGenBuffers(1, &buffer);
-    if(buffer != 0) {
-        m_draw_params.buffer = buffer;
-    } else {
-        std::cout << "Failed to create buffer for widget" << std::endl;
-    }
-}
-
-inline Widget::~Widget() {
-    if(m_draw_params.buffer.has_value()) {
-        glDeleteBuffers(1, &m_draw_params.buffer.value());
-        m_draw_params.buffer = std::nullopt;
-    }
-}
-
-
-inline const Widget::DrawParams& Widget::getDrawParams() {
-    return m_draw_params;
-}
+inline Widget::Widget() {}
+inline Widget::Widget(Widget& widget) : m_parent(&widget) {}
+inline Widget::~Widget() {}
+inline const glm::vec4& Widget::getFrame() { return m_frame; }
+inline const glm::vec2& Widget::getOffset() { return m_offset; }
+inline const b32 Widget::offsetNormalized() { return m_offset_normalized; }
+inline const Widget::Anchor& Widget::getAnchor() { return m_anchor; }
+inline const Widget* const Widget::getParent() { return m_parent; }
