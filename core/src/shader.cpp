@@ -3,6 +3,7 @@
 //
 
 #include "shader.h"
+#include "gl_err.h"
 
 #include "glad/glad.h"
 
@@ -13,6 +14,13 @@ const Shader* Shader::Cache::load(std::string shader_name, std::string vert, std
         m_shader_cache.emplace(shader_name, Shader(vert, frag));
     }
     return &m_shader_cache[shader_name];
+}
+
+const Shader* Shader::Cache::fetch(std::string shader_name) {
+    if(m_shader_cache.find(shader_name) == m_shader_cache.end()) {
+        return &m_shader_cache[shader_name];
+    }
+    return nullptr;
 }
 
 void Shader::Cache::clear() {
@@ -45,7 +53,7 @@ Shader::Shader(std::string vert, std::string frag) {
         m_handle = program_handle;
     }
     glDeleteShader(vert_handle);
-    glDeleteShader(frag_handle);
+    glDeleteShader(frag_handle); CheckGLError();
 }
 
 Shader::Shader() {}

@@ -6,81 +6,60 @@
 #include "shader.h"
 
 #include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtc/type_ptr.hpp"
 
 #include <array>
 
-namespace {
-    const Shader* default_draw_shader = nullptr;
-    std::optional<u32> default_draw_vao;
-    std::optional<u32> default_draw_vbo;
-    b32 default_draw_attempted = false;
-    u32 widget_count = 0;
-}
-
-Widget::Widget() {
-    widget_count++;
-}
-
-Widget::Widget(Widget& widget) : m_parent(&widget) {
-    widget_count++;
-}
+Widget::Widget() {}
+Widget::Widget(Widget& widget) : m_parent(&widget) {}
 
 Widget::~Widget() {
-    widget_count--;
-    if(widget_count == 0) {
-        default_draw_shader = nullptr;
-        if(default_draw_vao.has_value()){
-            glDeleteVertexArrays(1, &default_draw_vao.value());
-            default_draw_vao = std::nullopt;
-        }
-        if(default_draw_vbo.has_value()){
-            glDeleteBuffers(1, &default_draw_vbo.value());
-            default_draw_vbo = std::nullopt;
-        }
+    if(m_draw_params.vao.has_value()){
+        glDeleteVertexArrays(1, &m_draw_params.vao.value());
+        m_draw_params.vao = std::nullopt;
+    }
+    if(m_draw_params.vbo.has_value()){
+        glDeleteBuffers(1, &m_draw_params.vbo.value());
+        m_draw_params.vbo = std::nullopt;
     }
 }
 
-void Widget::debugDraw(const Window::Viewport &viewport) {
-    if(!default_draw_attempted) {
-        if (default_draw_shader == nullptr) {
+Shader* shader = nullptr;
+std::optional<u32> vao;
+std::optional<u32> vbo;
+b32 draw_attempted = false;
 
-            std::string vert = "#version 430 core\n"
-                                   "layout (location = 0) in vec2 aPos;\n"
-                                   "layout (location = 0) uniform mat4 proj;\n"
-                                   "void main()\n"
-                                   "{\n"
-                                   "   gl_Position = proj * vec4(aPos, 0.0, 1.0);\n"
-                                   "}";
+void Widget::debugDraw(Window::DrawBuffer& draw_buffer) {
+    if(!m_draw_params.draw_attempted) {
+        if (m_draw_params.shader == nullptr) {
 
-            std::string frag = "#version 430 core\n"
-                                   "out vec4 FragColor;\n"
-                                   "void main()"
-                                   "{\n"
-                                   "    FragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);\n"
-                                   "}";
+            std::string vert =
+                    #include "shader/debug_draw.vert"
+                            ;
+            std::string frag =
+                    #include "shader/debug_draw.frag"
+                            ;
 
-            default_draw_shader = Shader::Cache::load("widget_debug_draw", vert, frag);
+            m_draw_params.shader = Shader::Cache::load("widget_debug_draw", vert, frag);
 
         }
-        if (!default_draw_vbo.has_value()) {
+        if (!m_draw_params.vbo.has_value()) {
             u32 vbo = 0;
             glGenBuffers(1, &vbo);
             CheckGLError();
             if (vbo != 0) {
-                default_draw_vbo = vbo;
+                m_draw_params.vbo = vbo;
             } else {
                 std::cout << "Failed to create vbo | widget default" << std::endl;
             }
         }
-        if (!default_draw_vao.has_value() && default_draw_vbo.has_value()) {
+        if (!m_draw_params.vao.has_value() && m_draw_params.vbo.has_value()) {
             u32 vao = 0;
             glGenVertexArrays(1, &vao);
             CheckGLError();
             if (vao != 0) {
                 glBindVertexArray(vao);
                 CheckGLError();
-                glBindBuffer(GL_ARRAY_BUFFER, default_draw_vbo.value());
+                glBindBuffer(GL_ARRAY_BUFFER, m_draw_params.vbo.value());
                 CheckGLError();
                 glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*) 0);
                 CheckGLError();
@@ -88,18 +67,18 @@ void Widget::debugDraw(const Window::Viewport &viewport) {
                 CheckGLError();
                 glBindVertexArray(0);
                 CheckGLError();
-                default_draw_vao = vao;
+                m_draw_params.vao = vao;
             } else {
                 std::cout << "Failed to create vao | widget default" << std::endl;
             }
         }
-        default_draw_attempted = true;
+        m_draw_params.draw_attempted = true;
     }
-    if((default_draw_shader!= nullptr && default_draw_shader->getHandle().has_value()) && default_draw_vao.has_value() && default_draw_vbo.has_value()) {
+    if((m_draw_params.shader != nullptr && m_draw_params.shader->getHandle().has_value()) && m_draw_params.vao.has_value() && m_draw_params.vbo.has_value()) {
 
         std::array<glm::vec2, 48> vertices;
 
-        glm::vec2 draw_pos = calcDrawPos(viewport);
+        glm::vec2 draw_pos = calcDrawPos();
 
         glm::mat4 model(1.0f);
         model = glm::translate(model, glm::vec3(draw_pos.x + 2.0f, draw_pos.y + m_size.y - 8.0, 0.0f));
@@ -197,23 +176,27 @@ void Widget::debugDraw(const Window::Viewport &viewport) {
         vertices[46] = model * glm::vec4(-1.0f, -1.0f, 0.0f, 1.0f); // bottom left
         vertices[47] = model * glm::vec4(-1.0f, 1.0f, 0.0, 1.0f); // top left
 
-        glm::mat4 proj = glm::ortho(0.0f, viewport.x, 0.0f, viewport.y);
-        glUseProgram(default_draw_shader->getHandle().value()); CheckGLError();
-        glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(proj));
-        glBindVertexArray(default_draw_vao.value()); CheckGLError();
+        glBindVertexArray(m_draw_params.vao.value()); CheckGLError();
         glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * vertices.size(), vertices.data(), GL_DYNAMIC_DRAW); CheckGLError();
-        glDrawArrays(GL_TRIANGLES, 0, vertices.size()); CheckGLError();
         glBindVertexArray(0);
+
+        Draw draw;
+        draw.vao = m_draw_params.vao.value();
+        draw.shader = m_draw_params.shader;
+        draw.count = vertices.size();
+        draw_buffer.push_back(draw);
+
     }
 }
 
-glm::vec2 Widget::calcDrawPos(const Window::Viewport &viewport) {
+glm::vec2 Widget::calcDrawPos() {
 
-    //If there isnt a parent, the widget is treated as the root and uses the viewport as a psuedo parent to build its draw_pos.
+    // If there isnt a parent, the widget is treated as a root. Its anchor is hardset to 0,0 and its offset is ignored.
+    // Best that the widget being treated as the root set its size to the value of a resize even.
 
-    glm::vec2 draw_pos;
+    glm::vec2 draw_pos = {0.0f, 0.0f};
     if(m_parent != nullptr) {
-        draw_pos = m_parent->calcDrawPos(viewport);
+        draw_pos = m_parent->calcDrawPos();
         switch (m_anchor) {
             case Widget::Anchor::TopLeft  : {
                 draw_pos.x += (m_offset.x * (m_parent->m_size.x - m_size.x));
@@ -258,45 +241,6 @@ glm::vec2 Widget::calcDrawPos(const Window::Viewport &viewport) {
             case Widget::Anchor::BottomRight  : {
                 draw_pos.x += (m_parent->m_size.x - m_size.x) - (m_offset.x * (m_parent->m_size.x - m_size.x));
                 draw_pos.y += (m_offset.y * (m_parent->m_size.y - m_size.y));
-            }
-            break;
-        }
-    } else {
-        switch (m_anchor) {
-            case Widget::Anchor::TopLeft  : {
-                draw_pos = {0.0f, viewport.y - m_size.y};
-            }
-            break;
-            case Widget::Anchor::Top  : {
-                draw_pos = {(viewport.x / 2) - (m_size.x / 2), viewport.y - m_size.y};
-            }
-            break;
-            case Widget::Anchor::TopRight  : {
-                draw_pos = {draw_pos.x - m_size.x, viewport.y - m_size.y};
-            }
-            break;
-            case Widget::Anchor::Left  : {
-                draw_pos = {0.0f, (viewport.y / 2) - (m_size.y / 2)};
-            }
-            break;
-            case Widget::Anchor::Center  : {
-                draw_pos = {(viewport.x / 2) - (m_size.x / 2), (viewport.y / 2) - (m_size.y / 2)};
-            }
-            break;
-            case Widget::Anchor::Right  : {
-                draw_pos = {viewport.x - m_size.x, (viewport.y / 2) - (m_size.y / 2)};
-            }
-            break;
-            case Widget::Anchor::BottomLeft  : {
-                draw_pos = {0.0f, 0.0f};
-            }
-            break;
-            case Widget::Anchor::Bottom  : {
-                draw_pos = {(viewport.x / 2) - (m_size.x / 2), 0.0};
-            }
-            break;
-            case Widget::Anchor::BottomRight  : {
-                draw_pos = {viewport.x - m_size.x, 0.0f};
             }
             break;
         }

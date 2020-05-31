@@ -3,6 +3,7 @@
 //
 
 #include "font.h"
+#include "data_path.h"
 
 #define STB_RECT_PACK_IMPLEMENTATION
 #define STB_TRUETYPE_IMPLEMENTATION
@@ -26,6 +27,13 @@ const Font* Font::Cache::load(std::string font_name, std::string filename, u32 w
         m_font_cache.emplace(font_name, Font(filename, w, h, start_codepoint, end_codepoint, pixel_height));
     }
     return &m_font_cache[font_name];
+}
+
+const Font* Font::Cache::fetch(std::string font_name) {
+    if(m_font_cache.find(font_name) == m_font_cache.end()) {
+        return &m_font_cache[font_name];
+    }
+    return nullptr;
 }
 
 void Font::Cache::clear() {
@@ -54,7 +62,7 @@ Font::Font(std::string font_name, u32 w, u32 h, u32 start_codepoint, u32 end_cod
                                                                                 m_start_codepoint(start_codepoint),
                                                                                 m_end_codepoint(end_codepoint),
                                                                                 m_pixel_height(pixel_height) {
-    std::string full_path = "data/" + font_name;
+    std::string full_path = global_data_path + "font/" + font_name;
     if(std::filesystem::exists(full_path)) {
 
         std::vector<char> buffer;
@@ -85,8 +93,8 @@ Font::Font(std::string font_name, u32 w, u32 h, u32 start_codepoint, u32 end_cod
         workloads.resize(core_count);
         threads.resize(core_count-1);
 
-        int base_count = (m_end_codepoint-m_start_codepoint) / core_count;
-        int rem = ((m_end_codepoint-m_start_codepoint) % core_count);
+        u32 base_count = (m_end_codepoint-m_start_codepoint) / core_count;
+        u32 rem = ((m_end_codepoint-m_start_codepoint) % core_count);
         u32 cur_codepoint = m_start_codepoint;
         for(auto& workload : workloads) {
             workload.bitmaps = std::vector<std::vector<unsigned char>>(base_count + 1, std::vector<unsigned char>(m_w * m_h * 3));
@@ -123,16 +131,16 @@ Font::Font(std::string font_name, u32 w, u32 h, u32 start_codepoint, u32 end_cod
         u32 texture;
         glGenTextures(1, &texture); CheckGLError();
         glBindTexture(GL_TEXTURE_2D_ARRAY, texture); CheckGLError();
-        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST); CheckGLError();
-        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST); CheckGLError();
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR); CheckGLError();
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR); CheckGLError();
         glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGB8, m_w, m_h, m_end_codepoint-m_start_codepoint); CheckGLError();
 
         int depth = 0;
         for(auto& workload : workloads) {
             for(auto& bitmap : workload.bitmaps) {
                 glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, depth, m_w, m_h, 1, GL_RGB, GL_UNSIGNED_BYTE, bitmap.data()); CheckGLError();
-                std::cout << depth << std::endl;
-                std::cout << bitmap.size() << std::endl;
+                //std::cout << depth << std::endl;
+                //std::cout << bitmap.size() << std::endl;
                 depth++;
             }
         }
@@ -152,20 +160,28 @@ const std::optional<u32>& Font::getHandle() const {
     return m_texture_handle;
 }
 
-f32 Font::getScale() {
+f32 Font::getScale() const{
     return m_scale;
 }
 
-f32 Font::getBaseline() {
+f32 Font::getBaseline() const{
     return m_baseline;
 }
 
-glm::vec2 Font::getBitmapSize() {
+glm::vec2 Font::getBitmapSize() const{
     return { m_w, m_h };
 }
 
-u32 Font::getKernOffset(u32 c0, u32 c1) {
+u32 Font::getKernOffset(u32 c0, u32 c1) const{
     return stbtt_GetCodepointKernAdvance(&m_font_info, c0, c1);
+}
+
+u32 Font::getStartCodepoint() const{
+    return m_start_codepoint;
+}
+
+u32 Font::getEndCodepoint() const{
+    return m_end_codepoint;
 }
 
 std::vector<unsigned char> Font::generateBitmap(u32 codepoint) {

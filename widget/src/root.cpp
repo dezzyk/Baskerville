@@ -7,7 +7,6 @@
 #include "gl_err.h"
 
 Root::Root() {
-    m_anchor = Widget::Anchor::BottomLeft;
     glClearColor(m_canvas_color.r, m_canvas_color.g, m_canvas_color.b, 1.0f);
     test = AnchorTestBox(*this);
 }
@@ -26,8 +25,8 @@ void Root::onWindowResize(const Event::WindowResize& window_resize) {
     test.onWindowResize(window_resize);
 }
 
-void Root::draw(const Window::Viewport& viewport) {
+void Root::draw(Window::DrawBuffer& draw_buffer) {
     glClear(GL_COLOR_BUFFER_BIT); CheckGLError();
-    debugDraw(viewport);
-    test.draw(viewport);
+    debugDraw(draw_buffer);
+    test.draw(draw_buffer);
 }

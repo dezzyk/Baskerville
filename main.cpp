@@ -13,6 +13,8 @@
 #include "root.h"
 #include "shader.h"
 
+#include "meta.h"
+
 Window window;
 
 Shader::Cache shader_cache;
@@ -26,7 +28,7 @@ int main() {
 
     if(window.startup()) {
 
-        Font::Cache::load("editor_text", "LibreBaskerville-Regular.ttf", 32, 48, 33, 126, 32);
+        //Font::Cache::load("editor", "LibreBaskerville-Regular.ttf", 32, 48, 33, 126, 32);
 
         root = new Root();
 
@@ -64,7 +66,8 @@ int main() {
                 }
             }
             if (update_count > 0) {
-                root->draw(window.getViewport());
+                root->draw(window.getDrawBuffer());
+                window.draw();
             }
         }
 

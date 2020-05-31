@@ -89,6 +89,6 @@ void AnchorTestBox::onWindowResize(const Event::WindowResize& window_resize) {
 
 }
 
-void AnchorTestBox::draw(const Window::Viewport& viewport){
-    debugDraw(viewport);
+void AnchorTestBox::draw(Window::DrawBuffer& draw_buffer){
+    debugDraw(draw_buffer);
 }

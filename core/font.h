@@ -21,6 +21,7 @@ public:
     class Cache {
     public:
         static const Font* load(std::string font_name, std::string filename, u32 w, u32 h, u32 start_codepoint, u32 end_codepoint,u32 pixel_height);
+        static const Font* fetch(std::string font_name);
         void clear();
     private:
         static std::unordered_map<std::string, Font> m_font_cache;
@@ -31,10 +32,12 @@ public:
     Font(const Font&) =delete;
     Font& operator=(const Font&) =delete;
     const std::optional<u32>& getHandle() const;
-    f32 getScale();
-    f32 getBaseline();
-    glm::vec2 getBitmapSize();
-    u32 getKernOffset(u32 c0, u32 c1);
+    f32 getScale() const;
+    f32 getBaseline() const;
+    glm::vec2 getBitmapSize() const;
+    u32 getKernOffset(u32 c0, u32 c1) const;
+    u32 getStartCodepoint() const;
+    u32 getEndCodepoint() const;
     std::vector<unsigned char> generateBitmap(u32 codepoint);
 private:
     Font(std::string font_name, u32 w, u32 h, u32 start_codepoint, u32 end_codepoint, u32 pixel_height);

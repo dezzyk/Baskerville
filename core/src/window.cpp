@@ -4,8 +4,10 @@
 
 //#include "glad/src/glad.c"
 #include "window.h"
-#include "glad/src/glad.c"
 #include "gl_err.h"
+
+#include "glm/gtc/type_ptr.hpp"
+#include "glad/src/glad.c"
 
 #include <iostream>
 
@@ -128,6 +130,49 @@ b32 Window::shouldQuit() {
     return glfwWindowShouldClose(m_window);
 }
 
-const Window::Viewport& Window::getViewport() {
-    return m_state.viewport;
+Window::DrawBuffer& Window::getDrawBuffer() {
+    return m_draw_buffer;
+}
+
+void Window::draw() {
+    glm::mat4 proj = glm::ortho(0.0f, m_state.viewport.x, 0.0f, m_state.viewport.y);
+    for(auto& draw : m_draw_buffer) {
+        if(draw.shader != nullptr && draw.shader->getHandle().has_value() && draw.vao.has_value()) {
+            glUseProgram(draw.shader->getHandle().value());
+            glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(proj));
+            for(int i = 0; i < draw.uniforms.size(); ++i) {
+                if(draw.uniforms[i].type != Meta::MakeType<Meta::Empty>()) {
+                    Meta::Type type = draw.uniforms[i].type;
+                    if(type == Meta::MakeType<glm::mat4>()) {
+                        glUniformMatrix4fv(i + 1, 1, GL_FALSE, glm::value_ptr(draw.uniforms[i].value.mat4));
+                    } else if(type == Meta::MakeType<glm::vec4>()) {
+                        glUniform4f(i + 1, draw.uniforms[i].value.vec4.x, draw.uniforms[i].value.vec4.y, draw.uniforms[i].value.vec4.z, draw.uniforms[i].value.vec4.w);
+                    } else if(type == Meta::MakeType<glm::vec3>()) {
+                        glUniform3f(i + 1, draw.uniforms[i].value.vec3.x, draw.uniforms[i].value.vec3.y, draw.uniforms[i].value.vec3.z);
+                    } else if(type == Meta::MakeType<glm::vec2>()) {
+                        glUniform2f(i + 1, draw.uniforms[i].value.vec2.x, draw.uniforms[i].value.vec2.y);
+                    } else if(type == Meta::MakeType<Uniform::Texture>()) {
+                        glUniform1i(i + 1, draw.uniforms[i].value.texture.index);
+                        glActiveTexture(GL_TEXTURE0 + draw.uniforms[i].value.texture.index);
+                        glBindTexture(GL_TEXTURE_2D, draw.uniforms[i].value.texture.handle);
+                    } else if(type == Meta::MakeType<Uniform::ArrayTexture>()) {
+                        glUniform1i(i + 1, draw.uniforms[i].value.texture.index);
+                        glActiveTexture(GL_TEXTURE0 + draw.uniforms[i].value.array_texture.index);
+                        glBindTexture(GL_TEXTURE_2D_ARRAY, draw.uniforms[i].value.array_texture.handle);
+                    }
+                }
+            }
+            for(int i = 0; i < draw.buffers.size(); ++i) {
+                if(draw.buffers[i].handle != 0) {
+                    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, i, draw.buffers[i].handle);
+                }
+            }
+            glBindVertexArray(draw.vao.value()); CheckGLError();
+            glDrawArrays(GL_TRIANGLES, 0, draw.count); CheckGLError();
+            glBindVertexArray(0);
+        } else {
+            std::cout << "Null shader in draw, skipping.";
+        }
+    }
+    m_draw_buffer.resize(0);
 }

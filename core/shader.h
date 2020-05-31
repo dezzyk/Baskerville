@@ -17,6 +17,7 @@ public:
     class Cache {
     public:
         static const Shader* load(std::string shader_name, std::string vert, std::string frag);
+        static const Shader* fetch(std::string shader_name);
         void clear();
     private:
         static std::unordered_map<std::string, Shader> m_shader_cache;
