@@ -10,18 +10,21 @@
 #include "event.h"
 #include "window.h"
 #include "font.h"
-#include "baskerville.h"
+#include "root.h"
 
-Event::Manager events;
 Window window;
-Baskerville baskerville;
+
+Root* root;
 
 using timestamp = std::chrono::time_point<std::chrono::high_resolution_clock>;
 
 int main() {
 
-    if(window.startup(events)) {
+    if(window.startup()) {
+
         Font::Cache::load("editor_text", "LibreBaskerville-Regular.ttf", 32, 48, 32);
+
+        root = new Root();
 
         std::chrono::duration<u64, std::nano> update_accumulator(0);
         std::chrono::duration<u64, std::milli> update_rate((u32)((1.0 / (f32)120) * 1000)); // Locked to 120, change later
@@ -35,18 +38,19 @@ int main() {
             u32 update_count = 0;
             while (update_accumulator >= update_rate) {
 
+                window.swap();
                 window.pollEvents();
                 Event::Codepoint codepoint;
-                Event::Resize resize;
+                Event::WindowResize resize;
                 Event::Macro macro;
-                while(events.pollResize(resize)) {
-                    baskerville.handleResize(resize);
+                while(window.pollResize(resize)) {
+                    root->onWindowResize(resize);
                 }
-                while(events.pollMacro(macro)) {
-                    baskerville.handleMacro(macro);
+                while(window.pollMacro(macro)) {
+                    root->onMacro(macro);
                 }
-                while(events.pollCodepoint(codepoint)) {
-                    baskerville.handleCodepoint(codepoint);
+                while(window.pollCodepoint(codepoint)) {
+                    root->onCodepoint(codepoint);
                 }
 
                 update_accumulator -= update_rate;
@@ -55,7 +59,12 @@ int main() {
                     update_accumulator = std::chrono::duration<u64, std::nano>::zero();
                 }
             }
+            if (update_count > 0) {
+                root->draw(window.getViewport());
+            }
         }
+
+        delete root;
 
         Font::Cache::clear();
     }

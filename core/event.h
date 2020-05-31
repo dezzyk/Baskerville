@@ -6,8 +6,9 @@
 
 #include "common.h"
 
-//#include <vector>
-#include <queue>
+#include "glm/glm.hpp"
+
+#include <optional>
 
 class Window;
 
@@ -46,41 +47,23 @@ namespace Event {
         u32 value;
     };
 
-    struct Macro {
-        enum class Type {
-            SelectAll,
-            Backspace,
-            Delete,
-            Copy,
-            Cut,
-            Escape,
-            Paste,
-            Enter,
-            Tab,
-            Save
-        };
-        Type type;
+    enum class Macro {
+        SelectAll,
+        Backspace,
+        Delete,
+        Copy,
+        Cut,
+        Escape,
+        Paste,
+        Enter,
+        Tab,
+        Save,
+        ArrowUp,
+        ArrowDown,
+        ArrowLeft,
+        ArrowRight
     };
 
-    struct Resize {
-        u32 w = 0;
-        u32 h = 0;
-    };
-
-    struct QueueState {
-        RingQueue<Codepoint, 128> codepoint;
-        RingQueue<Macro, 4> macro;
-        RingQueue<Resize, 4> resize;
-    };
-
-    class Manager {
-    public:
-        b32 pollCodepoint(Codepoint& value);
-        b32 pollMacro(Macro& value);
-        b32 pollResize(Resize& resize);
-        friend class ::Window;
-    private:
-        QueueState m_queue_state;
-    };
+    using WindowResize = glm::vec2;
 
 }
