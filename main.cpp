@@ -11,8 +11,12 @@
 #include "window.h"
 #include "font.h"
 #include "root.h"
+#include "shader.h"
 
 Window window;
+
+Shader::Cache shader_cache;
+Font::Cache font_cache;
 
 Root* root;
 
@@ -22,7 +26,7 @@ int main() {
 
     if(window.startup()) {
 
-        Font::Cache::load("editor_text", "LibreBaskerville-Regular.ttf", 32, 48, 32);
+        Font::Cache::load("editor_text", "LibreBaskerville-Regular.ttf", 32, 48, 33, 126, 32);
 
         root = new Root();
 
@@ -55,7 +59,7 @@ int main() {
 
                 update_accumulator -= update_rate;
                 update_count++;
-                if (update_count > 3) {
+                if (update_count > 6) {
                     update_accumulator = std::chrono::duration<u64, std::nano>::zero();
                 }
             }
@@ -66,7 +70,8 @@ int main() {
 
         delete root;
 
-        Font::Cache::clear();
+        shader_cache.clear();
+        font_cache.clear();
     }
     window.shutdown();
     return 0;

@@ -9,10 +9,10 @@
 
 #include "glm/glm.hpp"
 
-class TestWidget : public Widget {
+class AnchorTestBox : public Widget {
 public:
-    TestWidget();
-    TestWidget(Widget& parent);
+    AnchorTestBox();
+    AnchorTestBox(Widget& parent);
     void onCodepoint(const Event::Codepoint& codepoint);
     void onMacro(const Event::Macro& macro);
     void onWindowResize(const Event::WindowResize& window_resize);

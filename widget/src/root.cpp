@@ -7,8 +7,9 @@
 #include "gl_err.h"
 
 Root::Root() {
+    m_anchor = Widget::Anchor::BottomLeft;
     glClearColor(m_canvas_color.r, m_canvas_color.g, m_canvas_color.b, 1.0f);
-    test = TestWidget(*this);
+    test = AnchorTestBox(*this);
 }
 
 void Root::onCodepoint(const Event::Codepoint& codepoint) {
@@ -20,8 +21,8 @@ void Root::onMacro(const Event::Macro& macro) {
 }
 
 void Root::onWindowResize(const Event::WindowResize& window_resize) {
-    m_size = { window_resize.x - 256, window_resize.y - 256};
-    m_offset = { (1.0f - (m_size.x / window_resize.x)) / 2, (1.0f - (m_size.y / window_resize.y)) / 2};
+    m_size = { window_resize.x, window_resize.y};
+    //m_offset = { (1.0f - (m_size.x / window_resize.x)) / 2, (1.0f - (m_size.y / window_resize.y)) / 2};
     test.onWindowResize(window_resize);
 }
 

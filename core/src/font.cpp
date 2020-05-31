@@ -21,11 +21,11 @@
 #include <thread>
 #include <future>
 
-const Font& Font::Cache::load(std::string font_name, std::string filename, u32 w, u32 h, u32 pixel_height) {
+const Font* Font::Cache::load(std::string font_name, std::string filename, u32 w, u32 h, u32 start_codepoint, u32 end_codepoint, u32 pixel_height) {
     if(m_font_cache.find(font_name) == m_font_cache.end()) {
-        m_font_cache.emplace(font_name, Font(filename, w, h, pixel_height));
+        m_font_cache.emplace(font_name, Font(filename, w, h, start_codepoint, end_codepoint, pixel_height));
     }
-    return m_font_cache[font_name];
+    return &m_font_cache[font_name];
 }
 
 void Font::Cache::clear() {
@@ -48,7 +48,12 @@ Font::Font(Font&& other) noexcept :
     other.m_texture_handle = std::nullopt;
 }
 
-Font::Font(std::string font_name, u32 w, u32 h, u32 pixel_height) : m_w(w), m_h(h), m_pixel_height(pixel_height) {
+Font::Font(std::string font_name, u32 w, u32 h, u32 start_codepoint, u32 end_codepoint,  u32 pixel_height) :
+                                                                                m_w(w),
+                                                                                m_h(h),
+                                                                                m_start_codepoint(start_codepoint),
+                                                                                m_end_codepoint(end_codepoint),
+                                                                                m_pixel_height(pixel_height) {
     std::string full_path = "data/" + font_name;
     if(std::filesystem::exists(full_path)) {
 
@@ -80,9 +85,9 @@ Font::Font(std::string font_name, u32 w, u32 h, u32 pixel_height) : m_w(w), m_h(
         workloads.resize(core_count);
         threads.resize(core_count-1);
 
-        int base_count = (126-33) / core_count;
-        int rem = ((126-33) % core_count);
-        u32 cur_codepoint = 33;
+        int base_count = (m_end_codepoint-m_start_codepoint) / core_count;
+        int rem = ((m_end_codepoint-m_start_codepoint) % core_count);
+        u32 cur_codepoint = m_start_codepoint;
         for(auto& workload : workloads) {
             workload.bitmaps = std::vector<std::vector<unsigned char>>(base_count + 1, std::vector<unsigned char>(m_w * m_h * 3));
             workload.codepoint = cur_codepoint;
@@ -120,7 +125,7 @@ Font::Font(std::string font_name, u32 w, u32 h, u32 pixel_height) : m_w(w), m_h(
         glBindTexture(GL_TEXTURE_2D_ARRAY, texture); CheckGLError();
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST); CheckGLError();
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST); CheckGLError();
-        glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGB8, m_w, m_h, 126-33); CheckGLError();
+        glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGB8, m_w, m_h, m_end_codepoint-m_start_codepoint); CheckGLError();
 
         int depth = 0;
         for(auto& workload : workloads) {
@@ -143,7 +148,7 @@ Font::~Font() {
     }
 }
 
-const std::optional<u32>& Font::getTextureHandle() {
+const std::optional<u32>& Font::getHandle() const {
     return m_texture_handle;
 }
 

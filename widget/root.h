@@ -6,7 +6,7 @@
 
 #include "common.h"
 #include "widget.h"
-#include "test.h"
+#include "anchor_test_box.h"
 
 #include "glm/glm.hpp"
 
@@ -18,6 +18,6 @@ public:
     void onWindowResize(const Event::WindowResize& window_resize);
     void draw(const Window::Viewport& viewport);
 private:
-    TestWidget test;
+    AnchorTestBox test;
     glm::vec3 m_canvas_color = { 1.0f, 1.0f, 1.0f};
 };

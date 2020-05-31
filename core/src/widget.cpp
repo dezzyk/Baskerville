@@ -3,6 +3,7 @@
 //
 
 #include "widget.h"
+#include "shader.h"
 
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
@@ -10,8 +11,8 @@
 #include <array>
 
 namespace {
+    const Shader* default_draw_shader = nullptr;
     std::optional<u32> default_draw_vao;
-    std::optional<u32> default_draw_shader;
     std::optional<u32> default_draw_vbo;
     b32 default_draw_attempted = false;
     u32 widget_count = 0;
@@ -28,10 +29,7 @@ Widget::Widget(Widget& widget) : m_parent(&widget) {
 Widget::~Widget() {
     widget_count--;
     if(widget_count == 0) {
-        if(default_draw_shader.has_value()){
-            glDeleteProgram(default_draw_shader.value());
-            default_draw_shader = std::nullopt;
-        }
+        default_draw_shader = nullptr;
         if(default_draw_vao.has_value()){
             glDeleteVertexArrays(1, &default_draw_vao.value());
             default_draw_vao = std::nullopt;
@@ -45,57 +43,25 @@ Widget::~Widget() {
 
 void Widget::debugDraw(const Window::Viewport &viewport) {
     if(!default_draw_attempted) {
-        if (!default_draw_shader.has_value()) {
-            u32 vert = 0;
-            u32 frag = 0;
-            u32 program = 0;
+        if (default_draw_shader == nullptr) {
 
-            const char* vert_src = "#version 430 core\n"
+            std::string vert = "#version 430 core\n"
                                    "layout (location = 0) in vec2 aPos;\n"
                                    "layout (location = 0) uniform mat4 proj;\n"
                                    "void main()\n"
                                    "{\n"
                                    "   gl_Position = proj * vec4(aPos, 0.0, 1.0);\n"
-                                   "}\0";
+                                   "}";
 
-            const char* frag_src = "#version 430 core\n"
+            std::string frag = "#version 430 core\n"
                                    "out vec4 FragColor;\n"
                                    "void main()"
                                    "{\n"
                                    "    FragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);\n"
-                                   "}\0";
+                                   "}";
 
-            vert = glCreateShader(GL_VERTEX_SHADER);
-            CheckGLError();
-            frag = glCreateShader(GL_FRAGMENT_SHADER);
-            CheckGLError();
-            glShaderSource(vert, 1, &vert_src, NULL);
-            CheckGLError();
-            glShaderSource(frag, 1, &frag_src, NULL);
-            CheckGLError();
-            glCompileShader(vert);
-            CheckGLError();
-            glCompileShader(frag);
-            CheckGLError();
-            program = glCreateProgram();
-            CheckGLError();
-            glAttachShader(program, vert);
-            CheckGLError();
-            glAttachShader(program, frag);
-            CheckGLError();
-            glLinkProgram(program);
-            CheckGLError();
-            int success;
-            char info_log[512];
-            glGetProgramiv(program, GL_LINK_STATUS, &success);
-            CheckGLError();
-            if (!success) {
-                glGetProgramInfoLog(program, 512, NULL, info_log);
-                CheckGLError();
-                std::cout << "Failed to create shader program | widget default\n" << info_log << std::endl;
-            } else {
-                default_draw_shader = program;
-            }
+            default_draw_shader = Shader::Cache::load("widget_debug_draw", vert, frag);
+
         }
         if (!default_draw_vbo.has_value()) {
             u32 vbo = 0;
@@ -129,7 +95,7 @@ void Widget::debugDraw(const Window::Viewport &viewport) {
         }
         default_draw_attempted = true;
     }
-    if(default_draw_shader.has_value() && default_draw_vao.has_value() && default_draw_vbo.has_value()) {
+    if((default_draw_shader!= nullptr && default_draw_shader->getHandle().has_value()) && default_draw_vao.has_value() && default_draw_vbo.has_value()) {
 
         std::array<glm::vec2, 48> vertices;
 
@@ -232,7 +198,7 @@ void Widget::debugDraw(const Window::Viewport &viewport) {
         vertices[47] = model * glm::vec4(-1.0f, 1.0f, 0.0, 1.0f); // top left
 
         glm::mat4 proj = glm::ortho(0.0f, viewport.x, 0.0f, viewport.y);
-        glUseProgram(default_draw_shader.value()); CheckGLError();
+        glUseProgram(default_draw_shader->getHandle().value()); CheckGLError();
         glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(proj));
         glBindVertexArray(default_draw_vao.value()); CheckGLError();
         glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * vertices.size(), vertices.data(), GL_DYNAMIC_DRAW); CheckGLError();
@@ -253,86 +219,86 @@ glm::vec2 Widget::calcDrawPos(const Window::Viewport &viewport) {
                 draw_pos.x += (m_offset.x * (m_parent->m_size.x - m_size.x));
                 draw_pos.y += (m_parent->m_size.y - m_size.y) - (m_offset.y * (m_parent->m_size.y - m_size.y));
             }
-            break; //optional
+            break;
             case Widget::Anchor::Top  : {
                 draw_pos.x += ((m_parent->m_size.x / 2) - (m_size.x / 2)) + (m_offset.x * (m_parent->m_size.x - m_size.x));
                 draw_pos.y += (m_parent->m_size.y - m_size.y) - (m_offset.y * (m_parent->m_size.y - m_size.y));
             }
-            break; //optional
+            break;
             case Widget::Anchor::TopRight  : {
                 draw_pos.x += (m_parent->m_size.x - m_size.x) - (m_offset.x * (m_parent->m_size.x - m_size.x));
                 draw_pos.y += (m_parent->m_size.y - m_size.y) - (m_offset.y * (m_parent->m_size.y - m_size.y));
             }
-            break; //optional
+            break;
             case Widget::Anchor::Left  : {
                 draw_pos.x += (m_offset.x * (m_parent->m_size.x - m_size.x));
                 draw_pos.y += ((m_parent->m_size.y / 2) - (m_size.y / 2)) + (m_offset.y * (m_parent->m_size.y - m_size.y));
             }
-            break; //optional
-            case Widget::Anchor::Right  : {
-                draw_pos.x += (m_parent->m_size.x - m_size.x) - (m_offset.x * (m_parent->m_size.x - m_size.x));
-                draw_pos.y += ((m_parent->m_size.y / 2) - (m_size.y / 2)) + (m_offset.y * (m_parent->m_size.y - m_size.y));
-            }
-            break; //optional
-            case Widget::Anchor::BottomLeft  : {
-                draw_pos.x += (m_offset.x * (m_parent->m_size.x - m_size.x));
-                draw_pos.y += (m_offset.y * (m_parent->m_size.y - m_size.y));
-            }
-            break; //optional
-            case Widget::Anchor::Bottom  : {
-                draw_pos.x += ((m_parent->m_size.x / 2) - (m_size.x / 2)) + (m_offset.x * (m_parent->m_size.x - m_size.x));
-                draw_pos.y += (m_offset.y * (m_parent->m_size.y - m_size.y));
-            }
-            break; //optional
-            case Widget::Anchor::BottomRight  : {
-                draw_pos.x += (m_parent->m_size.x - m_size.x) - (m_offset.x * (m_parent->m_size.x - m_size.x));
-                draw_pos.y += (m_offset.y * (m_parent->m_size.y - m_size.y));
-            }
-            break; //optional
+            break;
             case Widget::Anchor::Center  : {
                 draw_pos.x += ((m_parent->m_size.x / 2) - (m_size.x / 2)) + (m_offset.x * (m_parent->m_size.x - m_size.x));
                 draw_pos.y += ((m_parent->m_size.y / 2) - (m_size.y / 2)) + (m_offset.y * (m_parent->m_size.y - m_size.y));
             }
-            break; //optional
+                break;
+            case Widget::Anchor::Right  : {
+                draw_pos.x += (m_parent->m_size.x - m_size.x) - (m_offset.x * (m_parent->m_size.x - m_size.x));
+                draw_pos.y += ((m_parent->m_size.y / 2) - (m_size.y / 2)) + (m_offset.y * (m_parent->m_size.y - m_size.y));
+            }
+            break;
+            case Widget::Anchor::BottomLeft  : {
+                draw_pos.x += (m_offset.x * (m_parent->m_size.x - m_size.x));
+                draw_pos.y += (m_offset.y * (m_parent->m_size.y - m_size.y));
+            }
+            break;
+            case Widget::Anchor::Bottom  : {
+                draw_pos.x += ((m_parent->m_size.x / 2) - (m_size.x / 2)) + (m_offset.x * (m_parent->m_size.x - m_size.x));
+                draw_pos.y += (m_offset.y * (m_parent->m_size.y - m_size.y));
+            }
+            break;
+            case Widget::Anchor::BottomRight  : {
+                draw_pos.x += (m_parent->m_size.x - m_size.x) - (m_offset.x * (m_parent->m_size.x - m_size.x));
+                draw_pos.y += (m_offset.y * (m_parent->m_size.y - m_size.y));
+            }
+            break;
         }
     } else {
         switch (m_anchor) {
             case Widget::Anchor::TopLeft  : {
                 draw_pos = {0.0f, viewport.y - m_size.y};
             }
-            break; //optional
+            break;
             case Widget::Anchor::Top  : {
                 draw_pos = {(viewport.x / 2) - (m_size.x / 2), viewport.y - m_size.y};
             }
-            break; //optional
+            break;
             case Widget::Anchor::TopRight  : {
                 draw_pos = {draw_pos.x - m_size.x, viewport.y - m_size.y};
             }
-            break; //optional
+            break;
             case Widget::Anchor::Left  : {
                 draw_pos = {0.0f, (viewport.y / 2) - (m_size.y / 2)};
             }
-            break; //optional
-            case Widget::Anchor::Right  : {
-                draw_pos = {viewport.x - m_size.x, (viewport.y / 2) - (m_size.y / 2)};
-            }
-            break; //optional
-            case Widget::Anchor::BottomLeft  : {
-                draw_pos = {0.0f, 0.0f};
-            }
-            break; //optional
-            case Widget::Anchor::Bottom  : {
-                draw_pos = {(viewport.x / 2) - (m_size.x / 2), 0.0};
-            }
-            break; //optional
-            case Widget::Anchor::BottomRight  : {
-                draw_pos = {viewport.x - m_size.x, 0.0f};
-            }
-            break; //optional
+            break;
             case Widget::Anchor::Center  : {
                 draw_pos = {(viewport.x / 2) - (m_size.x / 2), (viewport.y / 2) - (m_size.y / 2)};
             }
-            break; //optional
+            break;
+            case Widget::Anchor::Right  : {
+                draw_pos = {viewport.x - m_size.x, (viewport.y / 2) - (m_size.y / 2)};
+            }
+            break;
+            case Widget::Anchor::BottomLeft  : {
+                draw_pos = {0.0f, 0.0f};
+            }
+            break;
+            case Widget::Anchor::Bottom  : {
+                draw_pos = {(viewport.x / 2) - (m_size.x / 2), 0.0};
+            }
+            break;
+            case Widget::Anchor::BottomRight  : {
+                draw_pos = {viewport.x - m_size.x, 0.0f};
+            }
+            break;
         }
     }
     return draw_pos;
