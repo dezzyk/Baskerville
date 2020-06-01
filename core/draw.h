@@ -70,7 +70,7 @@ struct Buffer {
 };
 
 struct Draw {
-    // Uniform 0 will always be the projection matrix
+    // Uniform 0 will always be the projection matrix, total of 8 uniforms including 0
     std::array<Uniform, 7> uniforms;
     std::array<Buffer, 4> buffers;
     const Shader* shader = nullptr;

@@ -26,7 +26,6 @@ void Root::onWindowResize(const Event::WindowResize& window_resize) {
 }
 
 void Root::draw(Window::DrawBuffer& draw_buffer) {
-    glClear(GL_COLOR_BUFFER_BIT); CheckGLError();
     debugDraw(draw_buffer);
     test.draw(draw_buffer);
 }

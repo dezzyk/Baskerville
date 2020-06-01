@@ -135,12 +135,13 @@ Window::DrawBuffer& Window::getDrawBuffer() {
 }
 
 void Window::draw() {
+    glClear(GL_COLOR_BUFFER_BIT); CheckGLError();
     glm::mat4 proj = glm::ortho(0.0f, m_state.viewport.x, 0.0f, m_state.viewport.y);
     for(auto& draw : m_draw_buffer) {
         if(draw.shader != nullptr && draw.shader->getHandle().has_value() && draw.vao.has_value()) {
             glUseProgram(draw.shader->getHandle().value());
             glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(proj));
-            for(int i = 0; i < draw.uniforms.size(); ++i) {
+            for(int i = 1; i < draw.uniforms.size(); ++i) {
                 if(draw.uniforms[i].type != Meta::MakeType<Meta::Empty>()) {
                     Meta::Type type = draw.uniforms[i].type;
                     if(type == Meta::MakeType<glm::mat4>()) {

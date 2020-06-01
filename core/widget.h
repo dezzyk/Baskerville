@@ -48,6 +48,6 @@ protected:
         std::optional<u32> vao;
         std::optional<u32> vbo;
         b32 draw_attempted = false;
-    } m_draw_params;
+    } m_debug_draw_params;
 
 };
