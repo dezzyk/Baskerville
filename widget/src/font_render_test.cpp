@@ -79,7 +79,7 @@ void FontRenderTest::draw(Window::DrawBuffer& draw_buffer) {
 
     glm::vec2 draw_pos = calcDrawPos();
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(draw_pos.x + (m_size.x / 2),draw_pos.y + (m_size.y / 2), 0.0f));
+    model = glm::translate(model, glm::vec3(draw_pos.x, draw_pos.y, 0.0f));
     model = glm::scale(model, glm::vec3(m_size.x, m_size.y, 0.0f));
 
     // top right
