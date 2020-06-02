@@ -9,9 +9,11 @@
 #include "font.h"
 #include "shader.h"
 
+#include "glad/glad.h"
+#include "glm/glm.hpp"
+
 class FontRenderTest : public Widget {
 public:
-    FontRenderTest();
     FontRenderTest(Widget& parent);
     void onCodepoint(const Event::Codepoint& codepoint);
     void onMacro(const Event::Macro& macro);
@@ -21,5 +23,7 @@ private:
     glm::vec3 m_canvas_color = { 1.0f, 1.0f, 1.0f};
     const Font* m_font = nullptr;
     const Shader* m_shader = nullptr;
+    std::optional<u32> m_vao;
+    std::optional<u32> m_vbo;
     u32 m_codepoint = 33;
 };

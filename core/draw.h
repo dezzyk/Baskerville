@@ -11,14 +11,26 @@
 
 #include <array>
 #include <optional>
+#include <iostream>
 
 struct Uniform {
-    struct Texture { u32 handle = 0; u32 index = 0;};
-    struct ArrayTexture { u32 handle = 0; u32 index = 0;};
+    struct Texture {
+        Texture() : handle(0), index(0) {}
+        Texture(u32 h, u32 i) : handle(h), index(i) {}
+        u32 handle;
+        u32 index;
+    };
+    struct ArrayTexture {
+        ArrayTexture() : handle(0), index(0) {}
+        ArrayTexture(u32 h, u32 i) : handle(h), index(i) {}
+        u32 handle;
+        u32 index;
+    };
     template <typename T>
     void setValue(T new_value) {
         // If set to an invalid uniform value, set type to empty for checking against
         type = Meta::MakeType<Meta::Empty>();
+        std::cout << "Invalid uniform value assigned, defaulted to empty" << std::end;
     }
     template <>
     void setValue<glm::mat4>(glm::mat4 new_value) {
@@ -41,6 +53,21 @@ struct Uniform {
         value.vec2 = new_value;
     }
     template <>
+    void setValue<f32>(f32 new_value) {
+        type = Meta::MakeType<f32>();
+        value.u_f32 = new_value;
+    }
+    template <>
+    void setValue<u32>(u32 new_value) {
+        type = Meta::MakeType<u32>();
+        value.u_u32 = new_value;
+    }
+    template <>
+    void setValue<i32>(i32 new_value) {
+        type = Meta::MakeType<i32>();
+        value.u_i32 = new_value;
+    }
+    template <>
     void setValue<Texture>(Texture new_value) {
         type = Meta::MakeType<Texture>();
         value.texture = new_value;
@@ -56,6 +83,9 @@ struct Uniform {
         glm::vec4 vec4;
         glm::vec3 vec3;
         glm::vec2 vec2;
+        f32 u_f32;
+        u32 u_u32;
+        i32 u_i32;
         Texture texture;
         ArrayTexture array_texture;
     };

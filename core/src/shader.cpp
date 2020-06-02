@@ -17,7 +17,8 @@ const Shader* Shader::Cache::load(std::string shader_name, std::string vert, std
 }
 
 const Shader* Shader::Cache::fetch(std::string shader_name) {
-    if(m_shader_cache.find(shader_name) == m_shader_cache.end()) {
+    std::cout << m_shader_cache.size() << std::endl;
+    if(m_shader_cache.find(shader_name) != m_shader_cache.end()) {
         return &m_shader_cache[shader_name];
     }
     return nullptr;
@@ -31,28 +32,28 @@ std::unordered_map<std::string, Shader> Shader::Cache::m_shader_cache;
 
 Shader::Shader(std::string vert, std::string frag) {
     u32 vert_handle, frag_handle, program_handle;
-    vert_handle = glCreateShader(GL_VERTEX_SHADER);
-    frag_handle = glCreateShader(GL_FRAGMENT_SHADER);
-    const char* vert_c_str = vert.c_str();
-    const char* frag_c_str = frag.c_str();
-    glShaderSource(vert_handle, 1, &vert_c_str, NULL);
-    glShaderSource(frag_handle, 1, &frag_c_str, NULL);
-    glCompileShader(vert_handle);
-    glCompileShader(frag_handle);
-    program_handle = glCreateProgram();
-    glAttachShader(program_handle, vert_handle);
-    glAttachShader(program_handle, frag_handle);
-    glLinkProgram(program_handle);
+    vert_handle = glCreateShader(GL_VERTEX_SHADER); CheckGLError();
+    frag_handle = glCreateShader(GL_FRAGMENT_SHADER); CheckGLError();
+    const char* vert_c_str = vert.c_str(); CheckGLError();
+    const char* frag_c_str = frag.c_str(); CheckGLError();
+    glShaderSource(vert_handle, 1, &vert_c_str, NULL); CheckGLError();
+    glShaderSource(frag_handle, 1, &frag_c_str, NULL); CheckGLError();
+    glCompileShader(vert_handle); CheckGLError();
+    glCompileShader(frag_handle); CheckGLError();
+    program_handle = glCreateProgram(); CheckGLError();
+    glAttachShader(program_handle, vert_handle); CheckGLError();
+    glAttachShader(program_handle, frag_handle); CheckGLError();
+    glLinkProgram(program_handle); CheckGLError();
     int success;
     char info_log[512];
-    glGetProgramiv(program_handle, GL_LINK_STATUS, &success);
+    glGetProgramiv(program_handle, GL_LINK_STATUS, &success); CheckGLError();
     if (!success) {
         glGetProgramInfoLog(program_handle, 512, NULL, info_log);
         std::cout << "Failed to create shader program \n" << info_log << std::endl;
     } else {
         m_handle = program_handle;
     }
-    glDeleteShader(vert_handle);
+    glDeleteShader(vert_handle); CheckGLError();
     glDeleteShader(frag_handle); CheckGLError();
 }
 
@@ -64,8 +65,8 @@ Shader::Shader(Shader&& other) noexcept : m_handle(other.m_handle) {
 
 Shader::~Shader() {
     if(m_handle.has_value()) {
-        glUseProgram(0);
-        glDeleteProgram(m_handle.value());
+        glUseProgram(0); CheckGLError();
+        glDeleteProgram(m_handle.value()); CheckGLError();
         m_handle = std::nullopt;
     }
 }

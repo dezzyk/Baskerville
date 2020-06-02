@@ -9,16 +9,15 @@
 
 #include <array>
 
-Widget::Widget() {}
 Widget::Widget(Widget& widget) : m_parent(&widget) {}
 
 Widget::~Widget() {
     if(m_debug_draw_params.vao.has_value()){
-        glDeleteVertexArrays(1, &m_debug_draw_params.vao.value());
+        glDeleteVertexArrays(1, &m_debug_draw_params.vao.value()); CheckGLError();
         m_debug_draw_params.vao = std::nullopt;
     }
     if(m_debug_draw_params.vbo.has_value()){
-        glDeleteBuffers(1, &m_debug_draw_params.vbo.value());
+        glDeleteBuffers(1, &m_debug_draw_params.vbo.value()); CheckGLError();
         m_debug_draw_params.vbo = std::nullopt;
     }
 }
@@ -32,20 +31,21 @@ void Widget::debugDraw(Window::DrawBuffer& draw_buffer) {
     if(!m_debug_draw_params.draw_attempted) {
         if (m_debug_draw_params.shader == nullptr) {
 
-            std::string vert =
-                    #include "shader/debug_draw.vert"
-                            ;
-            std::string frag =
-                    #include "shader/debug_draw.frag"
-                            ;
-
-            m_debug_draw_params.shader = Shader::Cache::load("widget_debug_draw", vert, frag);
+            m_debug_draw_params.shader = Shader::Cache::fetch("debug_draw");
+            if(m_debug_draw_params.shader == nullptr) {
+                std::string vert =
+                #include "shader/debug_draw.vert"
+                        ;
+                std::string frag =
+                #include "shader/debug_draw.frag"
+                        ;
+                m_debug_draw_params.shader = Shader::Cache::load("debug_draw", vert, frag);
+            }
 
         }
         if (!m_debug_draw_params.vbo.has_value()) {
             u32 vbo = 0;
-            glGenBuffers(1, &vbo);
-            CheckGLError();
+            glGenBuffers(1, &vbo);  CheckGLError();
             if (vbo != 0) {
                 m_debug_draw_params.vbo = vbo;
             } else {
@@ -54,14 +54,13 @@ void Widget::debugDraw(Window::DrawBuffer& draw_buffer) {
         }
         if (!m_debug_draw_params.vao.has_value() && m_debug_draw_params.vbo.has_value()) {
             u32 vao = 0;
-            glGenVertexArrays(1, &vao);
-            CheckGLError();
+            glGenVertexArrays(1, &vao); CheckGLError();
             if (vao != 0) {
-                glBindVertexArray(vao);
-                glBindBuffer(GL_ARRAY_BUFFER, m_debug_draw_params.vbo.value());
-                glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*) 0);
-                glEnableVertexAttribArray(0);
-                glBindVertexArray(0);
+                glBindVertexArray(vao); CheckGLError();
+                glBindBuffer(GL_ARRAY_BUFFER, m_debug_draw_params.vbo.value()); CheckGLError();
+                glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*) 0); CheckGLError();
+                glEnableVertexAttribArray(0); CheckGLError();
+                glBindVertexArray(0); CheckGLError();
                 m_debug_draw_params.vao = vao;
             } else {
                 std::cout << "Failed to create vao | widget default" << std::endl;
@@ -172,9 +171,9 @@ void Widget::debugDraw(Window::DrawBuffer& draw_buffer) {
         vertices[47] = model * glm::vec4(-1.0f, 1.0f, 0.0, 1.0f); // top left
 
 
-        glBindBuffer(GL_ARRAY_BUFFER, m_debug_draw_params.vbo.value());
+        glBindBuffer(GL_ARRAY_BUFFER, m_debug_draw_params.vbo.value());  CheckGLError();
         glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * vertices.size(), vertices.data(), GL_DYNAMIC_DRAW); CheckGLError();
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);  CheckGLError();
 
         Draw draw;
         draw.vao = m_debug_draw_params.vao.value();

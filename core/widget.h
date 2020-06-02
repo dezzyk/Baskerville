@@ -16,7 +16,7 @@
 
 class Widget {
 public:
-    Widget();
+    Widget() {}
     Widget(Widget& widget);
     ~Widget();
     enum class Anchor {

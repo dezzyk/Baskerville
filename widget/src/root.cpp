@@ -6,13 +6,13 @@
 
 #include "gl_err.h"
 
-Root::Root() {
+Root::Root() : test(AnchorTestBox(*this)), test2(FontRenderTest(*this)){
     glClearColor(m_canvas_color.r, m_canvas_color.g, m_canvas_color.b, 1.0f);
-    test = AnchorTestBox(*this);
 }
 
 void Root::onCodepoint(const Event::Codepoint& codepoint) {
-
+    test.onCodepoint(codepoint);
+    test2.onCodepoint(codepoint);
 }
 
 void Root::onMacro(const Event::Macro& macro) {
@@ -28,4 +28,5 @@ void Root::onWindowResize(const Event::WindowResize& window_resize) {
 void Root::draw(Window::DrawBuffer& draw_buffer) {
     debugDraw(draw_buffer);
     test.draw(draw_buffer);
+    test2.draw(draw_buffer);
 }

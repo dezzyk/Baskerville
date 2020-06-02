@@ -4,16 +4,12 @@
 
 #include "anchor_test_box.h"
 
-AnchorTestBox::AnchorTestBox() {
-    m_size = {128, 128};
-}
-
-AnchorTestBox::AnchorTestBox(Widget& parent) : Widget(parent) {
+AnchorTestBox::AnchorTestBox(Widget& parent) : Widget(parent), test(*this) {
     m_size = {128, 128};
 }
 
 void AnchorTestBox::onCodepoint(const Event::Codepoint& codepoint) {
-
+    test.onCodepoint(codepoint);
 }
 
 void AnchorTestBox::onMacro(const Event::Macro& macro) {
@@ -91,4 +87,5 @@ void AnchorTestBox::onWindowResize(const Event::WindowResize& window_resize) {
 
 void AnchorTestBox::draw(Window::DrawBuffer& draw_buffer){
     debugDraw(draw_buffer);
+    test.draw(draw_buffer);
 }
