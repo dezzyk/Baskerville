@@ -24,14 +24,11 @@
 
 const Font* Font::Cache::load(std::string font_name,
                                 std::string filename,
-                                u32 bitmap_width,
-                                u32 bitmap_height,
                                 u32 start_codepoint,
                                 u32 end_codepoint,
-                                u32 pixel_height,
-                                f32 msdf_pixel_range) {
+                                u32 pixel_height) {
     if(m_font_cache.find(font_name) == m_font_cache.end()) {
-        m_font_cache.emplace(font_name, Font(filename, bitmap_width, bitmap_height, start_codepoint, end_codepoint, pixel_height, msdf_pixel_range));
+        m_font_cache.emplace(font_name, Font(filename, start_codepoint, end_codepoint, pixel_height));
     }
     return &m_font_cache[font_name];
 }
@@ -54,10 +51,9 @@ Font::Font() {}
 Font::Font(Font&& other) noexcept :
         m_font_info(other.m_font_info),
         m_texture_handle(other.m_texture_handle),
-        m_scale(other.m_scale),
         m_baseline(other.m_baseline),
-        m_bitmap_width(other.m_bitmap_width),
-        m_bitmap_height(other.m_bitmap_height),
+        m_bitmap_size(other.m_bitmap_size),
+        m_bounding_box_size(other.m_bounding_box_size),
         m_start_codepoint(other.m_start_codepoint),
         m_end_codepoint(other.m_end_codepoint),
         m_pixel_height(other.m_pixel_height),
@@ -66,15 +62,15 @@ Font::Font(Font&& other) noexcept :
     other.m_texture_handle = std::nullopt;
 }
 
-Font::Font(std::string font_name, u32 bitmap_width, u32 bitmap_height, u32 start_codepoint, u32 end_codepoint, u32 pixel_height, f32 msdf_pixel_range) :
-        m_bitmap_width(bitmap_width),
-        m_bitmap_height(bitmap_height),
+Font::Font(std::string font_name, u32 start_codepoint, u32 end_codepoint, u32 pixel_height) :
         m_start_codepoint(start_codepoint),
         m_end_codepoint(end_codepoint),
-        m_pixel_height(pixel_height),
-        m_msdf_pixel_range(msdf_pixel_range) {
+        m_pixel_height(pixel_height){
     std::string full_path = global_data_path + "font/" + font_name;
     if(std::filesystem::exists(full_path)) {
+
+        m_bitmap_size.x = (64 * (m_pixel_height / 24));
+        m_bitmap_size.y = (64 * (m_pixel_height / 24));
 
         std::vector<char> buffer;
         std::ifstream file;
@@ -91,6 +87,7 @@ Font::Font(std::string font_name, u32 bitmap_width, u32 bitmap_height, u32 start
         int x0, y0, x1, y1;
         stbtt_GetFontBoundingBox(&m_font_info, &x0, &y0, &x1, &y1);
         m_baseline = m_scale*-y0;
+        m_bounding_box_size = {m_baseline * m_scale, (abs(y1) - abs(y0)) * m_scale};
 
         const auto core_count = std::thread::hardware_concurrency();
 
@@ -108,7 +105,7 @@ Font::Font(std::string font_name, u32 bitmap_width, u32 bitmap_height, u32 start
         u32 rem = ((m_end_codepoint-m_start_codepoint) % core_count);
         u32 cur_codepoint = m_start_codepoint;
         for(auto& workload : workloads) {
-            workload.bitmaps = std::vector<std::vector<unsigned char>>(base_count + 1, std::vector<unsigned char>(m_bitmap_width * m_bitmap_height * 3));
+            workload.bitmaps = std::vector<std::vector<unsigned char>>(base_count + 1, std::vector<unsigned char>(m_bitmap_size.x * m_bitmap_size.y * 3));
             workload.codepoint = cur_codepoint;
             if(rem > 0) {
                 rem--;
@@ -142,21 +139,23 @@ Font::Font(std::string font_name, u32 bitmap_width, u32 bitmap_height, u32 start
         u32 texture;
         glGenTextures(1, &texture); CheckGLError();
         glBindTexture(GL_TEXTURE_2D_ARRAY, texture); CheckGLError();
-        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR); CheckGLError();
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); CheckGLError();
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR); CheckGLError();
-        glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGB8, m_bitmap_width, m_bitmap_height, m_end_codepoint - m_start_codepoint); CheckGLError();
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGB8, m_bitmap_size.x, m_bitmap_size.y, m_end_codepoint - m_start_codepoint); CheckGLError();
 
         int depth = 0;
         for(auto& workload : workloads) {
             for(auto& bitmap : workload.bitmaps) {
-                glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, depth, m_bitmap_width, m_bitmap_height, 1, GL_RGB, GL_UNSIGNED_BYTE, bitmap.data()); CheckGLError();
-                //std::cout << depth << std::endl;
-                //std::cout << bitmap.size() << std::endl;
+                glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, depth, m_bitmap_size.x, m_bitmap_size.y, 1, GL_RGB, GL_UNSIGNED_BYTE, bitmap.data()); CheckGLError();
                 depth++;
             }
         }
 
         m_texture_handle = texture; CheckGLError();
+
+        //stbi_write_bmp("test.bmp", m_bitmap_size.x, m_bitmap_size.x, 3, reinterpret_cast<void*>(workloads[6].bitmaps[1].data()));
 
     }
 }
@@ -171,16 +170,12 @@ const std::optional<u32>& Font::getHandle() const {
     return m_texture_handle;
 }
 
-f32 Font::getScale() const{
-    return m_scale;
-}
-
 f32 Font::getBaseline() const{
     return m_baseline;
 }
 
 glm::vec2 Font::getBitmapSize() const{
-    return {m_bitmap_width, m_bitmap_height };
+    return m_bitmap_size;
 }
 
 u32 Font::getKernOffset(u32 c0, u32 c1) const{
@@ -193,6 +188,10 @@ u32 Font::getStartCodepoint() const {
 
 u32 Font::getEndCodepoint() const {
     return m_end_codepoint;
+}
+
+u32 Font::getPixelHeight() const {
+    return m_pixel_height;
 }
 
 f32 Font::getMSDFPixelRange() const {
@@ -208,37 +207,37 @@ std::vector<unsigned char> Font::generateBitmap(u32 codepoint) {
     if(stbtt_GetFontVMetricsOS2(&m_font_info, &ascent, &descent, &lineGap) == 0) {
         stbtt_GetFontVMetrics(&m_font_info, &ascent, &descent, &lineGap);
     }
-    position.y = m_baseline - (descent * m_scale); // Start with baseline
-    position.x = (m_bitmap_width / 2) - ((abs(x0 * m_scale) + abs(x1 * m_scale)) / 2);
+    position.y = (m_baseline / m_scale) - descent; // Start with baseline
+    position.x = ((m_bitmap_size.x / m_scale) / 2) - ((abs(x0) + abs(x1)) / 2);
+    //position.y = m_bitmap_size.y; // Start with baseline
+    //position.x = (m_bitmap_size.x / 2);
 
     // Build the MSDF shape
     stbtt_vertex* vertices = nullptr;
     int vertex_count = stbtt_GetCodepointShape(&m_font_info, codepoint, &vertices);
-    //std::cout << vertex_count << std::endl;
     msdfgen::Shape shape;
-    //msdfgen::Contour* cur_contour;
     msdfgen::Contour* cur_contour;
     msdfgen::Point2 last = {0.0, 0.0};
     msdfgen::Point2 cur = {0.0, 0.0};
     for(int i = 0; i < vertex_count; ++i) {
         if(vertices[i].type == STBTT_vmove) {
             cur_contour = &shape.addContour();
-            cur_contour->edges.reserve(vertex_count); // ez optimization lul
-            cur = { (double)(vertices[i].x * m_scale), (double)(vertices[i].y  * m_scale)};
+            cur_contour->edges.reserve(vertex_count);
+            cur = { (double)(vertices[i].x), (double)(vertices[i].y)};
         } else if (vertices[i].type == STBTT_vline) {
             last = cur;
-            cur = { (double)(vertices[i].x * m_scale), (double)(vertices[i].y  * m_scale)};
+            cur = { (double)(vertices[i].x), (double)(vertices[i].y)};
             msdfgen::EdgeHolder new_edge(last, cur);
             cur_contour->addEdge(new_edge);
         } else if (vertices[i].type == STBTT_vcurve) {
             last = cur;
-            cur = { (double)(vertices[i].x * m_scale), (double)(vertices[i].y  * m_scale)};
-            msdfgen::EdgeHolder new_edge(last, {(double)(vertices[i].cx * m_scale), (double)(vertices[i].cy * m_scale)}, cur);
+            cur = { (double)(vertices[i].x), (double)(vertices[i].y)};
+            msdfgen::EdgeHolder new_edge(last, {(double)(vertices[i].cx), (double)(vertices[i].cy)}, cur);
             cur_contour->addEdge(new_edge);
         } else if (vertices[i].type == STBTT_vcubic) {
             last = cur;
-            cur = { (double)(vertices[i].x * m_scale), (double)(vertices[i].y  * m_scale)};
-            msdfgen::EdgeHolder new_edge(last, {(double)(vertices[i].cx * m_scale), (double)(vertices[i].cy * m_scale)}, {(double)(vertices[i].cx1 * m_scale), (double)(vertices[i].cy1 * m_scale)}, cur);
+            cur = { (double)(vertices[i].x), (double)(vertices[i].y  )};
+            msdfgen::EdgeHolder new_edge(last, {(double)(vertices[i].cx), (double)(vertices[i].cy)}, {(double)(vertices[i].cx1), (double)(vertices[i].cy1)}, cur);
             cur_contour->addEdge(new_edge);
         }
     }
@@ -247,8 +246,8 @@ std::vector<unsigned char> Font::generateBitmap(u32 codepoint) {
     msdfgen::edgeColoringSimple(shape, 3.0);
 
     // Generate the bitmap
-    msdfgen::Bitmap<float, 3> bitmap(m_bitmap_width, m_bitmap_height);
-    msdfgen::generateMSDF(bitmap, shape, 4.0, 1.0, position);
+    msdfgen::Bitmap<float, 3> bitmap(m_bitmap_size.x, m_bitmap_size.y);
+    msdfgen::generateMSDF(bitmap, shape, m_msdf_pixel_range, m_scale, position);
 
     msdfgen::BitmapConstRef<float, 3> bitmapConst = bitmap;
     std::vector<unsigned char> pixels(3*bitmapConst.width*bitmapConst.height);

@@ -272,7 +272,7 @@ glm::vec2 Widget::calcDrawPos() {
             break;
             case Widget::Anchor::Center  : {
                 draw_pos.x += (m_offset.x * (m_parent->m_size.x - m_size.x));
-                draw_pos.y += (m_offset.x * (m_parent->m_size.x - m_size.y));
+                draw_pos.y += (m_offset.y * (m_parent->m_size.y - m_size.y));
             }
                 break;
             case Widget::Anchor::Right  : {

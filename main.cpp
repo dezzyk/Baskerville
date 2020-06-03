@@ -28,7 +28,7 @@ int main() {
 
     if(window.startup()) {
 
-        Font::Cache::load("editor", "LibreBaskerville-Regular.ttf", 32, 48, 33, 126, 32, 4);
+        Font::Cache::load("editor", "LibreBaskerville-Regular.ttf", 33, 126, 96);
 
         root = new Root();
 

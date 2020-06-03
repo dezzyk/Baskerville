@@ -7,7 +7,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 
 FontRenderTest::FontRenderTest(Widget& parent) : Widget(parent) {
-    m_anchor = Widget::Anchor::Center;
+    m_anchor = Widget::Anchor::TopRight;
     m_font = Font::Cache::fetch("editor");
     m_shader = Shader::Cache::fetch("msdf_draw");
     if(m_shader == nullptr) {
@@ -80,7 +80,7 @@ void FontRenderTest::draw(Window::DrawBuffer& draw_buffer) {
     glm::vec2 draw_pos = calcDrawPos();
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(draw_pos.x, draw_pos.y, 0.0f));
-    model = glm::scale(model, glm::vec3(m_size.x, m_size.y, 0.0f));
+    model = glm::scale(model, glm::vec3(m_size.x / 4, m_size.y / 4, 0.0f));
 
     // top right
     vertices[0].pos = { 0.5f, 0.5f }; // top right
@@ -120,5 +120,5 @@ void FontRenderTest::draw(Window::DrawBuffer& draw_buffer) {
     new_draw.uniforms[2].setValue(m_font->getMSDFPixelRange());
     draw_buffer.push_back(new_draw);
 
-    debugDraw(draw_buffer);
+    //debugDraw(draw_buffer);
 }
