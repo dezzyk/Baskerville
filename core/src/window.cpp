@@ -184,13 +184,13 @@ void Window::draw() {
                     CheckGLError();
                     glBindVertexArray(0);
                 } else {
-                    std::cout << "Draw vao is equal to nullopt, skipping.";
+                    std::cout << "Draw vao is equal to nullopt, skipping." << std::endl;
                 }
             } else {
-                std::cout << "Draw shader valid but handle is equal to nullopt, skipping.";
+                std::cout << "Draw shader valid but handle is equal to nullopt, skipping." << std::endl;
             }
         } else {
-            std::cout << "Draw shader equal to nullptr, skipping.";
+            std::cout << "Draw shader equal to nullptr, skipping." << std::endl;
         }
     }
     m_draw_buffer.resize(0);

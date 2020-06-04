@@ -69,9 +69,6 @@ Font::Font(std::string font_name, u32 start_codepoint, u32 end_codepoint, u32 pi
     std::string full_path = global_data_path + "font/" + font_name;
     if(std::filesystem::exists(full_path)) {
 
-        m_bitmap_size.x = (64 * (m_pixel_height / 24));
-        m_bitmap_size.y = (64 * (m_pixel_height / 24));
-
         std::vector<char> buffer;
         std::ifstream file;
         file.open(full_path, std::ios::binary);
@@ -86,8 +83,15 @@ Font::Font(std::string font_name, u32 start_codepoint, u32 end_codepoint, u32 pi
         m_scale = stbtt_ScaleForPixelHeight(&m_font_info, pixel_height);
         int x0, y0, x1, y1;
         stbtt_GetFontBoundingBox(&m_font_info, &x0, &y0, &x1, &y1);
+        int ascent, descent, lineGap;
+        if(stbtt_GetFontVMetricsOS2(&m_font_info, &ascent, &descent, &lineGap) == 0) {
+            stbtt_GetFontVMetrics(&m_font_info, &ascent, &descent, &lineGap);
+        }
         m_baseline = m_scale*-y0;
-        m_bounding_box_size = {m_baseline * m_scale, (abs(y1) - abs(y0)) * m_scale};
+        //m_bounding_box_size = {(abs(x1) + abs(x0)) * m_scale, (abs(y1) + abs(y0)) * m_scale};
+
+        m_bitmap_size.x = ((f32)x1 * m_scale) / 2 + 16;
+        m_bitmap_size.y = (abs(ascent) + abs(descent)) * m_scale;
 
         const auto core_count = std::thread::hardware_concurrency();
 
@@ -198,6 +202,10 @@ f32 Font::getMSDFPixelRange() const {
     return m_msdf_pixel_range;
 }
 
+f32 Font::calcPXScaler(u32 pixel_height) const {
+    return ((f32)pixel_height / (f32)m_pixel_height);
+}
+
 std::vector<unsigned char> Font::generateBitmap(u32 codepoint) {
     // Calculate position/scalers
     msdfgen::Vector2 position;
@@ -207,10 +215,8 @@ std::vector<unsigned char> Font::generateBitmap(u32 codepoint) {
     if(stbtt_GetFontVMetricsOS2(&m_font_info, &ascent, &descent, &lineGap) == 0) {
         stbtt_GetFontVMetrics(&m_font_info, &ascent, &descent, &lineGap);
     }
-    position.y = (m_baseline / m_scale) - descent; // Start with baseline
+    position.y = (m_baseline / m_scale);
     position.x = ((m_bitmap_size.x / m_scale) / 2) - ((abs(x0) + abs(x1)) / 2);
-    //position.y = m_bitmap_size.y; // Start with baseline
-    //position.x = (m_bitmap_size.x / 2);
 
     // Build the MSDF shape
     stbtt_vertex* vertices = nullptr;
@@ -247,7 +253,7 @@ std::vector<unsigned char> Font::generateBitmap(u32 codepoint) {
 
     // Generate the bitmap
     msdfgen::Bitmap<float, 3> bitmap(m_bitmap_size.x, m_bitmap_size.y);
-    msdfgen::generateMSDF(bitmap, shape, m_msdf_pixel_range, m_scale, position);
+    msdfgen::generateMSDF(bitmap, shape, m_msdf_pixel_range/m_scale, m_scale, position);
 
     msdfgen::BitmapConstRef<float, 3> bitmapConst = bitmap;
     std::vector<unsigned char> pixels(3*bitmapConst.width*bitmapConst.height);

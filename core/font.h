@@ -45,6 +45,7 @@ public:
     u32 getEndCodepoint() const;
     u32 getPixelHeight() const;
     f32 getMSDFPixelRange() const;
+    f32 calcPXScaler(u32 pixel_height) const;
     std::vector<unsigned char> generateBitmap(u32 codepoint);
 private:
     Font(std::string font_name, u32 start_codepoint, u32 end_codepoint, u32 pixel_height);
@@ -52,7 +53,7 @@ private:
     std::optional<u32> m_texture_handle;
     glm::vec2 m_bitmap_size;
     glm::vec2 m_bounding_box_size;
-    f32 m_scale = 0.0f;
+    f32 m_scale =1.0f;
     f32 m_baseline = 0.0f;
     u32 m_start_codepoint = 0;
     u32 m_end_codepoint = 0;
