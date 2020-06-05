@@ -162,7 +162,6 @@ glm::vec2 Widget::calcDrawPos() {
     // If there isnt a parent, the widget is treated as a root. Its anchor is hardset to 0,0 and its offset is ignored.
     // Best that the widget being treated as the root set its size to the value of a resize even.
 
-    //glm::vec2 draw_pos = {0.0f, 0.0f};
     glm::vec2 draw_pos = {m_size.x/2, m_size.y/2};
     if(m_parent != nullptr) {
         draw_pos = m_parent->calcDrawPos();

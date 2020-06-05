@@ -25,6 +25,6 @@ void Editor::onWindowResize(const Event::WindowResize& window_resize) {
 }
 
 void Editor::draw(Draw::CallQueue& draw_buffer) {
-    debugDraw(draw_buffer);
     m_chaper_number.draw(draw_buffer);
+    debugDraw(draw_buffer);
 }

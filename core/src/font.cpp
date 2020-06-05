@@ -144,7 +144,7 @@ Font::Font(std::string font_name, u32 start_codepoint, u32 end_codepoint, u32 pi
         u32 texture;
         glGenTextures(1, &texture); CheckGLError();
         glBindTexture(GL_TEXTURE_2D_ARRAY, texture); CheckGLError();
-        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); CheckGLError();
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR); CheckGLError();
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR); CheckGLError();
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -160,7 +160,7 @@ Font::Font(std::string font_name, u32 start_codepoint, u32 end_codepoint, u32 pi
 
         m_texture_handle = texture; CheckGLError();
 
-        //stbi_write_bmp("test.bmp", m_bitmap_size.x, m_bitmap_size.x, 3, reinterpret_cast<void*>(workloads[6].bitmaps[1].data()));
+        stbi_write_bmp("test.bmp", m_bitmap_size.x, m_bitmap_size.x, 3, reinterpret_cast<void*>(workloads[6].bitmaps[1].data()));
 
     }
 }

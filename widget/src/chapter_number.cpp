@@ -32,6 +32,7 @@ ChapterNumber::ChapterNumber(Widget& parent) : Widget(parent) {
 
         Draw::Box box;
         for(auto& vert : box.vertices) {
+            vert.color = {0.0f, 0.0f, 0.0f, 1.0f};
             vert.uv.z = codepoint - m_font->getStartCodepoint();
         }
         glBindBuffer(GL_ARRAY_BUFFER, m_draw_handles.vbo.value());
@@ -60,7 +61,6 @@ void ChapterNumber::draw(Draw::CallQueue& draw_buffer) {
     new_draw.count = 6;
     new_draw.uniforms[0].setValue(model);
     new_draw.uniforms[1].setValue(Draw::Uniform::ArrayTexture(m_font->getHandle().value(), 0));
-    new_draw.uniforms[2].setValue(m_font->getMSDFPixelRange());
     draw_buffer.push_back(new_draw);
 
     debugDraw(draw_buffer);
