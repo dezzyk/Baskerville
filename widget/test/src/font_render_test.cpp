@@ -2,7 +2,7 @@
 // Created by Feed on 5/31/2020.
 //
 
-#include "font_render_test.h"
+#include "test/font_render_test.h"
 
 #include "glm/gtc/matrix_transform.hpp"
 
@@ -24,28 +24,7 @@ FontRenderTest::FontRenderTest(Widget& parent) : Widget(parent) {
     if(m_font != nullptr) {
         glm::vec2 bitmap_size = m_font->getBitmapSize();
         m_size = {bitmap_size.x, bitmap_size.y};
-        u32 vbo, vao;
-        glGenBuffers(1, &vbo); CheckGLError();
-        glGenVertexArrays(1, &vao); CheckGLError();
-        if(vbo != 0) {
-            if(vao != 0) {
-                m_vbo = vbo;
-                m_vao = vao;
-            } else {
-                glDeleteBuffers(1, &vbo); CheckGLError();
-            }
-        }
-        if(m_vbo.has_value() && m_vao.has_value()) {
-            glBindVertexArray(m_vao.value()); CheckGLError();
-            glBindBuffer(GL_ARRAY_BUFFER, m_vbo.value()); CheckGLError();
-            glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)0); CheckGLError();
-            glEnableVertexAttribArray(0); CheckGLError();
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(2* sizeof(float))); CheckGLError();
-            glEnableVertexAttribArray(1); CheckGLError();
-            glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(5* sizeof(float))); CheckGLError();
-            glEnableVertexAttribArray(2); CheckGLError();
-            glBindVertexArray(0); CheckGLError();
-        }
+        generateDrawHandles(m_draw_handles);
     }
 }
 
@@ -67,15 +46,9 @@ void FontRenderTest::onWindowResize(const Event::WindowResize& window_resize) {
 
 }
 
-void FontRenderTest::draw(Window::DrawBuffer& draw_buffer) {
+void FontRenderTest::draw(Draw::CallQueue& draw_buffer) {
 
-    struct FontVertex {
-        glm::vec2 pos;
-        glm::vec3 tex_coords;
-        glm::vec4 color;
-    };
-
-    std::array<FontVertex, 6> vertices;
+    /*std::array<FontVertex, 6> vertices;
 
     glm::vec2 draw_pos = calcDrawPos();
     glm::mat4 model = glm::mat4(1.0f);
@@ -111,8 +84,8 @@ void FontRenderTest::draw(Window::DrawBuffer& draw_buffer) {
     glBufferData(GL_ARRAY_BUFFER, sizeof(FontVertex) * vertices.size(), vertices.data(), GL_DYNAMIC_DRAW); CheckGLError();
     glBindBuffer(GL_ARRAY_BUFFER, 0);  CheckGLError();
 
-    Draw new_draw;
-    new_draw.vao = m_vao;
+    Call new_draw;
+    new_draw.handles = m_vao;
     new_draw.shader = m_shader;
     new_draw.count = 6;
     new_draw.uniforms[0].setValue(model);
@@ -120,5 +93,5 @@ void FontRenderTest::draw(Window::DrawBuffer& draw_buffer) {
     new_draw.uniforms[2].setValue(m_font->getMSDFPixelRange());
     draw_buffer.push_back(new_draw);
 
-    debugDraw(draw_buffer);
+    debugDraw(draw_buffer);*/
 }

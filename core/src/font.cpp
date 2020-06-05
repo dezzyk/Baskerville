@@ -90,8 +90,9 @@ Font::Font(std::string font_name, u32 start_codepoint, u32 end_codepoint, u32 pi
         m_baseline = m_scale*-y0;
         //m_bounding_box_size = {(abs(x1) + abs(x0)) * m_scale, (abs(y1) + abs(y0)) * m_scale};
 
-        m_bitmap_size.x = ((f32)x1 * m_scale) / 2 + 16;
+        m_bitmap_size.x = pixel_height;
         m_bitmap_size.y = (abs(ascent) + abs(descent)) * m_scale;
+        //m_bitmap_size.y = (abs(ascent) + abs(descent)) * m_scale;
 
         const auto core_count = std::thread::hardware_concurrency();
 
@@ -174,16 +175,8 @@ const std::optional<u32>& Font::getHandle() const {
     return m_texture_handle;
 }
 
-f32 Font::getBaseline() const{
-    return m_baseline;
-}
-
 glm::vec2 Font::getBitmapSize() const{
     return m_bitmap_size;
-}
-
-u32 Font::getKernOffset(u32 c0, u32 c1) const{
-    return stbtt_GetCodepointKernAdvance(&m_font_info, c0, c1);
 }
 
 u32 Font::getStartCodepoint() const {

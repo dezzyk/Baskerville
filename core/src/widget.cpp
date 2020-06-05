@@ -12,13 +12,13 @@
 Widget::Widget(Widget& widget) : m_parent(&widget) {}
 
 Widget::~Widget() {
-    if(m_debug_draw_params.vao.has_value()){
-        glDeleteVertexArrays(1, &m_debug_draw_params.vao.value()); CheckGLError();
-        m_debug_draw_params.vao = std::nullopt;
+    if(m_debug_draw.draw_handles.vao.has_value()){
+        glDeleteVertexArrays(1, &m_debug_draw.draw_handles.vao.value()); CheckGLError();
+        m_debug_draw.draw_handles.vao = std::nullopt;
     }
-    if(m_debug_draw_params.vbo.has_value()){
-        glDeleteBuffers(1, &m_debug_draw_params.vbo.value()); CheckGLError();
-        m_debug_draw_params.vbo = std::nullopt;
+    if(m_debug_draw.draw_handles.vbo.has_value()){
+        glDeleteBuffers(1, &m_debug_draw.draw_handles.vbo.value()); CheckGLError();
+        m_debug_draw.draw_handles.vbo = std::nullopt;
     }
 }
 
@@ -27,216 +27,133 @@ std::optional<u32> vao;
 std::optional<u32> vbo;
 b32 draw_attempted = false;
 
-void Widget::debugDraw(Window::DrawBuffer& draw_buffer) {
-    if(!m_debug_draw_params.draw_attempted) {
-        if (m_debug_draw_params.shader == nullptr) {
+glm::vec2 Widget::getSize() const{
+    return m_size;
+}
 
-            m_debug_draw_params.shader = Shader::Cache::fetch("debug_draw");
-            if(m_debug_draw_params.shader == nullptr) {
+glm::vec2 Widget::getOffset() const{
+    return m_offset;
+}
+
+Widget::Anchor Widget::getAnchor() const{
+    return m_anchor;
+}
+
+void Widget::debugDraw(Draw::CallQueue& draw_buffer) {
+    if(!m_debug_draw.draw_attempted) {
+        if (m_debug_draw.shader == nullptr) {
+
+            m_debug_draw.shader = Shader::Cache::fetch("debug_draw");
+            if(m_debug_draw.shader == nullptr) {
                 std::string vert =
                 #include "shader/debug_draw.vert"
                         ;
                 std::string frag =
                 #include "shader/debug_draw.frag"
                         ;
-                m_debug_draw_params.shader = Shader::Cache::load("debug_draw", vert, frag);
+                m_debug_draw.shader = Shader::Cache::load("debug_draw", vert, frag);
             }
 
         }
-        if (!m_debug_draw_params.vbo.has_value()) {
-            u32 vbo = 0;
-            glGenBuffers(1, &vbo);  CheckGLError();
-            if (vbo != 0) {
-                m_debug_draw_params.vbo = vbo;
+        if (!m_debug_draw.draw_handles.vbo.has_value()) {
+            generateDrawHandles(m_debug_draw.draw_handles);
+            if (!m_debug_draw.draw_handles.vbo.has_value()) {
+                std::cout << "Failed to create debug draw handles | widget default" << std::endl;
             } else {
-                std::cout << "Failed to create vbo | widget default" << std::endl;
-            }
-        }
-        if (!m_debug_draw_params.vao.has_value() && m_debug_draw_params.vbo.has_value()) {
-            u32 vao = 0;
-            glGenVertexArrays(1, &vao); CheckGLError();
-            if (vao != 0) {
-                glBindVertexArray(vao); CheckGLError();
-                glBindBuffer(GL_ARRAY_BUFFER, m_debug_draw_params.vbo.value()); CheckGLError();
+                glBindVertexArray(m_debug_draw.draw_handles.vao.value()); CheckGLError();
+                glBindBuffer(GL_ARRAY_BUFFER, m_debug_draw.draw_handles.vbo.value()); CheckGLError();
                 glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*) 0); CheckGLError();
                 glEnableVertexAttribArray(0); CheckGLError();
                 glBindVertexArray(0); CheckGLError();
-                m_debug_draw_params.vao = vao;
-            } else {
-                std::cout << "Failed to create vao | widget default" << std::endl;
             }
         }
-        m_debug_draw_params.draw_attempted = true;
+        m_debug_draw.draw_attempted = true;
     }
-    if((m_debug_draw_params.shader != nullptr && m_debug_draw_params.shader->getHandle().has_value()) && m_debug_draw_params.vao.has_value() && m_debug_draw_params.vbo.has_value()) {
+    if((m_debug_draw.shader != nullptr && m_debug_draw.shader->getHandle().has_value()) && m_debug_draw.draw_handles.vao.has_value() && m_debug_draw.draw_handles.vbo.has_value()) {
 
-        std::array<glm::vec2, 48> vertices;
+        std::array<Draw::Box, 8> boxes;
 
         glm::vec2 draw_pos = calcDrawPos();
 
         glm::mat4 model(1.0f);
-
         model = glm::translate(model, glm::vec3(draw_pos.x - (m_size.x / 2) + 2.0f, draw_pos.y + (m_size.y / 2) - 8.0, 0.0f));
         model = glm::scale(model, glm::vec3(2.0f, 8.0f, 0.0f));
-        // First Tri
-        vertices[0] = model * glm::vec4(0.5f, 0.5f, 0.0f, 1.0f);
-        // top right
-        vertices[1] = model * glm::vec4(0.5f, -0.5f, 0.0f, 1.0f);
-        // bottom right
-        vertices[2] = model * glm::vec4(-0.5f, 0.5f, 0.0f, 1.0f);
-        // top left
-        // Second Tri
-        vertices[3] = model * glm::vec4(0.5f, -0.5f, 0.0f, 1.0f);
-        // bottom right
-        vertices[4] = model * glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f);
-        // bottom left
-        vertices[5] = model * glm::vec4(-0.5f, 0.5f, 0.0, 1.0f);
-        // top left
+        boxes[0] *= model;
 
         model = glm::mat4(1.0f);
-
         model = glm::translate(model, glm::vec3(draw_pos.x - (m_size.x / 2) + 8.0f,draw_pos.y + (m_size.y / 2) - 2, 0.0f));
         model = glm::scale(model, glm::vec3(8.0f, 2.0f, 0.0f));
-        // First Tri
-        vertices[6] = model * glm::vec4(0.5f, 0.5f, 0.0f, 1.0f);
-        // top right
-        vertices[7] = model * glm::vec4(0.5f, -0.5f, 0.0f, 1.0f);
-        // bottom right
-        vertices[8] = model * glm::vec4(-0.5f, 0.5f, 0.0f, 1.0f);
-        // top left
-        // Second Tri
-        vertices[9] = model * glm::vec4(0.5f, -0.5f, 0.0f, 1.0f);
-        // bottom right
-        vertices[10] = model * glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f);
-        // bottom left
-        vertices[11] = model * glm::vec4(-0.5f, 0.5f, 0.0, 1.0f);
-        // top left
+        boxes[1] *= model;
 
         model = glm::mat4(1.0f);
-
         model = glm::translate(model, glm::vec3(draw_pos.x - (m_size.x / 2)+ 2.0f,draw_pos.y - (m_size.y / 2) + 8.0, 0.0f));
         model = glm::scale(model, glm::vec3(2.0f, 8.0f, 0.0f));
-        // First Tri
-        vertices[12] = model * glm::vec4(0.5f, 0.5f, 0.0f, 1.0f);
-        // top right
-        vertices[13] = model * glm::vec4(0.5f, -0.5f, 0.0f, 1.0f);
-        // bottom right
-        vertices[14] = model * glm::vec4(-0.5f, 0.5f, 0.0f, 1.0f);
-        // top left
-        // Second Tri
-        vertices[15] = model * glm::vec4(0.5f, -0.5f, 0.0f, 1.0f);
-        // bottom right
-        vertices[16] = model * glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f);
-        // bottom left
-        vertices[17] = model * glm::vec4(-0.5f, 0.5f, 0.0, 1.0f);
-        // top left
+        boxes[2] *= model;
 
         model = glm::mat4(1.0f);
-
         model = glm::translate(model, glm::vec3(draw_pos.x - (m_size.x / 2) + 8.0f,draw_pos.y - (m_size.y / 2)+  2.0, 0.0f));
         model = glm::scale(model, glm::vec3(8.0f, 2.0f, 0.0f));
-        // First Tri
-        vertices[18] = model * glm::vec4(0.5f, 0.5f, 0.0f, 1.0f);
-        // top right
-        vertices[19] = model * glm::vec4(0.5f, -0.5f, 0.0f, 1.0f);
-        // bottom right
-        vertices[20] = model * glm::vec4(-0.5f, 0.5f, 0.0f, 1.0f);
-        // top left
-        // Second Tri
-        vertices[21] = model * glm::vec4(0.5f, -0.5f, 0.0f, 1.0f);
-        // bottom right
-        vertices[22] = model * glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f);
-        // bottom left
-        vertices[23] = model * glm::vec4(-0.5f, 0.5f, 0.0, 1.0f);
-        // top left
+        boxes[3] *= model;
 
         model = glm::mat4(1.0f);
-
         model = glm::translate(model, glm::vec3(draw_pos.x + (m_size.x / 2) - 2,draw_pos.y - (m_size.y / 2)+  8.0, 0.0f));
         model = glm::scale(model, glm::vec3(2.0f, 8.0f, 0.0f));
-        // First Tri
-        vertices[24] = model * glm::vec4(0.5f, 0.5f, 0.0f, 1.0f);
-        // top right
-        vertices[25] = model * glm::vec4(0.5f, -0.5f, 0.0f, 1.0f);
-        // bottom right
-        vertices[26] = model * glm::vec4(-0.5f, 0.5f, 0.0f, 1.0f);
-        // top left
-        // Second Tri
-        vertices[27] = model * glm::vec4(0.5f, -0.5f, 0.0f, 1.0f);
-        // bottom right
-        vertices[28] = model * glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f);
-        // bottom left
-        vertices[29] = model * glm::vec4(-0.5f, 0.5f, 0.0, 1.0f);
-        // top left
+        boxes[4] *= model;
 
         model = glm::mat4(1.0f);
-
         model = glm::translate(model, glm::vec3(draw_pos.x +(m_size.x / 2)-8,draw_pos.y - (m_size.y / 2)+  2.0, 0.0f));
         model = glm::scale(model, glm::vec3(8.0f, 2.0f, 0.0f));
-        // First Tri
-        vertices[30] = model * glm::vec4(0.5f, 0.5f, 0.0f, 1.0f);
-        // top right
-        vertices[31] = model * glm::vec4(0.5f, -0.5f, 0.0f, 1.0f);
-        // bottom right
-        vertices[32] = model * glm::vec4(-0.5f, 0.5f, 0.0f, 1.0f);
-        // top left
-        // Second Tri
-        vertices[33] = model * glm::vec4(0.5f, -0.5f, 0.0f, 1.0f);
-        // bottom right
-        vertices[34] = model * glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f);
-        // bottom left
-        vertices[35] = model * glm::vec4(-0.5f, 0.5f, 0.0, 1.0f);
-        // top left
+        boxes[5] *= model;
 
         model = glm::mat4(1.0f);
-
         model = glm::translate(model, glm::vec3(draw_pos.x + (m_size.x / 2)-2,draw_pos.y +  (m_size.y / 2)-8, 0.0f));
         model = glm::scale(model, glm::vec3(2.0f, 8.0f, 0.0f));
-        // First Tri
-        vertices[36] = model * glm::vec4(0.5f, 0.5f, 0.0f, 1.0f);
-        // top right
-        vertices[37] = model * glm::vec4(0.5f, -0.5f, 0.0f, 1.0f);
-        // bottom right
-        vertices[38] = model * glm::vec4(-0.5f, 0.5f, 0.0f, 1.0f);
-        // top left
-        // Second Tri
-        vertices[39] = model * glm::vec4(0.5f, -0.5f, 0.0f, 1.0f);
-        // bottom right
-        vertices[40] = model * glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f);
-        // bottom left
-        vertices[41] = model * glm::vec4(-0.5f, 0.5f, 0.0, 1.0f);
-        // top left
+        boxes[6] *= model;
 
         model = glm::mat4(1.0f);
-
         model = glm::translate(model, glm::vec3(draw_pos.x + (m_size.x / 2)-8,draw_pos.y +  (m_size.y / 2)-2, 0.0f));
         model = glm::scale(model, glm::vec3(8.0f, 2.0f, 0.0f));
-        // First Tri
-        vertices[42] = model * glm::vec4(0.5f, 0.5f, 0.0f, 1.0f);
-        // top right
-        vertices[43] = model * glm::vec4(0.5f, -0.5f, 0.0f, 1.0f);
-        // bottom right
-        vertices[44] = model * glm::vec4(-0.5f, 0.5f, 0.0f, 1.0f);
-        // top left
-        // Second Tri
-        vertices[45] = model * glm::vec4(0.5f, -0.5f, 0.0f, 1.0f);
-        // bottom right
-        vertices[46] = model * glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f);
-        // bottom left
-        vertices[47] = model * glm::vec4(-0.5f, 0.5f, 0.0, 1.0f);
-        // top left
+        boxes[7] *= model;
 
-
-        glBindBuffer(GL_ARRAY_BUFFER, m_debug_draw_params.vbo.value());  CheckGLError();
-        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * vertices.size(), vertices.data(), GL_DYNAMIC_DRAW); CheckGLError();
+        glBindBuffer(GL_ARRAY_BUFFER, m_debug_draw.draw_handles.vbo.value());  CheckGLError();
+        glBufferData(GL_ARRAY_BUFFER, sizeof(Draw::Box) * boxes.size(), boxes.data(), GL_DYNAMIC_DRAW); CheckGLError();
         glBindBuffer(GL_ARRAY_BUFFER, 0);  CheckGLError();
 
-        Draw draw;
-        draw.vao = m_debug_draw_params.vao.value();
-        draw.shader = m_debug_draw_params.shader;
-        draw.count = vertices.size();
+        Draw::Call draw;
+        draw.handles = m_debug_draw.draw_handles;
+        draw.shader = m_debug_draw.shader;
+        draw.count = boxes.size() * boxes[0].vertices.size();
         draw_buffer.push_back(draw);
 
+    }
+}
+
+void Widget::generateDrawHandles(Draw::Handles& draw_handles) {
+    if(draw_handles.vbo.has_value()) {
+        glDeleteBuffers(1, &draw_handles.vbo.value());
+    }
+    if(draw_handles.vao.has_value()) {
+        glDeleteVertexArrays(1, &draw_handles.vao.value());
+    }
+    u32 vbo_handle, vao_handle;
+    glGenBuffers(1, &vbo_handle); CheckGLError();
+    glGenVertexArrays(1, &vao_handle); CheckGLError();
+    if(vbo_handle != 0) {
+        if(vao_handle != 0) {
+            draw_handles.vbo = vbo_handle;
+            draw_handles.vao = vao_handle;
+            glBindVertexArray(draw_handles.vao.value()); CheckGLError();
+            glBindBuffer(GL_ARRAY_BUFFER, draw_handles.vbo.value()); CheckGLError();
+            glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)0); CheckGLError();
+            glEnableVertexAttribArray(0); CheckGLError();
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(4* sizeof(float))); CheckGLError();
+            glEnableVertexAttribArray(1); CheckGLError();
+            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(7* sizeof(float))); CheckGLError();
+            glEnableVertexAttribArray(2); CheckGLError();
+            glBindVertexArray(0); CheckGLError();
+        } else {
+            glDeleteBuffers(1, &vbo_handle); CheckGLError();
+        }
     }
 }
 

@@ -130,7 +130,7 @@ b32 Window::shouldQuit() {
     return glfwWindowShouldClose(m_window);
 }
 
-Window::DrawBuffer& Window::getDrawBuffer() {
+Draw::CallQueue& Window::getDrawBuffer() {
     return m_draw_buffer;
 }
 
@@ -140,7 +140,7 @@ void Window::draw() {
     for(auto& draw : m_draw_buffer) {
         if(draw.shader != nullptr) {
             if(draw.shader->getHandle().has_value()) {
-                if(draw.vao.has_value()) {
+                if(draw.handles.vao.has_value()) {
                     glUseProgram(draw.shader->getHandle().value());
                     glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(proj));
                     for (int i = 0; i < draw.uniforms.size(); ++i) {
@@ -162,11 +162,11 @@ void Window::draw() {
                                 glUniform1ui(i + 1, draw.uniforms[i].value.u_u32);
                             } else if (type == Meta::MakeType<i32>()) {
                                 glUniform1i(i + 1, draw.uniforms[i].value.u_i32);
-                            } else if (type == Meta::MakeType<Uniform::Texture>()) {
+                            } else if (type == Meta::MakeType<Draw::Uniform::Texture>()) {
                                 glUniform1i(i + 1, draw.uniforms[i].value.texture.index);
                                 glActiveTexture(GL_TEXTURE0 + draw.uniforms[i].value.texture.index);
                                 glBindTexture(GL_TEXTURE_2D, draw.uniforms[i].value.texture.handle);
-                            } else if (type == Meta::MakeType<Uniform::ArrayTexture>()) {
+                            } else if (type == Meta::MakeType<Draw::Uniform::ArrayTexture>()) {
                                 glUniform1i(i + 1, draw.uniforms[i].value.texture.index);
                                 glActiveTexture(GL_TEXTURE0 + draw.uniforms[i].value.array_texture.index);
                                 glBindTexture(GL_TEXTURE_2D_ARRAY, draw.uniforms[i].value.array_texture.handle);
@@ -178,19 +178,19 @@ void Window::draw() {
                             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, i, draw.buffers[i].handle);
                         }
                     }
-                    glBindVertexArray(draw.vao.value());
+                    glBindVertexArray(draw.handles.vao.value());
                     CheckGLError();
                     glDrawArrays(GL_TRIANGLES, 0, draw.count);
                     CheckGLError();
                     glBindVertexArray(0);
                 } else {
-                    std::cout << "Draw vao is equal to nullopt, skipping." << std::endl;
+                    std::cout << "Call handles is equal to nullopt, skipping." << std::endl;
                 }
             } else {
-                std::cout << "Draw shader valid but handle is equal to nullopt, skipping." << std::endl;
+                std::cout << "Call shader valid but handle is equal to nullopt, skipping." << std::endl;
             }
         } else {
-            std::cout << "Draw shader equal to nullptr, skipping." << std::endl;
+            std::cout << "Call shader equal to nullptr, skipping." << std::endl;
         }
     }
     m_draw_buffer.resize(0);

@@ -23,7 +23,6 @@ public:
         std::optional<Event::WindowResize> window_resize;
         Viewport viewport;
     };
-    using DrawBuffer = std::vector<Draw>;
     b32 startup();
     void shutdown();
     void pollEvents();
@@ -32,10 +31,10 @@ public:
     b32 pollResize(Event::WindowResize& resize);
     void swap();
     b32 shouldQuit();
-    DrawBuffer& getDrawBuffer();
+    Draw::CallQueue& getDrawBuffer();
     void draw();
 private:
     State m_state;
-    DrawBuffer m_draw_buffer;
+    Draw::CallQueue m_draw_buffer;
     GLFWwindow* m_window = nullptr;
 };

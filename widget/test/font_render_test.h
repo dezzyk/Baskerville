@@ -18,12 +18,11 @@ public:
     void onCodepoint(const Event::Codepoint& codepoint);
     void onMacro(const Event::Macro& macro);
     void onWindowResize(const Event::WindowResize& window_resize);
-    void draw(Window::DrawBuffer& draw_buffer);
+    void draw(Draw::CallQueue& draw_buffer);
 private:
     glm::vec3 m_canvas_color = { 1.0f, 1.0f, 1.0f};
     const Font* m_font = nullptr;
     const Shader* m_shader = nullptr;
-    std::optional<u32> m_vao;
-    std::optional<u32> m_vbo;
+    Draw::Handles m_draw_handles;
     u32 m_codepoint = 33;
 };

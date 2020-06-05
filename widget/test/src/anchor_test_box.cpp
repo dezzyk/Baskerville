@@ -2,7 +2,7 @@
 // Created by Feed on 5/30/2020.
 //
 
-#include "anchor_test_box.h"
+#include "test/anchor_test_box.h"
 
 AnchorTestBox::AnchorTestBox(Widget& parent) : Widget(parent), test(*this) {
     m_size = {128, 128};
@@ -85,7 +85,7 @@ void AnchorTestBox::onWindowResize(const Event::WindowResize& window_resize) {
 
 }
 
-void AnchorTestBox::draw(Window::DrawBuffer& draw_buffer){
+void AnchorTestBox::draw(Draw::CallQueue& draw_buffer){
     debugDraw(draw_buffer);
     test.draw(draw_buffer);
 }

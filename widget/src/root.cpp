@@ -6,27 +6,25 @@
 
 #include "gl_err.h"
 
-Root::Root() : test(AnchorTestBox(*this)), test2(FontRenderTest(*this)){
-    glClearColor(m_canvas_color.r, m_canvas_color.g, m_canvas_color.b, 1.0f);
+// NOTE: ALL child widget's must be instantiated shorthand like this
+Root::Root() : m_editor(*this){
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
 void Root::onCodepoint(const Event::Codepoint& codepoint) {
-    test.onCodepoint(codepoint);
-    test2.onCodepoint(codepoint);
+    m_editor.onCodepoint(codepoint);
 }
 
 void Root::onMacro(const Event::Macro& macro) {
-    test.onMacro(macro);
+    m_editor.onMacro(macro);
 }
 
 void Root::onWindowResize(const Event::WindowResize& window_resize) {
     m_size = { window_resize.x, window_resize.y};
-    //m_offset = { (1.0f - (m_size.x / window_resize.x)) / 2, (1.0f - (m_size.y / window_resize.y)) / 2};
-    test.onWindowResize(window_resize);
+    m_editor.onWindowResize(window_resize);
 }
 
-void Root::draw(Window::DrawBuffer& draw_buffer) {
+void Root::draw(Draw::CallQueue& draw_buffer) {
     debugDraw(draw_buffer);
-    test.draw(draw_buffer);
-    test2.draw(draw_buffer);
+    m_editor.draw(draw_buffer);
 }

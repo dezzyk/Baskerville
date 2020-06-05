@@ -1,9 +1,9 @@
 R"(
 #version 430 core
 
-layout(location = 0) in vec2 v_pos;
+layout(location = 0) in vec4 v_color;
 layout(location = 1) in vec3 v_tex_coords;
-layout(location = 2) in vec4 v_color;
+layout(location = 2) in vec2 v_pos;
 
 out vec4 f_color;
 out vec3 f_tex_coords;

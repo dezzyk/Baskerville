@@ -33,10 +33,13 @@ public:
     virtual void onCodepoint(const Event::Codepoint& codepoint) = 0;
     virtual void onMacro(const Event::Macro& macro) = 0;
     virtual void onWindowResize(const Event::WindowResize& resize) = 0;
-    virtual void draw(Window::DrawBuffer& draw_buffer) = 0;
-
+    virtual void draw(Draw::CallQueue& draw_buffer) = 0;
+    glm::vec2 getSize() const;
+    glm::vec2 getOffset() const;
+    Anchor getAnchor() const;
 protected:
-    void debugDraw(Window::DrawBuffer& draw_buffer);
+    void debugDraw(Draw::CallQueue& draw_buffer);
+    void generateDrawHandles(Draw::Handles& draw_handles);
     glm::vec2 calcDrawPos();
     glm::vec2 m_size = { 0.0f, 0.0f };
     glm::vec2 m_offset = {0.0f, 0.0f};
@@ -45,9 +48,8 @@ protected:
     Anchor m_anchor = Anchor::TopLeft;
     struct {
         const Shader* shader = nullptr;
-        std::optional<u32> vao;
-        std::optional<u32> vbo;
+        Draw::Handles draw_handles;
         b32 draw_attempted = false;
-    } m_debug_draw_params;
+    } m_debug_draw;
 
 };

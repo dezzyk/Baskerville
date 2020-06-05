@@ -37,10 +37,8 @@ public:
     Font& operator=(const Font&) =delete;
     const std::optional<u32>& getHandle() const;
     //f32 getScale() const;
-    f32 getBaseline() const;
     glm::vec2 getBitmapSize() const;
-    glm::vec2 getBoundingBoxSize() const;
-    u32 getKernOffset(u32 c0, u32 c1) const;
+    u32 getKernOffset(u32 pixel_height, u32 c0, u32 c1) const;
     u32 getStartCodepoint() const;
     u32 getEndCodepoint() const;
     u32 getPixelHeight() const;
