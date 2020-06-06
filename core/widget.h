@@ -44,7 +44,6 @@ public:
     Anchor getAnchor() const;
 protected:
     void debugDraw(Draw::CallQueue& draw_buffer);
-    void generateDrawHandles(Draw::Handles& draw_handles);
     glm::vec2 calcDrawPos();
     glm::vec2 m_size = { 0.0f, 0.0f };
     glm::vec2 m_offset = {0.0f, 0.0f};
@@ -52,8 +51,8 @@ protected:
     b32 m_offset_normalized = false;
     Anchor m_anchor = Anchor::TopLeft;
     struct {
+        Draw::Context context;
         const Shader* shader = nullptr;
-        Draw::Handles draw_handles;
         b32 draw_attempted = false;
     } m_debug_draw;
 

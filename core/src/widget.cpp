@@ -11,16 +11,7 @@
 
 Widget::Widget(Widget* parent) : m_parent(parent) {}
 
-Widget::~Widget() {
-    if(m_debug_draw.draw_handles.vao.has_value()){
-        glDeleteVertexArrays(1, &m_debug_draw.draw_handles.vao.value()); CheckGLError();
-        m_debug_draw.draw_handles.vao = std::nullopt;
-    }
-    if(m_debug_draw.draw_handles.vbo.has_value()){
-        glDeleteBuffers(1, &m_debug_draw.draw_handles.vbo.value()); CheckGLError();
-        m_debug_draw.draw_handles.vbo = std::nullopt;
-    }
-}
+Widget::~Widget() {}
 
 Widget::Widget(Widget&& other) noexcept :
         m_size(other.m_size),
@@ -28,11 +19,7 @@ Widget::Widget(Widget&& other) noexcept :
         m_parent(other.m_parent),
         m_offset_normalized(other.m_offset_normalized),
         m_anchor(other.m_anchor),
-        m_debug_draw(other.m_debug_draw) {
-
-    other.m_debug_draw = {};
-
-}
+        m_debug_draw(std::move(other.m_debug_draw)) {}
 
 void Widget::onCodepoint(const Event::Codepoint& codepoint) {}
 void Widget::onMacro(const Event::Macro& macro) {}
@@ -68,15 +55,9 @@ void Widget::debugDraw(Draw::CallQueue& draw_buffer) {
             }
 
         }
-        if (!m_debug_draw.draw_handles.vbo.has_value()) {
-            generateDrawHandles(m_debug_draw.draw_handles);
-            if (!m_debug_draw.draw_handles.vbo.has_value()) {
-                std::cout << "Failed to create debug draw handles | widget default" << std::endl;
-            }
-        }
         m_debug_draw.draw_attempted = true;
     }
-    if((m_debug_draw.shader != nullptr && m_debug_draw.shader->getHandle().has_value()) && m_debug_draw.draw_handles.vao.has_value() && m_debug_draw.draw_handles.vbo.has_value()) {
+    if((m_debug_draw.shader != nullptr && m_debug_draw.shader->getHandle().has_value()) && m_debug_draw.context.valid()) {
 
         std::array<Draw::Box, 8> boxes;
 
@@ -128,45 +109,14 @@ void Widget::debugDraw(Draw::CallQueue& draw_buffer) {
             }
         }
 
-        glBindBuffer(GL_ARRAY_BUFFER, m_debug_draw.draw_handles.vbo.value());  CheckGLError();
-        glBufferData(GL_ARRAY_BUFFER, sizeof(Draw::Box) * boxes.size(), boxes.data(), GL_DYNAMIC_DRAW); CheckGLError();
-        glBindBuffer(GL_ARRAY_BUFFER, 0);  CheckGLError();
+        m_debug_draw.context.upload(sizeof(Draw::Box) * boxes.size(), boxes.data());
 
         Draw::Call draw;
-        draw.handles = m_debug_draw.draw_handles;
+        draw.context = &m_debug_draw.context;
         draw.shader = m_debug_draw.shader;
         draw.count = boxes.size() * boxes[0].vertices.size();
         draw_buffer.push_back(draw);
 
-    }
-}
-
-void Widget::generateDrawHandles(Draw::Handles& draw_handles) {
-    if(draw_handles.vbo.has_value()) {
-        glDeleteBuffers(1, &draw_handles.vbo.value());
-    }
-    if(draw_handles.vao.has_value()) {
-        glDeleteVertexArrays(1, &draw_handles.vao.value());
-    }
-    u32 vbo_handle, vao_handle;
-    glGenBuffers(1, &vbo_handle); CheckGLError();
-    glGenVertexArrays(1, &vao_handle); CheckGLError();
-    if(vbo_handle != 0) {
-        if(vao_handle != 0) {
-            draw_handles.vbo = vbo_handle;
-            draw_handles.vao = vao_handle;
-            glBindVertexArray(draw_handles.vao.value()); CheckGLError();
-            glBindBuffer(GL_ARRAY_BUFFER, draw_handles.vbo.value()); CheckGLError();
-            glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)0); CheckGLError();
-            glEnableVertexAttribArray(0); CheckGLError();
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(4* sizeof(float))); CheckGLError();
-            glEnableVertexAttribArray(1); CheckGLError();
-            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(7* sizeof(float))); CheckGLError();
-            glEnableVertexAttribArray(2); CheckGLError();
-            glBindVertexArray(0); CheckGLError();
-        } else {
-            glDeleteBuffers(1, &vbo_handle); CheckGLError();
-        }
     }
 }
 

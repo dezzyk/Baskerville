@@ -9,7 +9,6 @@
 // NOTE: ALL child widget's must be instantiated shorthand like this
 Root::Root() : m_editor(this) {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    generateDrawHandles(m_draw_handles);
     m_shader = Shader::Cache::fetch("box_draw");
     if(m_shader == nullptr) {
         std::string vert =
@@ -40,9 +39,7 @@ void Root::onWindowResize(const Event::WindowResize& window_resize) {
     model = glm::scale(model, glm::vec3(m_size.x, m_size.y, 0.0f));
     box *= model;
     box.setColor({0.97f, 0.98f, 0.99f, 1.0f});
-    glBindBuffer(GL_ARRAY_BUFFER, m_draw_handles.vbo.value());
-    glBufferData(GL_ARRAY_BUFFER, sizeof(box), &box, GL_DYNAMIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    m_draw_context.upload(sizeof(Draw::Box), &box);
 
     m_editor.onWindowResize(window_resize);
 }
@@ -50,7 +47,7 @@ void Root::onWindowResize(const Event::WindowResize& window_resize) {
 void Root::draw(Draw::CallQueue& draw_buffer) {
 
     Draw::Call call;
-    call.handles = m_draw_handles;
+    call.context = &m_draw_context;
     call.shader = m_shader;
     call.count = 6;
 

@@ -140,7 +140,7 @@ void Window::draw() {
     for(auto& draw : m_draw_buffer) {
         if(draw.shader != nullptr) {
             if(draw.shader->getHandle().has_value()) {
-                if(draw.handles.vao.has_value()) {
+                if(draw.context->valid()) {
                     glUseProgram(draw.shader->getHandle().value());
                     glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(proj));
                     for (int i = 0; i < draw.uniforms.size(); ++i) {
@@ -178,7 +178,7 @@ void Window::draw() {
                             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, i, draw.buffers[i].handle);
                         }
                     }
-                    glBindVertexArray(draw.handles.vao.value());
+                    glBindVertexArray(draw.context->getVAO().value());
                     CheckGLError();
                     glDrawArrays(GL_TRIANGLES, 0, draw.count);
                     CheckGLError();

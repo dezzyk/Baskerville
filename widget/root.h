@@ -6,6 +6,7 @@
 
 #include "common.h"
 #include "widget.h"
+#include "draw.h"
 #include "editor.h"
 
 #include "glm/glm.hpp"
@@ -18,7 +19,7 @@ public:
     void onWindowResize(const Event::WindowResize& window_resize);
     void draw(Draw::CallQueue& draw_buffer);
 private:
-    Draw::Handles m_draw_handles;
+    Draw::Context m_draw_context;
     const Shader* m_shader = nullptr;
     Editor m_editor;
 };

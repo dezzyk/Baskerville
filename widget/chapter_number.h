@@ -17,5 +17,5 @@ public:
 private:
     const Font* m_font = nullptr;
     const Shader* m_shader = nullptr;
-    Draw::Handles m_draw_handles;
+    Draw::Context m_draw_context;
 };
