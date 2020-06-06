@@ -8,14 +8,14 @@
 #include <chrono>
 
 #include "event.h"
-#include "window.h"
+#include "platform.h"
 #include "font.h"
 #include "root.h"
 #include "shader.h"
 
 #include "meta.h"
 
-Window window;
+Platform::Manager platform;
 
 Shader::Cache shader_cache;
 Font::Cache font_cache;
@@ -26,7 +26,7 @@ using timestamp = std::chrono::time_point<std::chrono::high_resolution_clock>;
 
 int main() {
 
-    if(window.startup()) {
+    if(platform.startup()) {
 
         Font::Cache::load("editor", "LibreBaskerville-Regular.ttf", 33, 126, 24);
 
@@ -36,7 +36,7 @@ int main() {
         std::chrono::duration<u64, std::milli> update_rate((u32)((1.0 / (f32)120) * 1000)); // Locked to 120, change later
         timestamp cur_time = std::chrono::high_resolution_clock::now();
 
-        while (!window.shouldQuit()) {
+        while (!platform.shouldQuit()) {
             timestamp new_time = std::chrono::high_resolution_clock::now();
             auto frame_time = std::chrono::duration<u64, std::nano>(new_time - cur_time);
             cur_time = new_time;
@@ -44,18 +44,18 @@ int main() {
             u32 update_count = 0;
             while (update_accumulator >= update_rate) {
 
-                window.swap();
-                window.pollEvents();
+                platform.swap();
+                platform.pollEvents();
                 Event::Codepoint codepoint;
                 Event::WindowResize resize;
                 Event::Macro macro;
-                while(window.pollResize(resize)) {
+                while(platform.pollResize(resize)) {
                     root->onWindowResize(resize);
                 }
-                while(window.pollMacro(macro)) {
+                while(platform.pollMacro(macro)) {
                     root->onMacro(macro);
                 }
-                while(window.pollCodepoint(codepoint)) {
+                while(platform.pollCodepoint(codepoint)) {
                     root->onCodepoint(codepoint);
                 }
 
@@ -66,8 +66,8 @@ int main() {
                 }
             }
             if (update_count > 0) {
-                root->draw(window.getDrawBuffer());
-                window.draw();
+                root->draw(platform.getDrawCallQueue());
+                platform.executeDrawCalls();
             }
         }
 
@@ -76,6 +76,6 @@ int main() {
         shader_cache.clear();
         font_cache.clear();
     }
-    window.shutdown();
+    platform.shutdown();
     return 0;
 }

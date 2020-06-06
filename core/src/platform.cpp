@@ -1,9 +1,8 @@
 //
-// Created by Feed on 5/26/2020.
+// Created by Feed on 6/5/2020.
 //
 
-//#include "glad/src/glad.c"
-#include "window.h"
+#include "platform.h"
 #include "gl_err.h"
 
 #include "glm/gtc/type_ptr.hpp"
@@ -11,24 +10,29 @@
 
 #include <iostream>
 
-b32 Window::startup() {
+Draw::CallQueue Platform::call_queue;
+Platform::Manager::State Platform::state;
+GLFWwindow* Platform::window = nullptr;
+
+b32 Platform::Manager::startup() {
     if(glfwInit()) {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        m_window = glfwCreateWindow(960, 540, "test", nullptr, nullptr);
-        if (!m_window) {
+        window = glfwCreateWindow(960, 540, "test", nullptr, nullptr);
+        if (!window) {
             std::cout << "Failed to create window" << std::endl;
             return false;
         }
-        glfwMakeContextCurrent(m_window);
-        glfwSetWindowUserPointer(m_window, &m_state);
-        glfwSetCharCallback(m_window, [](GLFWwindow *window, u32 value) -> void {
-            Window::State* state = reinterpret_cast<Window::State* >(glfwGetWindowUserPointer(window));
+        glfwMakeContextCurrent(window);
+        glfwSetWindowUserPointer(window, &state);
+        glfwSetCharCallback(window, [](GLFWwindow *window, u32 value) -> void {
+            Platform::Manager::State* state = reinterpret_cast<Platform::Manager::State* >(glfwGetWindowUserPointer(window));
             state->codepoint.push({value});
         });
-        glfwSetKeyCallback(m_window, [](GLFWwindow* window, int key, int scancode, int action, int mods) -> void {
-            Window::State* state = reinterpret_cast<Window::State* >(glfwGetWindowUserPointer(window));
+        glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) -> void {
+            Platform::Manager::State* state = reinterpret_cast<Platform::Manager::State* >(glfwGetWindowUserPointer(window));
             if (key == GLFW_KEY_BACKSPACE && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
                 state->macro.push({Event::Macro::Backspace });
             } else if (key == GLFW_KEY_ESCAPE && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
@@ -64,9 +68,8 @@ b32 Window::startup() {
                 }
             }
         });
-        glfwSetFramebufferSizeCallback(m_window, [](GLFWwindow *window, int w, int h) {
-            Window::State* state = reinterpret_cast<Window::State* >(glfwGetWindowUserPointer(window));
-            state->viewport = { (u32) w, (u32) h };
+        glfwSetFramebufferSizeCallback(window, [](GLFWwindow *window, int w, int h) {
+            Platform::Manager::State* state = reinterpret_cast<Platform::Manager::State* >(glfwGetWindowUserPointer(window));
             glViewport(0, 0, w, h);
             state->window_resize = {(u32) w, (u32) h };
         });
@@ -74,70 +77,70 @@ b32 Window::startup() {
             std::cout << "Failed to load glad" << std::endl;
             return false;
         };
-        glViewport(0, 0, 960, 540);
+        state.window_resize = getViewportSize();
+        glViewport(0, 0, state.window_resize->x, state.window_resize->y);
         glEnable(GL_BLEND); CheckGLError();
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); CheckGLError();
         glClearColor(0.0, 0.0, 0.0, 1.0); CheckGLError();
         // Go ahead and set a window_resize event so that widgets adjust to the window size
-        m_state.window_resize = {(u32) 960, (u32) 540 };
-        m_state.viewport = { (u32) 960, (u32) 540 };
         return true;
     }
     return false;
 }
 
-void Window::shutdown() {
-    glfwDestroyWindow(m_window);
+void Platform::Manager::shutdown() {
+    glfwDestroyWindow(window);
     glfwTerminate();
 }
 
-void Window::pollEvents() {
+void Platform::Manager::pollEvents() {
     glfwPollEvents();
 }
 
-b32 Window::pollCodepoint(Event::Codepoint& value) {
-    if(m_state.codepoint.size() > 0) {
-        value = m_state.codepoint.front();
-        m_state.codepoint.pop();
+b32 Platform::Manager::pollCodepoint(Event::Codepoint& value) {
+    if(state.codepoint.size() > 0) {
+        value = state.codepoint.front();
+        state.codepoint.pop();
         return true;
     }
     return false;
 }
 
-b32 Window::pollMacro(Event::Macro& value) {
-    if(m_state.macro.size() > 0) {
-        value = m_state.macro.front();
-        m_state.macro.pop();
+b32 Platform::Manager::pollMacro(Event::Macro& value) {
+    if(state.macro.size() > 0) {
+        value = state.macro.front();
+        state.macro.pop();
         return true;
     }
     return false;
 }
 
-b32 Window::pollResize(Event::WindowResize& resize) {
-    if(m_state.window_resize.has_value()) {
-        resize = m_state.window_resize.value();
-        m_state.window_resize = std::nullopt;
+b32 Platform::Manager::pollResize(Event::WindowResize& resize) {
+    if(state.window_resize.has_value()) {
+        resize = state.window_resize.value();
+        state.window_resize = std::nullopt;
         return true;
     }
     return false;
 }
 
-void Window::swap() {
-    glfwSwapBuffers(m_window);
+void Platform::Manager::swap() {
+    glfwSwapBuffers(window);
 }
 
-b32 Window::shouldQuit() {
-    return glfwWindowShouldClose(m_window);
+b32 Platform::Manager::shouldQuit() {
+    return glfwWindowShouldClose(window);
 }
 
-Draw::CallQueue& Window::getDrawBuffer() {
-    return m_draw_buffer;
+Draw::CallQueue& Platform::Manager::getDrawCallQueue() {
+    return call_queue;
 }
 
-void Window::draw() {
+void Platform::Manager::executeDrawCalls() {
     glClear(GL_COLOR_BUFFER_BIT); CheckGLError();
-    glm::mat4 proj = glm::ortho(0.0f, m_state.viewport.x, 0.0f, m_state.viewport.y);
-    for(auto& draw : m_draw_buffer) {
+    glm::vec2 viewport = getViewportSize();
+    glm::mat4 proj = glm::ortho(0.0f, viewport.x, 0.0f, viewport.y);
+    for(auto& draw : call_queue) {
         if(draw.shader != nullptr) {
             if(draw.shader->getHandle().has_value()) {
                 if(draw.context->valid()) {
@@ -193,5 +196,16 @@ void Window::draw() {
             std::cout << "Call shader equal to nullptr, skipping." << std::endl;
         }
     }
-    m_draw_buffer.resize(0);
+}
+
+glm::vec2 Platform::getViewportSize() {
+    int x, y;
+    glfwGetFramebufferSize(window, &x, & y);
+    return {x, y};
+}
+
+glm::vec2 Platform::getMousePos() {
+    f64 x, y;
+    glfwGetCursorPos(window, &x, & y);
+    return {x, y};
 }

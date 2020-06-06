@@ -4,8 +4,8 @@
 
 #pragma once
 
+#include "draw.h"
 #include "common.h"
-#include "window.h"
 #include "event.h"
 #include "gl_err.h"
 
