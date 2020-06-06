@@ -22,6 +22,12 @@ namespace Draw {
     };
 
     struct Box {
+        void setColor(glm::vec4 color) {
+            for(auto& vert : vertices) {
+                vert.color = color;
+            }
+        }
+
         void operator*(glm::mat4 model) {
             vertices[0].pos = model * glm::vec4(vertices[0].pos.x, vertices[0].pos.y, 0.0f, 1.0f);
             vertices[1].pos = model * glm::vec4(vertices[1].pos.x, vertices[1].pos.y, 0.0f, 1.0f);

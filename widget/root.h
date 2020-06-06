@@ -18,5 +18,7 @@ public:
     void onWindowResize(const Event::WindowResize& window_resize);
     void draw(Draw::CallQueue& draw_buffer);
 private:
+    Draw::Handles m_draw_handles;
+    const Shader* m_shader = nullptr;
     Editor m_editor;
 };

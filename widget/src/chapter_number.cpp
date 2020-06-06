@@ -10,7 +10,8 @@
 
 ChapterNumber::ChapterNumber() {}
 
-ChapterNumber::ChapterNumber(Widget& parent) : Widget(parent) {
+ChapterNumber::ChapterNumber(Widget* parent) : Widget(parent) {
+
     generateDrawHandles(m_draw_handles);
     if(m_draw_handles.vbo.has_value()) {
         m_font = Font::Cache::fetch("editor");
@@ -42,11 +43,8 @@ ChapterNumber::ChapterNumber(Widget& parent) : Widget(parent) {
     } else {
         std::cout << "Failed to create draw handles | chapter number" << std::endl;
     }
-}
 
-void ChapterNumber::onCodepoint(const Event::Codepoint& codepoint) {}
-void ChapterNumber::onMacro(const Event::Macro& macro) {}
-void ChapterNumber::onWindowResize(const Event::WindowResize& resize) {}
+}
 
 void ChapterNumber::draw(Draw::CallQueue& draw_buffer) {
 

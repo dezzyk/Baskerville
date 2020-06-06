@@ -6,7 +6,7 @@
 
 Editor::Editor() {}
 
-Editor::Editor(Widget& parent) : Widget(parent), m_chaper_number(*this){
+Editor::Editor(Widget* parent) : Widget(parent), m_chaper_number(this) {
     m_anchor = Widget::Anchor::Top;
     m_size.x = 632;
     m_size.y = m_parent->getSize().y;

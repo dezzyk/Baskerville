@@ -12,11 +12,8 @@
 class ChapterNumber : public Widget {
 public:
     ChapterNumber();
-    ChapterNumber(Widget &);
-    void onCodepoint(const Event::Codepoint& codepoint);
-    void onMacro(const Event::Macro& macro);
-    void onWindowResize(const Event::WindowResize& resize);
-    void draw(Draw::CallQueue& draw_buffer);
+    ChapterNumber(Widget* parent);
+    void draw(Draw::CallQueue& draw_buffer) override ;
 private:
     const Font* m_font = nullptr;
     const Shader* m_shader = nullptr;

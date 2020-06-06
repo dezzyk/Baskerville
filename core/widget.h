@@ -11,13 +11,17 @@
 
 #include "glad/glad.h"
 #include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 
 #include <iostream>
 
 class Widget {
 public:
     Widget() {}
-    Widget(Widget& widget);
+    Widget(Widget* parent);
+    Widget(Widget&& other) noexcept;
+    Widget(const Widget&) =delete;
+    Widget& operator=(const Widget&) =delete;
     ~Widget();
     enum class Anchor {
         Top,
@@ -30,10 +34,11 @@ public:
         BottomRight,
         Center
     };
-    virtual void onCodepoint(const Event::Codepoint& codepoint) = 0;
-    virtual void onMacro(const Event::Macro& macro) = 0;
-    virtual void onWindowResize(const Event::WindowResize& resize) = 0;
-    virtual void draw(Draw::CallQueue& draw_buffer) = 0;
+    virtual void onCodepoint(const Event::Codepoint& codepoint);
+    virtual void onMacro(const Event::Macro& macro);
+    virtual void onWindowResize(const Event::WindowResize& resize);
+    virtual void draw(Draw::CallQueue& draw_buffer);
+    virtual void setParent(Widget* parent);
     glm::vec2 getSize() const;
     glm::vec2 getOffset() const;
     Anchor getAnchor() const;

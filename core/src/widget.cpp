@@ -9,7 +9,7 @@
 
 #include <array>
 
-Widget::Widget(Widget& widget) : m_parent(&widget) {}
+Widget::Widget(Widget* parent) : m_parent(parent) {}
 
 Widget::~Widget() {
     if(m_debug_draw.draw_handles.vao.has_value()){
@@ -22,10 +22,23 @@ Widget::~Widget() {
     }
 }
 
-Shader* shader = nullptr;
-std::optional<u32> vao;
-std::optional<u32> vbo;
-b32 draw_attempted = false;
+Widget::Widget(Widget&& other) noexcept :
+        m_size(other.m_size),
+        m_offset(other.m_offset),
+        m_parent(other.m_parent),
+        m_offset_normalized(other.m_offset_normalized),
+        m_anchor(other.m_anchor),
+        m_debug_draw(other.m_debug_draw) {
+
+    other.m_debug_draw = {};
+
+}
+
+void Widget::onCodepoint(const Event::Codepoint& codepoint) {}
+void Widget::onMacro(const Event::Macro& macro) {}
+void Widget::onWindowResize(const Event::WindowResize& resize) {}
+void Widget::draw(Draw::CallQueue& draw_buffer) {}
+void Widget::setParent(Widget* parent) { m_parent = parent; }
 
 glm::vec2 Widget::getSize() const{
     return m_size;
@@ -43,15 +56,15 @@ void Widget::debugDraw(Draw::CallQueue& draw_buffer) {
     if(!m_debug_draw.draw_attempted) {
         if (m_debug_draw.shader == nullptr) {
 
-            m_debug_draw.shader = Shader::Cache::fetch("debug_draw");
+            m_debug_draw.shader = Shader::Cache::fetch("box_draw");
             if(m_debug_draw.shader == nullptr) {
                 std::string vert =
-                #include "shader/debug_draw.vert"
+                #include "shader/box_draw.vert"
                         ;
                 std::string frag =
-                #include "shader/debug_draw.frag"
+                #include "shader/box_draw.frag"
                         ;
-                m_debug_draw.shader = Shader::Cache::load("debug_draw", vert, frag);
+                m_debug_draw.shader = Shader::Cache::load("box_draw", vert, frag);
             }
 
         }
@@ -59,12 +72,6 @@ void Widget::debugDraw(Draw::CallQueue& draw_buffer) {
             generateDrawHandles(m_debug_draw.draw_handles);
             if (!m_debug_draw.draw_handles.vbo.has_value()) {
                 std::cout << "Failed to create debug draw handles | widget default" << std::endl;
-            } else {
-                glBindVertexArray(m_debug_draw.draw_handles.vao.value()); CheckGLError();
-                glBindBuffer(GL_ARRAY_BUFFER, m_debug_draw.draw_handles.vbo.value()); CheckGLError();
-                glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*) 0); CheckGLError();
-                glEnableVertexAttribArray(0); CheckGLError();
-                glBindVertexArray(0); CheckGLError();
             }
         }
         m_debug_draw.draw_attempted = true;
@@ -114,6 +121,12 @@ void Widget::debugDraw(Draw::CallQueue& draw_buffer) {
         model = glm::translate(model, glm::vec3(draw_pos.x + (m_size.x / 2)-8,draw_pos.y +  (m_size.y / 2)-2, 0.0f));
         model = glm::scale(model, glm::vec3(8.0f, 2.0f, 0.0f));
         boxes[7] *= model;
+
+        for(auto& box : boxes) {
+            for(auto& vert : box.vertices) {
+                vert.color = {1.0f, 0.0f, 0.0f, 0.5f};
+            }
+        }
 
         glBindBuffer(GL_ARRAY_BUFFER, m_debug_draw.draw_handles.vbo.value());  CheckGLError();
         glBufferData(GL_ARRAY_BUFFER, sizeof(Draw::Box) * boxes.size(), boxes.data(), GL_DYNAMIC_DRAW); CheckGLError();

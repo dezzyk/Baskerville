@@ -11,11 +11,11 @@
 class Editor : public Widget {
 public:
     Editor();
-    Editor(Widget& parent);
-    void onCodepoint(const Event::Codepoint& codepoint);
-    void onMacro(const Event::Macro& macro);
-    void onWindowResize(const Event::WindowResize& window_resize);
-    void draw(Draw::CallQueue& draw_buffer);
+    Editor(Widget* parent);
+    void onCodepoint(const Event::Codepoint& codepoint) override ;
+    void onMacro(const Event::Macro& macro) override ;
+    void onWindowResize(const Event::WindowResize& window_resize) override ;
+    void draw(Draw::CallQueue& draw_buffer) override ;
 private:
     ChapterNumber m_chaper_number;
 };
