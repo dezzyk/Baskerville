@@ -38,12 +38,21 @@ ChapterNumber::ChapterNumber(Widget* parent) : Widget(parent) {
 
 }
 
-void ChapterNumber::onCodepoint(const Event::Codepoint& codepoint) {}
-void ChapterNumber::onMacro(const Event::Macro& macro) {}
+void ChapterNumber::update() {
 
-void ChapterNumber::onWindowResize(const Event::WindowResize& resize) {
+}
+
+void ChapterNumber::onCodepoint(const Event::Codepoint& codepoint) {
+
+}
+
+void ChapterNumber::onMacro(const Event::Macro& macro) {
+
+}
+
+void ChapterNumber::onWindowResize() {
     m_draw_size = m_size * Platform::getGlobalScaler();
-    m_draw_offset = m_offset * Platform::getGlobalScaler();
+    m_draw_offset = m_offset;
 }
 
 void ChapterNumber::draw(Draw::CallQueue& draw_buffer) {
@@ -62,10 +71,4 @@ void ChapterNumber::draw(Draw::CallQueue& draw_buffer) {
     draw_buffer.push_back(new_draw);
 
     debugDraw(draw_buffer);
-}
-
-void ChapterNumber::update() {
-
-    Widget::update();
-
 }

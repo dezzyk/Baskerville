@@ -44,7 +44,7 @@ namespace Event {
     };
 
     struct Codepoint {
-        u32 value;
+        u32 value = 0;
     };
 
     enum class Macro {
@@ -63,7 +63,5 @@ namespace Event {
         ArrowLeft,
         ArrowRight
     };
-
-    using WindowResize = glm::vec2;
 
 }

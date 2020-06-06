@@ -14,11 +14,11 @@
 class Root : public Widget {
 public:
     Root();
-    void onCodepoint(const Event::Codepoint& codepoint);
-    void onMacro(const Event::Macro& macro);
-    void onWindowResize(const Event::WindowResize& window_resize);
-    void draw(Draw::CallQueue& draw_buffer);
-    void update();
+    void update() override ;
+    void onCodepoint(const Event::Codepoint& codepoint) override ;
+    void onMacro(const Event::Macro& macro) override ;
+    void onWindowResize() override ;
+    void draw(Draw::CallQueue& draw_buffer) override ;
 private:
     Draw::Context m_draw_context;
     const Shader* m_shader = nullptr;

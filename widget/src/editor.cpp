@@ -12,26 +12,26 @@ Editor::Editor(Widget* parent) : Widget(parent), m_chaper_number(this) {
     m_size.y = m_parent->getSize().y;
 }
 
-void Editor::onCodepoint(const Event::Codepoint& codepoint) {
+void Editor::update() {
+    m_chaper_number.update();
+}
 
+void Editor::onCodepoint(const Event::Codepoint& codepoint) {
+    m_chaper_number.onCodepoint(codepoint);
 }
 
 void Editor::onMacro(const Event::Macro& macro) {
-
+    m_chaper_number.onMacro(macro);
 }
 
-void Editor::onWindowResize(const Event::WindowResize& window_resize) {
+void Editor::onWindowResize() {
     m_size.y = m_parent->getSize().y;
-    m_chaper_number.onWindowResize(window_resize);
+    m_draw_size = {m_size.x * Platform::getGlobalScaler(), m_size.y};
+    m_draw_offset = m_offset * Platform::getGlobalScaler();
+    m_chaper_number.onWindowResize();
 }
 
 void Editor::draw(Draw::CallQueue& draw_buffer) {
     m_chaper_number.draw(draw_buffer);
     debugDraw(draw_buffer);
-}
-
-void Editor::update() {
-    Widget::update();
-    m_draw_size.y = m_size.y;
-    m_chaper_number.update();
 }

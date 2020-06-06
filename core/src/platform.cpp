@@ -11,8 +11,11 @@
 #include <iostream>
 
 Draw::CallQueue Platform::call_queue;
-Platform::Manager::State Platform::state;
+Event::RingQueue<Event::Codepoint, 128> Platform::codepoint;
+Event::RingQueue<Event::Macro, 16> Platform::macro;
 GLFWwindow* Platform::window = nullptr;
+f32 Platform::global_scaler = 1.0f;
+b32 Platform::window_resized = false;
 u32 Platform::target_height = 0;
 
 b32 Platform::Manager::startup(u32 height) {
@@ -28,63 +31,59 @@ b32 Platform::Manager::startup(u32 height) {
             return false;
         }
         glfwMakeContextCurrent(window);
-        glfwSetWindowUserPointer(window, &state);
         glfwSetCharCallback(window, [](GLFWwindow *window, u32 value) -> void {
-            Platform::Manager::State* state = reinterpret_cast<Platform::Manager::State* >(glfwGetWindowUserPointer(window));
-            state->codepoint.push({value});
+            codepoint.push({value});
         });
         glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) -> void {
-            Platform::Manager::State* state = reinterpret_cast<Platform::Manager::State* >(glfwGetWindowUserPointer(window));
             if (key == GLFW_KEY_BACKSPACE && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                state->macro.push({Event::Macro::Backspace });
+                macro.push({Event::Macro::Backspace });
             } else if (key == GLFW_KEY_ESCAPE && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                state->macro.push({Event::Macro::Escape });
+                macro.push({Event::Macro::Escape });
             } else if (key == GLFW_KEY_TAB && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                state->macro.push({Event::Macro::Tab });
+                macro.push({Event::Macro::Tab });
             } else if (key == GLFW_KEY_ENTER && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                state->macro.push({Event::Macro::Enter });
+                macro.push({Event::Macro::Enter });
             } else if (key == GLFW_KEY_DELETE && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                state->macro.push({Event::Macro::Delete });
+                macro.push({Event::Macro::Delete });
             } else if (key == GLFW_KEY_UP && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                state->macro.push({Event::Macro::ArrowUp });
+                macro.push({Event::Macro::ArrowUp });
             } else if (key == GLFW_KEY_DOWN && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                state->macro.push({Event::Macro::ArrowDown });
+                macro.push({Event::Macro::ArrowDown });
             } else if (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                state->macro.push({Event::Macro::ArrowLeft });
+                macro.push({Event::Macro::ArrowLeft });
             } else if (key == GLFW_KEY_RIGHT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                state->macro.push({Event::Macro::ArrowRight });
+                macro.push({Event::Macro::ArrowRight });
             } else if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS ||
                        glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_REPEAT ||
                        glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS ||
                        glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_REPEAT) {
                 if (key == GLFW_KEY_A) {
-                    state->macro.push({Event::Macro::SelectAll} );
+                    macro.push({Event::Macro::SelectAll} );
                 } else if (key == GLFW_KEY_C) {
-                    state->macro.push({Event::Macro::Copy} );
+                    macro.push({Event::Macro::Copy} );
                 } else if (key == GLFW_KEY_V) {
-                    state->macro.push({Event::Macro::Paste} );
+                    macro.push({Event::Macro::Paste} );
                 } else if (key == GLFW_KEY_X) {
-                    state->macro.push({Event::Macro::Cut} );
+                    macro.push({Event::Macro::Cut} );
                 } else if (key == GLFW_KEY_S) {
-                    state->macro.push({Event::Macro::Save} );
+                    macro.push({Event::Macro::Save} );
                 }
             }
         });
         glfwSetFramebufferSizeCallback(window, [](GLFWwindow *window, int w, int h) {
-            Platform::Manager::State* state = reinterpret_cast<Platform::Manager::State* >(glfwGetWindowUserPointer(window));
             glViewport(0, 0, w, h);
-            state->window_resize = {(u32) w, (u32) h };
+            window_resized = true;
+            global_scaler = ((f32)h / target_height);
         });
         if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
             std::cout << "Failed to load glad" << std::endl;
             return false;
         };
-        state.window_resize = getViewportSize();
-        glViewport(0, 0, state.window_resize->x, state.window_resize->y);
+        glm::vec2 viewport = getViewportSize();
+        glViewport(0, 0, viewport.x, viewport.y);
         glEnable(GL_BLEND); CheckGLError();
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); CheckGLError();
         glClearColor(0.0, 0.0, 0.0, 1.0); CheckGLError();
-        // Go ahead and set a window_resize event so that widgets adjust to the window size
         return true;
     }
     return false;
@@ -100,30 +99,25 @@ void Platform::Manager::pollEvents() {
 }
 
 b32 Platform::Manager::pollCodepoint(Event::Codepoint& value) {
-    if(state.codepoint.size() > 0) {
-        value = state.codepoint.front();
-        state.codepoint.pop();
+    if(codepoint.size() > 0) {
+        value = codepoint.front();
+        codepoint.pop();
         return true;
     }
     return false;
 }
 
 b32 Platform::Manager::pollMacro(Event::Macro& value) {
-    if(state.macro.size() > 0) {
-        value = state.macro.front();
-        state.macro.pop();
+    if(macro.size() > 0) {
+        value = macro.front();
+        macro.pop();
         return true;
     }
     return false;
 }
 
-b32 Platform::Manager::pollResize(Event::WindowResize& resize) {
-    if(state.window_resize.has_value()) {
-        resize = state.window_resize.value();
-        state.window_resize = std::nullopt;
-        return true;
-    }
-    return false;
+b32 Platform::Manager::windowResized() {
+    return window_resized;
 }
 
 void Platform::Manager::swap() {
@@ -213,6 +207,5 @@ glm::vec2 Platform::getMousePos() {
 }
 
 f32 Platform::getGlobalScaler() {
-    glm::vec2 cur_viewport = getViewportSize();
-    return (cur_viewport.y / target_height);
+    return global_scaler;
 }

@@ -21,6 +21,10 @@ Root::Root() : m_editor(this) {
     }
 }
 
+void Root::update() {
+    m_editor.update();
+}
+
 void Root::onCodepoint(const Event::Codepoint& codepoint) {
     m_editor.onCodepoint(codepoint);
 }
@@ -29,8 +33,8 @@ void Root::onMacro(const Event::Macro& macro) {
     m_editor.onMacro(macro);
 }
 
-void Root::onWindowResize(const Event::WindowResize& window_resize) {
-    m_size = {window_resize.x, window_resize.y};
+void Root::onWindowResize() {
+    m_size = Platform::getViewportSize();
     m_draw_size = m_size;
 
     Draw::Box box;
@@ -42,7 +46,7 @@ void Root::onWindowResize(const Event::WindowResize& window_resize) {
     box.setColor({0.97f, 0.98f, 0.99f, 1.0f});
     m_draw_context.upload(sizeof(Draw::Box), &box);
 
-    m_editor.onWindowResize(window_resize);
+    m_editor.onWindowResize();
 }
 
 void Root::draw(Draw::CallQueue& draw_buffer) {
@@ -55,9 +59,4 @@ void Root::draw(Draw::CallQueue& draw_buffer) {
     draw_buffer.push_back(call);
     debugDraw(draw_buffer);
     m_editor.draw(draw_buffer);
-}
-
-// Dont update
-void Root::update() {
-    m_editor.update();
 }

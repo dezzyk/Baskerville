@@ -11,12 +11,12 @@
 class Editor : public Widget {
 public:
     Editor();
-    Editor(Widget* parent);
+    explicit Editor(Widget* parent);
+    void update() override ;
     void onCodepoint(const Event::Codepoint& codepoint) override ;
     void onMacro(const Event::Macro& macro) override ;
-    void onWindowResize(const Event::WindowResize& window_resize) override ;
+    void onWindowResize() override ;
     void draw(Draw::CallQueue& draw_buffer) override ;
-    void update();
 private:
     ChapterNumber m_chaper_number;
 };

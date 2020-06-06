@@ -35,11 +35,11 @@ public:
         BottomRight,
         Center
     };
+    virtual void update() = 0;
     virtual void onCodepoint(const Event::Codepoint& codepoint) = 0;
     virtual void onMacro(const Event::Macro& macro) = 0;
-    virtual void onWindowResize(const Event::WindowResize& resize) = 0;
+    virtual void onWindowResize() = 0;
     virtual void draw(Draw::CallQueue& draw_buffer) = 0;
-    virtual void update();
     virtual void setParent(Widget* parent);
     glm::vec2 getSize() const;
     glm::vec2 getOffset() const;
@@ -47,7 +47,7 @@ public:
 protected:
     void debugDraw(Draw::CallQueue& draw_buffer);
     glm::vec2 calcDrawPos();
-    glm::vec2 m_size = {0.0f, 0.0f };
+    glm::vec2 m_size = {1.0f, 1.0f };
     glm::vec2 m_offset = {0.0f, 0.0f};
     glm::vec2 m_draw_size = {0.0f, 0.0f };
     glm::vec2 m_draw_offset = {0.0f, 0.0f};

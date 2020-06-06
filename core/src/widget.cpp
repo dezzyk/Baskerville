@@ -5,8 +5,6 @@
 #include "widget.h"
 #include "shader.h"
 
-#include "glm/gtc/matrix_transform.hpp"
-
 #include <array>
 
 Widget::Widget(Widget* parent) : m_parent(parent) {}
@@ -16,19 +14,13 @@ Widget::~Widget() {}
 Widget::Widget(Widget&& other) noexcept :
         m_size(other.m_size),
         m_offset(other.m_offset),
+        m_draw_size(other.m_draw_size),
+        m_draw_offset(other.m_draw_offset),
         m_parent(other.m_parent),
         m_offset_normalized(other.m_offset_normalized),
         m_anchor(other.m_anchor),
         m_debug_draw(std::move(other.m_debug_draw)) {}
 
-void Widget::onCodepoint(const Event::Codepoint& codepoint) {}
-void Widget::onMacro(const Event::Macro& macro) {}
-void Widget::onWindowResize(const Event::WindowResize& resize) {}
-void Widget::draw(Draw::CallQueue& draw_buffer) {}
-void Widget::update() {
-    m_draw_size = m_size * Platform::getGlobalScaler();
-    m_draw_offset = m_offset * Platform::getGlobalScaler();
-}
 void Widget::setParent(Widget* parent) { m_parent = parent; }
 
 glm::vec2 Widget::getSize() const{

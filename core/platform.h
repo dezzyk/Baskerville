@@ -16,17 +16,12 @@ class Platform {
 public:
     class Manager {
     public:
-        struct State {
-            Event::RingQueue<Event::Codepoint, 128> codepoint;
-            Event::RingQueue<Event::Macro, 16> macro;
-            std::optional<Event::WindowResize> window_resize;
-        };
         b32 startup(u32 height);
         void shutdown();
         void pollEvents();
         b32 pollCodepoint(Event::Codepoint& value);
         b32 pollMacro(Event::Macro& value);
-        b32 pollResize(Event::WindowResize& resize);
+        b32 windowResized();
         void swap();
         b32 shouldQuit();
         void executeDrawCalls();
@@ -37,7 +32,10 @@ public:
     static f32 getGlobalScaler();
 private:
     static Draw::CallQueue call_queue;
-    static Manager::State state;
     static GLFWwindow* window;
+    static Event::RingQueue<Event::Codepoint, 128> codepoint;
+    static Event::RingQueue<Event::Macro, 16> macro;
+    static f32 global_scaler;
+    static b32 window_resized;
     static u32 target_height;
 };

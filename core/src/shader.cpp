@@ -5,8 +5,6 @@
 #include "shader.h"
 #include "gl_err.h"
 
-#include "glad/glad.h"
-
 #include <iostream>
 
 const Shader* Shader::Cache::load(std::string shader_name, std::string vert, std::string frag) {

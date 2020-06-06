@@ -32,6 +32,9 @@ int main() {
 
         root = new Root();
 
+        //Explicitly call onWindowResize once for widgets to adjust to the windows initial size
+        root->onWindowResize();
+
         std::chrono::duration<u64, std::nano> update_accumulator(0);
         std::chrono::duration<u64, std::milli> update_rate((u32)((1.0 / (f32)120) * 1000)); // Locked to 120, change later
         timestamp cur_time = std::chrono::high_resolution_clock::now();
@@ -47,10 +50,9 @@ int main() {
                 platform.swap();
                 platform.pollEvents();
                 Event::Codepoint codepoint;
-                Event::WindowResize resize;
                 Event::Macro macro;
-                while(platform.pollResize(resize)) {
-                    root->onWindowResize(resize);
+                if(platform.windowResized()) {
+                    root->onWindowResize();
                 }
                 while(platform.pollMacro(macro)) {
                     root->onMacro(macro);
