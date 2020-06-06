@@ -26,7 +26,7 @@ using timestamp = std::chrono::time_point<std::chrono::high_resolution_clock>;
 
 int main() {
 
-    if(platform.startup()) {
+    if(platform.startup(1080)) {
 
         Font::Cache::load("editor", "LibreBaskerville-Regular.ttf", 33, 126, 24);
 
@@ -58,7 +58,7 @@ int main() {
                 while(platform.pollCodepoint(codepoint)) {
                     root->onCodepoint(codepoint);
                 }
-
+                root->update();
                 update_accumulator -= update_rate;
                 update_count++;
                 if (update_count > 6) {

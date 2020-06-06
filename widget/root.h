@@ -18,6 +18,7 @@ public:
     void onMacro(const Event::Macro& macro);
     void onWindowResize(const Event::WindowResize& window_resize);
     void draw(Draw::CallQueue& draw_buffer);
+    void update();
 private:
     Draw::Context m_draw_context;
     const Shader* m_shader = nullptr;

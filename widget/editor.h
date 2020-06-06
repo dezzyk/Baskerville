@@ -16,6 +16,7 @@ public:
     void onMacro(const Event::Macro& macro) override ;
     void onWindowResize(const Event::WindowResize& window_resize) override ;
     void draw(Draw::CallQueue& draw_buffer) override ;
+    void update();
 private:
     ChapterNumber m_chaper_number;
 };

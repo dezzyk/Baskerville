@@ -30,13 +30,14 @@ void Root::onMacro(const Event::Macro& macro) {
 }
 
 void Root::onWindowResize(const Event::WindowResize& window_resize) {
-    m_size = { window_resize.x, window_resize.y};
+    m_size = {window_resize.x, window_resize.y};
+    m_draw_size = m_size;
 
     Draw::Box box;
     glm::vec2 draw_pos = calcDrawPos();
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(draw_pos.x, draw_pos.y, 0.0f));
-    model = glm::scale(model, glm::vec3(m_size.x, m_size.y, 0.0f));
+    model = glm::scale(model, glm::vec3(m_draw_size.x, m_draw_size.y, 0.0f));
     box *= model;
     box.setColor({0.97f, 0.98f, 0.99f, 1.0f});
     m_draw_context.upload(sizeof(Draw::Box), &box);
@@ -54,4 +55,9 @@ void Root::draw(Draw::CallQueue& draw_buffer) {
     draw_buffer.push_back(call);
     debugDraw(draw_buffer);
     m_editor.draw(draw_buffer);
+}
+
+// Dont update
+void Root::update() {
+    m_editor.update();
 }

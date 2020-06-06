@@ -21,7 +21,7 @@ public:
             Event::RingQueue<Event::Macro, 16> macro;
             std::optional<Event::WindowResize> window_resize;
         };
-        b32 startup();
+        b32 startup(u32 height);
         void shutdown();
         void pollEvents();
         b32 pollCodepoint(Event::Codepoint& value);
@@ -34,8 +34,10 @@ public:
     };
     static glm::vec2 getViewportSize();
     static glm::vec2 getMousePos();
+    static f32 getGlobalScaler();
 private:
     static Draw::CallQueue call_queue;
     static Manager::State state;
     static GLFWwindow* window;
+    static u32 target_height;
 };

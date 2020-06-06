@@ -38,12 +38,20 @@ ChapterNumber::ChapterNumber(Widget* parent) : Widget(parent) {
 
 }
 
+void ChapterNumber::onCodepoint(const Event::Codepoint& codepoint) {}
+void ChapterNumber::onMacro(const Event::Macro& macro) {}
+
+void ChapterNumber::onWindowResize(const Event::WindowResize& resize) {
+    m_draw_size = m_size * Platform::getGlobalScaler();
+    m_draw_offset = m_offset * Platform::getGlobalScaler();
+}
+
 void ChapterNumber::draw(Draw::CallQueue& draw_buffer) {
 
     glm::vec2 draw_pos = calcDrawPos();
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(draw_pos.x, draw_pos.y, 0.0f));
-    model = glm::scale(model, glm::vec3(m_size.x, m_size.y , 0.0f));
+    model = glm::scale(model, glm::vec3(m_draw_size.x, m_draw_size.y , 0.0f));
 
     Draw::Call new_draw;
     new_draw.context = &m_draw_context;
@@ -54,4 +62,10 @@ void ChapterNumber::draw(Draw::CallQueue& draw_buffer) {
     draw_buffer.push_back(new_draw);
 
     debugDraw(draw_buffer);
+}
+
+void ChapterNumber::update() {
+
+    Widget::update();
+
 }

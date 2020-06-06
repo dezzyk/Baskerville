@@ -25,6 +25,10 @@ void Widget::onCodepoint(const Event::Codepoint& codepoint) {}
 void Widget::onMacro(const Event::Macro& macro) {}
 void Widget::onWindowResize(const Event::WindowResize& resize) {}
 void Widget::draw(Draw::CallQueue& draw_buffer) {}
+void Widget::update() {
+    m_draw_size = m_size * Platform::getGlobalScaler();
+    m_draw_offset = m_offset * Platform::getGlobalScaler();
+}
 void Widget::setParent(Widget* parent) { m_parent = parent; }
 
 glm::vec2 Widget::getSize() const{
@@ -64,42 +68,42 @@ void Widget::debugDraw(Draw::CallQueue& draw_buffer) {
         glm::vec2 draw_pos = calcDrawPos();
 
         glm::mat4 model(1.0f);
-        model = glm::translate(model, glm::vec3(draw_pos.x - (m_size.x / 2) + 2.0f, draw_pos.y + (m_size.y / 2) - 8.0, 0.0f));
+        model = glm::translate(model, glm::vec3(draw_pos.x - (m_draw_size.x / 2) + 2.0f, draw_pos.y + (m_draw_size.y / 2) - 8.0, 0.0f));
         model = glm::scale(model, glm::vec3(2.0f, 8.0f, 0.0f));
         boxes[0] *= model;
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(draw_pos.x - (m_size.x / 2) + 8.0f,draw_pos.y + (m_size.y / 2) - 2, 0.0f));
+        model = glm::translate(model, glm::vec3(draw_pos.x - (m_draw_size.x / 2) + 8.0f, draw_pos.y + (m_draw_size.y / 2) - 2, 0.0f));
         model = glm::scale(model, glm::vec3(8.0f, 2.0f, 0.0f));
         boxes[1] *= model;
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(draw_pos.x - (m_size.x / 2)+ 2.0f,draw_pos.y - (m_size.y / 2) + 8.0, 0.0f));
+        model = glm::translate(model, glm::vec3(draw_pos.x - (m_draw_size.x / 2) + 2.0f, draw_pos.y - (m_draw_size.y / 2) + 8.0, 0.0f));
         model = glm::scale(model, glm::vec3(2.0f, 8.0f, 0.0f));
         boxes[2] *= model;
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(draw_pos.x - (m_size.x / 2) + 8.0f,draw_pos.y - (m_size.y / 2)+  2.0, 0.0f));
+        model = glm::translate(model, glm::vec3(draw_pos.x - (m_draw_size.x / 2) + 8.0f, draw_pos.y - (m_draw_size.y / 2) + 2.0, 0.0f));
         model = glm::scale(model, glm::vec3(8.0f, 2.0f, 0.0f));
         boxes[3] *= model;
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(draw_pos.x + (m_size.x / 2) - 2,draw_pos.y - (m_size.y / 2)+  8.0, 0.0f));
+        model = glm::translate(model, glm::vec3(draw_pos.x + (m_draw_size.x / 2) - 2, draw_pos.y - (m_draw_size.y / 2) + 8.0, 0.0f));
         model = glm::scale(model, glm::vec3(2.0f, 8.0f, 0.0f));
         boxes[4] *= model;
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(draw_pos.x +(m_size.x / 2)-8,draw_pos.y - (m_size.y / 2)+  2.0, 0.0f));
+        model = glm::translate(model, glm::vec3(draw_pos.x + (m_draw_size.x / 2) - 8, draw_pos.y - (m_draw_size.y / 2) + 2.0, 0.0f));
         model = glm::scale(model, glm::vec3(8.0f, 2.0f, 0.0f));
         boxes[5] *= model;
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(draw_pos.x + (m_size.x / 2)-2,draw_pos.y +  (m_size.y / 2)-8, 0.0f));
+        model = glm::translate(model, glm::vec3(draw_pos.x + (m_draw_size.x / 2) - 2, draw_pos.y + (m_draw_size.y / 2) - 8, 0.0f));
         model = glm::scale(model, glm::vec3(2.0f, 8.0f, 0.0f));
         boxes[6] *= model;
 
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(draw_pos.x + (m_size.x / 2)-8,draw_pos.y +  (m_size.y / 2)-2, 0.0f));
+        model = glm::translate(model, glm::vec3(draw_pos.x + (m_draw_size.x / 2) - 8, draw_pos.y + (m_draw_size.y / 2) - 2, 0.0f));
         model = glm::scale(model, glm::vec3(8.0f, 2.0f, 0.0f));
         boxes[7] *= model;
 
@@ -125,53 +129,53 @@ glm::vec2 Widget::calcDrawPos() {
     // If there isnt a parent, the widget is treated as a root. Its anchor is hardset to 0,0 and its offset is ignored.
     // Best that the widget being treated as the root set its size to the value of a resize even.
 
-    glm::vec2 draw_pos = {m_size.x/2, m_size.y/2};
+    glm::vec2 draw_pos = {m_draw_size.x / 2, m_draw_size.y / 2};
     if(m_parent != nullptr) {
         draw_pos = m_parent->calcDrawPos();
         switch (m_anchor) {
             case Widget::Anchor::TopLeft  : {
-                draw_pos.x += ((m_parent->m_size.x / -2) + (m_size.x / 2)) + (m_offset.x * (m_parent->m_size.x - m_size.x));
-                draw_pos.y -= ((m_parent->m_size.y / -2) + (m_size.y / 2)) + (m_offset.y * (m_parent->m_size.y - m_size.y));
+                draw_pos.x += ((m_parent->m_draw_size.x / -2) + (m_draw_size.x / 2)) + (m_draw_offset.x * (m_parent->m_draw_size.x - m_draw_size.x));
+                draw_pos.y -= ((m_parent->m_draw_size.y / -2) + (m_draw_size.y / 2)) + (m_draw_offset.y * (m_parent->m_draw_size.y - m_draw_size.y));
             }
             break;
             case Widget::Anchor::Top  : {
-                draw_pos.x += (m_offset.x * (m_parent->m_size.x - m_size.x));
-                draw_pos.y -= ((m_parent->m_size.y / -2) + (m_size.y / 2)) + (m_offset.y * (m_parent->m_size.y - m_size.y));
+                draw_pos.x += (m_draw_offset.x * (m_parent->m_draw_size.x - m_draw_size.x));
+                draw_pos.y -= ((m_parent->m_draw_size.y / -2) + (m_draw_size.y / 2)) + (m_draw_offset.y * (m_parent->m_draw_size.y - m_draw_size.y));
             }
             break;
             case Widget::Anchor::TopRight  : {
-                draw_pos.x -= ((m_parent->m_size.x / -2) + (m_size.x / 2)) + (m_offset.x * (m_parent->m_size.x - m_size.x));
-                draw_pos.y -= ((m_parent->m_size.y / -2) + (m_size.y / 2)) + (m_offset.y * (m_parent->m_size.y - m_size.y));
+                draw_pos.x -= ((m_parent->m_draw_size.x / -2) + (m_draw_size.x / 2)) + (m_draw_offset.x * (m_parent->m_draw_size.x - m_draw_size.x));
+                draw_pos.y -= ((m_parent->m_draw_size.y / -2) + (m_draw_size.y / 2)) + (m_draw_offset.y * (m_parent->m_draw_size.y - m_draw_size.y));
             }
             break;
             case Widget::Anchor::Left  : {
-                draw_pos.x += ((m_parent->m_size.x / -2) + (m_size.x / 2)) + (m_offset.x * (m_parent->m_size.x - m_size.x));
-                draw_pos.y += (m_offset.y * (m_parent->m_size.y - m_size.y));
+                draw_pos.x += ((m_parent->m_draw_size.x / -2) + (m_draw_size.x / 2)) + (m_draw_offset.x * (m_parent->m_draw_size.x - m_draw_size.x));
+                draw_pos.y += (m_draw_offset.y * (m_parent->m_draw_size.y - m_draw_size.y));
             }
             break;
             case Widget::Anchor::Center  : {
-                draw_pos.x += (m_offset.x * (m_parent->m_size.x - m_size.x));
-                draw_pos.y += (m_offset.y * (m_parent->m_size.y - m_size.y));
+                draw_pos.x += (m_draw_offset.x * (m_parent->m_draw_size.x - m_draw_size.x));
+                draw_pos.y += (m_draw_offset.y * (m_parent->m_draw_size.y - m_draw_size.y));
             }
                 break;
             case Widget::Anchor::Right  : {
-                draw_pos.x -= ((m_parent->m_size.x / -2) + (m_size.x / 2)) + (m_offset.x * (m_parent->m_size.x - m_size.x));
-                draw_pos.y += (m_offset.y * (m_parent->m_size.y - m_size.y));
+                draw_pos.x -= ((m_parent->m_draw_size.x / -2) + (m_draw_size.x / 2)) + (m_draw_offset.x * (m_parent->m_draw_size.x - m_draw_size.x));
+                draw_pos.y += (m_draw_offset.y * (m_parent->m_draw_size.y - m_draw_size.y));
             }
             break;
             case Widget::Anchor::BottomLeft  : {
-                draw_pos.x += ((m_parent->m_size.x / -2) + (m_size.x / 2)) + (m_offset.x * (m_parent->m_size.x - m_size.x));
-                draw_pos.y += ((m_parent->m_size.y / -2) + (m_size.y / 2)) + (m_offset.y * (m_parent->m_size.y - m_size.y));
+                draw_pos.x += ((m_parent->m_draw_size.x / -2) + (m_draw_size.x / 2)) + (m_draw_offset.x * (m_parent->m_draw_size.x - m_draw_size.x));
+                draw_pos.y += ((m_parent->m_draw_size.y / -2) + (m_draw_size.y / 2)) + (m_draw_offset.y * (m_parent->m_draw_size.y - m_draw_size.y));
             }
             break;
             case Widget::Anchor::Bottom  : {
-                draw_pos.x += (m_offset.x * (m_parent->m_size.x - m_size.x));
-                draw_pos.y += ((m_parent->m_size.y / -2) + (m_size.y / 2)) + (m_offset.y * (m_parent->m_size.y - m_size.y));
+                draw_pos.x += (m_draw_offset.x * (m_parent->m_draw_size.x - m_draw_size.x));
+                draw_pos.y += ((m_parent->m_draw_size.y / -2) + (m_draw_size.y / 2)) + (m_draw_offset.y * (m_parent->m_draw_size.y - m_draw_size.y));
             }
             break;
             case Widget::Anchor::BottomRight  : {
-                draw_pos.x -= ((m_parent->m_size.x / -2) + (m_size.x / 2)) + (m_offset.x * (m_parent->m_size.x - m_size.x));
-                draw_pos.y += ((m_parent->m_size.y / -2) + (m_size.y / 2)) + (m_offset.y * (m_parent->m_size.y - m_size.y));
+                draw_pos.x -= ((m_parent->m_draw_size.x / -2) + (m_draw_size.x / 2)) + (m_draw_offset.x * (m_parent->m_draw_size.x - m_draw_size.x));
+                draw_pos.y += ((m_parent->m_draw_size.y / -2) + (m_draw_size.y / 2)) + (m_draw_offset.y * (m_parent->m_draw_size.y - m_draw_size.y));
             }
             break;
         }

@@ -13,9 +13,11 @@
 Draw::CallQueue Platform::call_queue;
 Platform::Manager::State Platform::state;
 GLFWwindow* Platform::window = nullptr;
+u32 Platform::target_height = 0;
 
-b32 Platform::Manager::startup() {
+b32 Platform::Manager::startup(u32 height) {
     if(glfwInit()) {
+        target_height = height;
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
@@ -208,4 +210,9 @@ glm::vec2 Platform::getMousePos() {
     f64 x, y;
     glfwGetCursorPos(window, &x, & y);
     return {x, y};
+}
+
+f32 Platform::getGlobalScaler() {
+    glm::vec2 cur_viewport = getViewportSize();
+    return (cur_viewport.y / target_height);
 }
