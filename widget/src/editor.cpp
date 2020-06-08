@@ -28,10 +28,12 @@ void Editor::onWindowResize() {
     m_size.y = m_parent->getSize().y;
     m_draw_size = {m_size.x * Platform::getGlobalScaler(), m_size.y};
     m_draw_offset = m_offset * Platform::getGlobalScaler();
+    debugViewUpdate();
+    std::cout << "Upload" << std::endl;
     m_chaper_number.onWindowResize();
 }
 
 void Editor::draw(Draw::CallQueue& draw_buffer) {
     m_chaper_number.draw(draw_buffer);
-    debugDraw(draw_buffer);
+    debugViewDraw(draw_buffer);
 }

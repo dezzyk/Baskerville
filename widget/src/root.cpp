@@ -46,6 +46,7 @@ void Root::onWindowResize() {
     box.setColor({0.97f, 0.98f, 0.99f, 1.0f});
     m_draw_context.upload(sizeof(Draw::Box), &box);
 
+    debugViewUpdate();
     m_editor.onWindowResize();
 }
 
@@ -57,6 +58,6 @@ void Root::draw(Draw::CallQueue& draw_buffer) {
     call.count = 6;
 
     draw_buffer.push_back(call);
-    debugDraw(draw_buffer);
+    debugViewDraw(draw_buffer);
     m_editor.draw(draw_buffer);
 }

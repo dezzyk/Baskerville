@@ -95,6 +95,7 @@ void Platform::Manager::shutdown() {
 }
 
 void Platform::Manager::pollEvents() {
+    window_resized = false;
     glfwPollEvents();
 }
 

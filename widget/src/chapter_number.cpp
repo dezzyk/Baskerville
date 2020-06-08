@@ -53,6 +53,7 @@ void ChapterNumber::onMacro(const Event::Macro& macro) {
 void ChapterNumber::onWindowResize() {
     m_draw_size = m_size * Platform::getGlobalScaler();
     m_draw_offset = m_offset;
+    debugViewUpdate();
 }
 
 void ChapterNumber::draw(Draw::CallQueue& draw_buffer) {
@@ -70,5 +71,5 @@ void ChapterNumber::draw(Draw::CallQueue& draw_buffer) {
     new_draw.uniforms[1].setValue(Draw::Uniform::ArrayTexture(m_font->getHandle().value(), 0));
     draw_buffer.push_back(new_draw);
 
-    debugDraw(draw_buffer);
+    debugViewDraw(draw_buffer);
 }

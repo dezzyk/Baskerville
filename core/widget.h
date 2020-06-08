@@ -45,7 +45,8 @@ public:
     glm::vec2 getOffset() const;
     Anchor getAnchor() const;
 protected:
-    void debugDraw(Draw::CallQueue& draw_buffer);
+    void debugViewUpdate();
+    void debugViewDraw(Draw::CallQueue& draw_buffer);
     glm::vec2 calcDrawPos();
     glm::vec2 m_size = {1.0f, 1.0f };
     glm::vec2 m_offset = {0.0f, 0.0f};

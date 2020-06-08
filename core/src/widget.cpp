@@ -35,18 +35,18 @@ Widget::Anchor Widget::getAnchor() const{
     return m_anchor;
 }
 
-void Widget::debugDraw(Draw::CallQueue& draw_buffer) {
+void Widget::debugViewUpdate() {
     if(!m_debug_draw.draw_attempted) {
         if (m_debug_draw.shader == nullptr) {
 
             m_debug_draw.shader = Shader::Cache::fetch("box_draw");
             if(m_debug_draw.shader == nullptr) {
                 std::string vert =
-                #include "shader/box_draw.vert"
-                        ;
+#include "shader/box_draw.vert"
+                ;
                 std::string frag =
-                #include "shader/box_draw.frag"
-                        ;
+#include "shader/box_draw.frag"
+                ;
                 m_debug_draw.shader = Shader::Cache::load("box_draw", vert, frag);
             }
 
@@ -107,10 +107,33 @@ void Widget::debugDraw(Draw::CallQueue& draw_buffer) {
 
         m_debug_draw.context.upload(sizeof(Draw::Box) * boxes.size(), boxes.data());
 
+    }
+}
+
+void Widget::debugViewDraw(Draw::CallQueue& draw_buffer) {
+    if(!m_debug_draw.draw_attempted) {
+        if (m_debug_draw.shader == nullptr) {
+
+            m_debug_draw.shader = Shader::Cache::fetch("box_draw");
+            if(m_debug_draw.shader == nullptr) {
+                std::string vert =
+                #include "shader/box_draw.vert"
+                        ;
+                std::string frag =
+                #include "shader/box_draw.frag"
+                        ;
+                m_debug_draw.shader = Shader::Cache::load("box_draw", vert, frag);
+            }
+
+        }
+        m_debug_draw.draw_attempted = true;
+    }
+    if((m_debug_draw.shader != nullptr && m_debug_draw.shader->getHandle().has_value()) && m_debug_draw.context.valid()) {
+
         Draw::Call draw;
         draw.context = &m_debug_draw.context;
         draw.shader = m_debug_draw.shader;
-        draw.count = boxes.size() * boxes[0].vertices.size();
+        draw.count = 8 * 6;
         draw_buffer.push_back(draw);
 
     }
