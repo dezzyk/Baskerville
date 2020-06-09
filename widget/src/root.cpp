@@ -33,12 +33,16 @@ void Root::onMacro(const Event::Macro& macro) {
     m_editor.onMacro(macro);
 }
 
+void Root::onMouseClick(Event::MouseClick mouse_click) {
+    m_editor.onMouseClick(mouse_click);
+}
+
 void Root::onWindowResize() {
     m_size = Platform::getViewportSize();
     m_draw_size = m_size;
 
     Draw::Box box;
-    glm::vec2 draw_pos = calcDrawPos();
+    glm::vec2 draw_pos = calcViewportPos();
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(draw_pos.x, draw_pos.y, 0.0f));
     model = glm::scale(model, glm::vec3(m_draw_size.x, m_draw_size.y, 0.0f));

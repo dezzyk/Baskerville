@@ -35,19 +35,21 @@ public:
         BottomRight,
         Center
     };
-    virtual void update() = 0;
-    virtual void onCodepoint(const Event::Codepoint& codepoint) = 0;
-    virtual void onMacro(const Event::Macro& macro) = 0;
-    virtual void onWindowResize() = 0;
-    virtual void draw(Draw::CallQueue& draw_buffer) = 0;
+    virtual void update();
+    virtual void onCodepoint(const Event::Codepoint& codepoint);
+    virtual void onMacro(const Event::Macro& macro);
+    virtual void onMouseClick(Event::MouseClick mouse_click);
+    virtual void onWindowResize();
+    virtual void draw(Draw::CallQueue& draw_buffer);
     virtual void setParent(Widget* parent);
+    b32 pointIntersect(glm::vec2 pos);
     glm::vec2 getSize() const;
     glm::vec2 getOffset() const;
     Anchor getAnchor() const;
 protected:
     void debugViewUpdate();
     void debugViewDraw(Draw::CallQueue& draw_buffer);
-    glm::vec2 calcDrawPos();
+    glm::vec2 calcViewportPos();
     glm::vec2 m_size = {1.0f, 1.0f };
     glm::vec2 m_offset = {0.0f, 0.0f};
     glm::vec2 m_draw_size = {0.0f, 0.0f };

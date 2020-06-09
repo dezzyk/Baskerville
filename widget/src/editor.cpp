@@ -10,6 +10,7 @@ Editor::Editor(Widget* parent) : Widget(parent), m_chaper_number(this) {
     m_anchor = Widget::Anchor::Top;
     m_size.x = 800;
     m_size.y = m_parent->getSize().y;
+    m_chaper_number.setValue('1');
 }
 
 void Editor::update() {
@@ -22,6 +23,14 @@ void Editor::onCodepoint(const Event::Codepoint& codepoint) {
 
 void Editor::onMacro(const Event::Macro& macro) {
     m_chaper_number.onMacro(macro);
+}
+
+void Editor::onMouseClick(Event::MouseClick mouse_click) {
+    if(m_chaper_number.pointIntersect(mouse_click.pos)) {
+        std::cout << "Hit" << std::endl;
+    } else {
+        std::cout << "Miss" << std::endl;
+    }
 }
 
 void Editor::onWindowResize() {

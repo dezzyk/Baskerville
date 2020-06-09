@@ -21,6 +21,7 @@ public:
         void pollEvents();
         b32 pollCodepoint(Event::Codepoint& value);
         b32 pollMacro(Event::Macro& value);
+        b32 pollMouseClick(Event::MouseClick& value);
         b32 windowResized();
         void swap();
         b32 shouldQuit();
@@ -35,6 +36,7 @@ private:
     static GLFWwindow* window;
     static Event::RingQueue<Event::Codepoint, 128> codepoint;
     static Event::RingQueue<Event::Macro, 16> macro;
+    static Event::RingQueue<Event::MouseClick, 16> mouse_click;
     static f32 global_scaler;
     static b32 window_resized;
     static u32 target_height;

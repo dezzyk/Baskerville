@@ -17,6 +17,7 @@ public:
     void update() override ;
     void onCodepoint(const Event::Codepoint& codepoint) override ;
     void onMacro(const Event::Macro& macro) override ;
+    void onMouseClick(Event::MouseClick mouse_click) override ;
     void onWindowResize() override ;
     void draw(Draw::CallQueue& draw_buffer) override ;
 private:

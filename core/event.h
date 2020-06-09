@@ -64,4 +64,9 @@ namespace Event {
         ArrowRight
     };
 
+    struct MouseClick {
+        glm::vec2 pos = {0.0f, 0.0f};
+        b32 button = 0;
+    };
+
 }

@@ -21,7 +21,19 @@ Widget::Widget(Widget&& other) noexcept :
         m_anchor(other.m_anchor),
         m_debug_draw(std::move(other.m_debug_draw)) {}
 
+void Widget::update() {}
+void Widget::onCodepoint(const Event::Codepoint& codepoint) {}
+void Widget::onMacro(const Event::Macro& macro) {}
+void Widget::onMouseClick(Event::MouseClick mouse_click) {}
+void Widget::onWindowResize() {}
+void Widget::draw(Draw::CallQueue& draw_buffer) {}
 void Widget::setParent(Widget* parent) { m_parent = parent; }
+
+b32 Widget::pointIntersect(glm::vec2 pos) {
+    glm::vec2 widget_pos = calcViewportPos();
+    return pos.x >= (widget_pos.x - (m_draw_size.x / 2)) && pos.x <= (widget_pos.x + (m_draw_size.x / 2)) &&
+           pos.y >= (widget_pos.y - (m_draw_size.y / 2)) && pos.y <= (widget_pos.y + (m_draw_size.y / 2));
+}
 
 glm::vec2 Widget::getSize() const{
     return m_size;
@@ -57,7 +69,7 @@ void Widget::debugViewUpdate() {
 
         std::array<Draw::Box, 8> boxes;
 
-        glm::vec2 draw_pos = calcDrawPos();
+        glm::vec2 draw_pos = calcViewportPos();
 
         glm::mat4 model(1.0f);
         model = glm::translate(model, glm::vec3(draw_pos.x - (m_draw_size.x / 2) + 2.0f, draw_pos.y + (m_draw_size.y / 2) - 8.0, 0.0f));
@@ -139,14 +151,14 @@ void Widget::debugViewDraw(Draw::CallQueue& draw_buffer) {
     }
 }
 
-glm::vec2 Widget::calcDrawPos() {
+glm::vec2 Widget::calcViewportPos() {
 
     // If there isnt a parent, the widget is treated as a root. Its anchor is hardset to 0,0 and its offset is ignored.
     // Best that the widget being treated as the root set its size to the value of a resize even.
 
     glm::vec2 draw_pos = {m_draw_size.x / 2, m_draw_size.y / 2};
     if(m_parent != nullptr) {
-        draw_pos = m_parent->calcDrawPos();
+        draw_pos = m_parent->calcViewportPos();
         switch (m_anchor) {
             case Widget::Anchor::TopLeft  : {
                 draw_pos.x += ((m_parent->m_draw_size.x / -2) + (m_draw_size.x / 2)) + (m_draw_offset.x * (m_parent->m_draw_size.x - m_draw_size.x));

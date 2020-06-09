@@ -13,6 +13,7 @@
 Draw::CallQueue Platform::call_queue;
 Event::RingQueue<Event::Codepoint, 128> Platform::codepoint;
 Event::RingQueue<Event::Macro, 16> Platform::macro;
+Event::RingQueue<Event::MouseClick, 16> Platform::mouse_click;
 GLFWwindow* Platform::window = nullptr;
 f32 Platform::global_scaler = 1.0f;
 b32 Platform::window_resized = false;
@@ -75,6 +76,19 @@ b32 Platform::Manager::startup(u32 height) {
             window_resized = true;
             global_scaler = ((f32)h / target_height);
         });
+        glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods) {
+            if(action == GLFW_PRESS && (button == GLFW_MOUSE_BUTTON_RIGHT || button == GLFW_MOUSE_BUTTON_LEFT)) {
+                // GL drops with y pos 0 at bottom, GLFW reports with y pos 0 at top, reverse the y pos.
+                double x, y;
+                glfwGetCursorPos(window, &x, &y);
+                glm::vec2 viewport = getViewportSize();
+                b32 button = true;
+                if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+                    button = false;
+                }
+                mouse_click.push({{x, viewport.y - y}, button});
+            }
+        });
         if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
             std::cout << "Failed to load glad" << std::endl;
             return false;
@@ -112,6 +126,15 @@ b32 Platform::Manager::pollMacro(Event::Macro& value) {
     if(macro.size() > 0) {
         value = macro.front();
         macro.pop();
+        return true;
+    }
+    return false;
+}
+
+b32 Platform::Manager::pollMouseClick(Event::MouseClick& value) {
+    if(mouse_click.size() > 0) {
+        value = mouse_click.front();
+        mouse_click.pop();
         return true;
     }
     return false;

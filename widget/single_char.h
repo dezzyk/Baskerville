@@ -10,17 +10,19 @@
 #include "font.h"
 #include "shader.h"
 
-class ChapterNumber : public Widget {
+#include <optional>
+
+class SingleChar : public Widget {
 public:
-    ChapterNumber();
-    explicit ChapterNumber(Widget* parent);
-    void update() override ;
-    void onCodepoint(const Event::Codepoint& codepoint) override ;
-    void onMacro(const Event::Macro& macro) override ;
+    SingleChar();
+    explicit SingleChar(Widget* parent);
+    void setValue(u32 codepoint);
+    void setValue(char codepoint);
     void onWindowResize() override ;
     void draw(Draw::CallQueue& draw_buffer) override ;
 private:
+    Draw::Context m_draw_context;
+    std::optional<u32> m_codepoint;
     const Font* m_font = nullptr;
     const Shader* m_shader = nullptr;
-    Draw::Context m_draw_context;
 };

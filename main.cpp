@@ -51,14 +51,18 @@ int main() {
                 platform.pollEvents();
                 Event::Codepoint codepoint;
                 Event::Macro macro;
-                if(platform.windowResized()) {
-                    root->onWindowResize();
-                }
+                Event::MouseClick mouse_click;
                 while(platform.pollMacro(macro)) {
                     root->onMacro(macro);
                 }
                 while(platform.pollCodepoint(codepoint)) {
                     root->onCodepoint(codepoint);
+                }
+                while(platform.pollMouseClick(mouse_click)) {
+                    root->onMouseClick(mouse_click);
+                }
+                if(platform.windowResized()) {
+                    root->onWindowResize();
                 }
                 root->update();
                 update_accumulator -= update_rate;

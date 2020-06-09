@@ -15,7 +15,6 @@ const Shader* Shader::Cache::load(std::string shader_name, std::string vert, std
 }
 
 const Shader* Shader::Cache::fetch(std::string shader_name) {
-    std::cout << m_shader_cache.size() << std::endl;
     if(m_shader_cache.find(shader_name) != m_shader_cache.end()) {
         return &m_shader_cache[shader_name];
     }
