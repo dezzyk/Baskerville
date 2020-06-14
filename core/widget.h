@@ -52,8 +52,8 @@ protected:
     glm::vec2 calcViewportPos();
     glm::vec2 m_size = {1.0f, 1.0f };
     glm::vec2 m_offset = {0.0f, 0.0f};
-    glm::vec2 m_draw_size = {0.0f, 0.0f };
-    glm::vec2 m_draw_offset = {0.0f, 0.0f};
+    glm::vec2 m_draw_size = m_size;
+    glm::vec2 m_draw_offset = m_offset;
     Widget* m_parent = nullptr;
     b32 m_offset_normalized = false;
     Anchor m_anchor = Anchor::TopLeft;

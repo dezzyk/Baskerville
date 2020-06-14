@@ -18,6 +18,12 @@ namespace Draw {
             }
         }
 
+        void setUVDepth(u32 depth) {
+            for(auto& vert : vertices) {
+                vert.uv.z = depth;
+            }
+        }
+
         void operator*(glm::mat4 model) {
             vertices[0].pos = model * glm::vec4(vertices[0].pos.x, vertices[0].pos.y, 0.0f, 1.0f);
             vertices[1].pos = model * glm::vec4(vertices[1].pos.x, vertices[1].pos.y, 0.0f, 1.0f);

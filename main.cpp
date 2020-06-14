@@ -30,6 +30,15 @@ int main() {
 
         Font::Cache::load("editor", "LibreBaskerville-Regular.ttf", 33, 126, 24);
 
+        // Preload shaders
+        std::string vert =
+#include "shader/msdf_draw.vert"
+        ;
+        std::string frag =
+#include "shader/msdf_draw.frag"
+        ;
+        Shader::Cache::load("msdf_draw", vert, frag);
+
         root = new Root();
 
         //Explicitly call onWindowResize once for widgets to adjust to the windows initial size
@@ -47,7 +56,6 @@ int main() {
             u32 update_count = 0;
             while (update_accumulator >= update_rate) {
 
-                platform.swap();
                 platform.pollEvents();
                 Event::Codepoint codepoint;
                 Event::Macro macro;
@@ -74,6 +82,7 @@ int main() {
             if (update_count > 0) {
                 root->draw(platform.getDrawCallQueue());
                 platform.executeDrawCalls();
+                platform.swap();
             }
         }
 

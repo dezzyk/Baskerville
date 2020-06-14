@@ -6,7 +6,6 @@
 
 #include "common.h"
 #include "widget.h"
-#include "single_char.h"
 
 class Editor : public Widget {
 public:
@@ -19,5 +18,4 @@ public:
     void onWindowResize() override ;
     void draw(Draw::CallQueue& draw_buffer) override ;
 private:
-    SingleChar m_chaper_number;
 };

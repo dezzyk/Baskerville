@@ -8,6 +8,7 @@
 #include "widget.h"
 #include "draw.h"
 #include "editor.h"
+#include "test.h"
 
 #include "glm/glm.hpp"
 
@@ -23,5 +24,6 @@ public:
 private:
     Draw::Context m_draw_context;
     const Shader* m_shader = nullptr;
-    Editor m_editor;
+    Test m_test;
+    //Editor m_editor;
 };

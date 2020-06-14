@@ -7,7 +7,7 @@
 #include "gl_err.h"
 
 // NOTE: ALL child widget's must be instantiated shorthand like this
-Root::Root() : m_editor(this) {
+Root::Root() : m_test(this) {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     m_shader = Shader::Cache::fetch("box_draw");
     if(m_shader == nullptr) {
@@ -22,19 +22,19 @@ Root::Root() : m_editor(this) {
 }
 
 void Root::update() {
-    m_editor.update();
+    //m_editor.update();
 }
 
 void Root::onCodepoint(const Event::Codepoint& codepoint) {
-    m_editor.onCodepoint(codepoint);
+    //m_editor.onCodepoint(codepoint);
 }
 
 void Root::onMacro(const Event::Macro& macro) {
-    m_editor.onMacro(macro);
+    //m_editor.onMacro(macro);
 }
 
 void Root::onMouseClick(Event::MouseClick mouse_click) {
-    m_editor.onMouseClick(mouse_click);
+    //m_editor.onMouseClick(mouse_click);
 }
 
 void Root::onWindowResize() {
@@ -51,7 +51,8 @@ void Root::onWindowResize() {
     m_draw_context.upload(sizeof(Draw::Box), &box);
 
     debugViewUpdate();
-    m_editor.onWindowResize();
+    //m_editor.onWindowResize();
+    m_test.onWindowResize();
 }
 
 void Root::draw(Draw::CallQueue& draw_buffer) {
@@ -63,5 +64,5 @@ void Root::draw(Draw::CallQueue& draw_buffer) {
 
     draw_buffer.push_back(call);
     debugViewDraw(draw_buffer);
-    m_editor.draw(draw_buffer);
+    m_test.draw(draw_buffer);
 }
