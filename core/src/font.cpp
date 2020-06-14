@@ -60,6 +60,7 @@ Font::Font(Font&& other) noexcept :
         m_pixel_height(other.m_pixel_height),
         m_msdf_pixel_range(other.m_msdf_pixel_range),
         m_glyphs(other.m_glyphs),
+        m_space_glyph(other.m_space_glyph),
         m_scale(other.m_scale)
     {
     other.m_texture_handle = std::nullopt;
