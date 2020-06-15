@@ -26,15 +26,14 @@ void Root::update() {
 }
 
 void Root::onCodepoint(const Event::Codepoint& codepoint) {
-    //m_editor.onCodepoint(codepoint);
+    m_test.onCodepoint(codepoint);
 }
 
 void Root::onMacro(const Event::Macro& macro) {
-    //m_editor.onMacro(macro);
+    m_test.onMacro(macro);
 }
 
 void Root::onMouseClick(Event::MouseClick mouse_click) {
-    //m_editor.onMouseClick(mouse_click);
 }
 
 void Root::onWindowResize() {

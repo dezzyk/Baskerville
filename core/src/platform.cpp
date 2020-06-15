@@ -32,6 +32,7 @@ b32 Platform::Manager::startup(u32 height) {
             return false;
         }
         glfwMakeContextCurrent(window);
+        glfwSwapInterval(1);
         glfwSetCharCallback(window, [](GLFWwindow *window, u32 value) -> void {
             codepoint.push({value});
         });
@@ -216,6 +217,7 @@ void Platform::Manager::executeDrawCalls() {
             std::cout << "Call shader equal to nullptr, skipping." << std::endl;
         }
     }
+    call_queue.resize(0);
 }
 
 glm::vec2 Platform::getViewportSize() {

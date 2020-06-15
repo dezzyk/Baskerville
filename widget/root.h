@@ -7,7 +7,6 @@
 #include "common.h"
 #include "widget.h"
 #include "draw.h"
-#include "editor.h"
 #include "test.h"
 
 #include "glm/glm.hpp"
