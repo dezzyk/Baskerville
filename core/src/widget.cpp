@@ -67,7 +67,8 @@ void Widget::debugViewUpdate() {
     }
     if((m_debug_draw.shader != nullptr && m_debug_draw.shader->getHandle().has_value()) && m_debug_draw.context.valid()) {
 
-        std::array<Draw::Box, 8> boxes;
+        static std::array<Draw::Box, 8> boxes;
+        boxes = {};
 
         glm::vec2 draw_pos = calcViewportPos();
 
@@ -117,7 +118,7 @@ void Widget::debugViewUpdate() {
             }
         }
 
-        m_debug_draw.context.upload(sizeof(Draw::Box) * boxes.size(), boxes.data());
+        m_debug_draw.context.boxUpload<8>(boxes);
 
     }
 }
@@ -145,7 +146,7 @@ void Widget::debugViewDraw(Draw::CallQueue& draw_buffer) {
         Draw::Call draw;
         draw.context = &m_debug_draw.context;
         draw.shader = m_debug_draw.shader;
-        draw.count = 8 * 6;
+        draw.count = 8; // Magic number will come back to haunt me I just know it
         draw_buffer.push_back(draw);
 
     }

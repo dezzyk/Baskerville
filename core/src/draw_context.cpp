@@ -4,8 +4,6 @@
 
 #include "draw_context.h"
 
-#include "glad/glad.h"
-
 #include <iostream>
 
 Draw::Context::Context() {
@@ -14,10 +12,12 @@ Draw::Context::Context() {
     glGenVertexArrays(1, &vao_handle);
     if(vbo_handle != 0) {
         if(vao_handle != 0) {
+            m_capacity = sizeof(Draw::Box) * 8;  // Preallocate for 8 boxes
             m_vbo = vbo_handle;
             m_vao = vao_handle;
             glBindVertexArray(m_vao.value());
             glBindBuffer(GL_ARRAY_BUFFER, m_vbo.value());
+            glBufferData(GL_ARRAY_BUFFER, m_capacity, nullptr, GL_DYNAMIC_DRAW);
             glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)0);
             glEnableVertexAttribArray(0);
             glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(4* sizeof(float)));
@@ -58,12 +58,36 @@ const std::optional<u32>& Draw::Context::getVAO() const {
     return m_vao;
 }
 
-void Draw::Context::upload(u32 size, void* data) const {
+void Draw::Context::boxUpload(Draw::Box& data) {
     if(valid()) {
+        m_size = 1;
+        u32 byte_size = sizeof(Draw::Box);
         glBindBuffer(GL_ARRAY_BUFFER, m_vbo.value());
-        glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW);
+        if(byte_size > m_capacity) { // Should never happen
+            m_capacity = byte_size + (byte_size % sizeof(Draw::Box)) + (sizeof(Draw::Box) * 8);
+            glBufferData(GL_ARRAY_BUFFER, m_capacity, nullptr, GL_DYNAMIC_DRAW);
+        }
+        glBufferSubData(GL_ARRAY_BUFFER, 0, byte_size, &data);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
+}
+
+void Draw::Context::boxUpload(std::vector<Draw::Box>& data) {
+    if(valid()) {
+        m_size = data.size();
+        u32 byte_size = m_size * sizeof(Draw::Box);
+        glBindBuffer(GL_ARRAY_BUFFER, m_vbo.value());
+        if(byte_size > m_capacity) {
+            m_capacity = byte_size + (byte_size % sizeof(Draw::Box)) + (sizeof(Draw::Box) * 8);
+            glBufferData(GL_ARRAY_BUFFER, m_capacity, nullptr, GL_DYNAMIC_DRAW);
+        }
+        glBufferSubData(GL_ARRAY_BUFFER, 0, byte_size, data.data());
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+}
+
+u32 Draw::Context::size() {
+    return m_size;
 }
 
 b32 Draw::Context::valid() const {

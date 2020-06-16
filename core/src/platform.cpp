@@ -204,7 +204,8 @@ void Platform::Manager::executeDrawCalls() {
                     }
                     glBindVertexArray(draw.context->getVAO().value());
                     CheckGLError();
-                    glDrawArrays(GL_TRIANGLES, 0, draw.count);
+                    Draw::Box size_box;
+                    glDrawArrays(GL_TRIANGLES, 0, draw.count * size_box.vertices.size());
                     CheckGLError();
                     glBindVertexArray(0);
                 } else {

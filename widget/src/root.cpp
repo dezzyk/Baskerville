@@ -47,7 +47,7 @@ void Root::onWindowResize() {
     model = glm::scale(model, glm::vec3(m_draw_size.x, m_draw_size.y, 0.0f));
     box *= model;
     box.setColor({0.97f, 0.98f, 0.99f, 1.0f});
-    m_draw_context.upload(sizeof(Draw::Box), &box);
+    m_draw_context.boxUpload(box);
 
     debugViewUpdate();
     //m_editor.onWindowResize();

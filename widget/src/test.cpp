@@ -24,11 +24,19 @@ void Test::onWindowResize() {
 void Test::onCodepoint(const Event::Codepoint& codepoint) {
     m_value += (char)codepoint.value;
     updateLabel();
+    std::cout << m_value << std::endl;
 }
 void Test::onMacro(const Event::Macro& macro) {
     if(macro == Event::Macro::Backspace && !m_value.empty()) {
         m_value.pop_back();
         updateLabel();
+        /*if(m_value.back() != ' ') {
+            m_value.pop_back();
+            updateLabel();
+        } else {
+            m_value.pop_back();
+        }*/
+        std::cout << m_value << std::endl;
     }
 }
 
@@ -46,7 +54,7 @@ void Test::draw(Draw::CallQueue& draw_buffer) {
         Draw::Call new_draw;
         new_draw.context = &m_draw_context;
         new_draw.shader = m_shader;
-        new_draw.count = 6 * m_value.size();
+        new_draw.count = m_draw_context.size();
         new_draw.uniforms[0].setValue(model);
         new_draw.uniforms[1].setValue(Draw::Uniform::ArrayTexture(m_font->getHandle().value(), 0));
         draw_buffer.push_back(new_draw);
@@ -60,7 +68,8 @@ void Test::updateLabel() {
 
     if(!m_value.empty()) {
 
-        std::vector<Draw::Box> boxes;
+        static std::vector<Draw::Box> boxes;
+        boxes.resize(0);
 
         i32 xpos = 0;
         for (int i = 0; i < m_value.size(); ++i) {
@@ -100,7 +109,7 @@ void Test::updateLabel() {
 
         }
 
-        m_draw_context.upload(sizeof(Draw::Box) * boxes.size(), boxes.data());
+        m_draw_context.boxUpload(boxes);
 
     }
 
