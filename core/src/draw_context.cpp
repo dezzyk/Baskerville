@@ -90,6 +90,10 @@ u32 Draw::Context::size() {
     return m_size;
 }
 
+void Draw::Context::clear() {
+    m_size = 0;
+}
+
 b32 Draw::Context::valid() const {
     return (m_vao.has_value() && m_vbo.has_value());
 }

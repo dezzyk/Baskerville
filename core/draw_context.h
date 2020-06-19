@@ -41,6 +41,7 @@ namespace Draw {
             }
         }
         u32 size();
+        void clear();
         b32 valid() const;
 
     private:

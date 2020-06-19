@@ -55,6 +55,7 @@ public:
     f32 calcScale(u32 pixel_height) const;
     glm::vec2 getBitmapSize() const;
     glm::vec2 getBoundingBoxSize() const;
+    u32 getPixelHeight() const;
     const Glyph* getGlyph(u32 codepoint);
     i32 getKernAdvance(u32 pixel_height, u32 c0, u32 c1) const;
     void getGlyphAdvance(u32 pixel_height, u32 glyph, i32& advance, i32& lsb) const;

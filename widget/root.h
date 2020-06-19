@@ -7,9 +7,11 @@
 #include "common.h"
 #include "widget.h"
 #include "draw.h"
-#include "test.h"
+#include "label.h"
 
 #include "glm/glm.hpp"
+
+#include <string>
 
 class Root : public Widget {
 public:
@@ -18,11 +20,10 @@ public:
     void onCodepoint(const Event::Codepoint& codepoint) override ;
     void onMacro(const Event::Macro& macro) override ;
     void onMouseClick(Event::MouseClick mouse_click) override ;
-    void onWindowResize() override ;
-    void draw(Draw::CallQueue& draw_buffer) override ;
+    void draw(Draw::CallQueue& draw_buffer, f32 scale) override ;
 private:
     Draw::Context m_draw_context;
     const Shader* m_shader = nullptr;
-    Test m_test;
-    //Editor m_editor;
+    Label m_test;
+    std::string m_test_value = "";
 };

@@ -41,9 +41,6 @@ int main() {
 
         root = new Root();
 
-        //Explicitly call onWindowResize once for widgets to adjust to the windows initial size
-        root->onWindowResize();
-
         std::chrono::duration<u64, std::nano> update_accumulator(0);
         std::chrono::duration<u64, std::milli> update_rate((u32)((1.0 / (f32)120) * 1000)); // Locked to 120, change later
         timestamp cur_time = std::chrono::high_resolution_clock::now();
@@ -69,9 +66,6 @@ int main() {
                 while(platform.pollMouseClick(mouse_click)) {
                     root->onMouseClick(mouse_click);
                 }
-                if(platform.windowResized()) {
-                    root->onWindowResize();
-                }
                 root->update();
                 update_accumulator -= update_rate;
                 update_count++;
@@ -80,7 +74,7 @@ int main() {
                 }
             }
             if (update_count > 0) {
-                root->draw(platform.getDrawCallQueue());
+                root->draw(platform.getDrawCallQueue(), platform.getViewportScaler());
                 platform.executeDrawCalls();
                 platform.swap();
             }

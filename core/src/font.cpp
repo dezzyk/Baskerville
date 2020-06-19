@@ -217,6 +217,10 @@ glm::vec2 Font::getBoundingBoxSize() const {
     return { (f32)(abs(m_bounding_box.x) + abs(m_bounding_box.z)),  (f32)(abs(m_bounding_box.y) + abs(m_bounding_box.w))};
 }
 
+u32 Font::getPixelHeight() const {
+    return m_pixel_height;
+}
+
 const Font::Glyph* Font::getGlyph(u32 codepoint) {
     if(codepoint == (u32)' ') {
         return &m_space_glyph;

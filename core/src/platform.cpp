@@ -15,8 +15,7 @@ Event::RingQueue<Event::Codepoint, 128> Platform::codepoint;
 Event::RingQueue<Event::Macro, 16> Platform::macro;
 Event::RingQueue<Event::MouseClick, 16> Platform::mouse_click;
 GLFWwindow* Platform::window = nullptr;
-f32 Platform::global_scaler = 1.0f;
-b32 Platform::window_resized = false;
+f32 Platform::viewport_scaler = 1.0f;
 u32 Platform::target_height = 0;
 
 b32 Platform::Manager::startup(u32 height) {
@@ -74,8 +73,7 @@ b32 Platform::Manager::startup(u32 height) {
         });
         glfwSetFramebufferSizeCallback(window, [](GLFWwindow *window, int w, int h) {
             glViewport(0, 0, w, h);
-            window_resized = true;
-            global_scaler = ((f32)h / target_height);
+            viewport_scaler = ((f32)h / target_height);
         });
         glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods) {
             if(action == GLFW_PRESS && (button == GLFW_MOUSE_BUTTON_RIGHT || button == GLFW_MOUSE_BUTTON_LEFT)) {
@@ -110,7 +108,6 @@ void Platform::Manager::shutdown() {
 }
 
 void Platform::Manager::pollEvents() {
-    window_resized = false;
     glfwPollEvents();
 }
 
@@ -141,10 +138,6 @@ b32 Platform::Manager::pollMouseClick(Event::MouseClick& value) {
     return false;
 }
 
-b32 Platform::Manager::windowResized() {
-    return window_resized;
-}
-
 void Platform::Manager::swap() {
     glfwSwapBuffers(window);
 }
@@ -155,6 +148,10 @@ b32 Platform::Manager::shouldQuit() {
 
 Draw::CallQueue& Platform::Manager::getDrawCallQueue() {
     return call_queue;
+}
+
+f32 Platform::Manager::getViewportScaler() {
+    return viewport_scaler;
 }
 
 void Platform::Manager::executeDrawCalls() {
@@ -221,18 +218,14 @@ void Platform::Manager::executeDrawCalls() {
     call_queue.resize(0);
 }
 
-glm::vec2 Platform::getViewportSize() {
+const glm::vec2 Platform::getViewportSize() {
     int x, y;
     glfwGetFramebufferSize(window, &x, & y);
     return {x, y};
 }
 
-glm::vec2 Platform::getMousePos() {
+const glm::vec2 Platform::getMousePos() {
     f64 x, y;
     glfwGetCursorPos(window, &x, & y);
     return {x, y};
-}
-
-f32 Platform::getGlobalScaler() {
-    return global_scaler;
 }
