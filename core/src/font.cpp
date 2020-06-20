@@ -164,7 +164,6 @@ Font::Font(std::string font_name, u32 start_codepoint, u32 end_codepoint, u32 pi
                 glyph.uv.bottom_right = {0.5 + (m_bitmap_size.x / ((f32)(abs(glyph.bounding_box.x0) + abs(glyph.bounding_box.x1)) / 2.0f)),
                                          0.5 + (m_bitmap_size.y / ((f32)(abs(glyph.bounding_box.y0) + abs(glyph.bounding_box.y1)) / 2.0f))};
 
-                std::cout << glyph.bounding_box.x0 << std::endl;
                 m_glyphs.push_back({(u32)i, (u32)index});
             }
         }
@@ -221,14 +220,6 @@ u32 Font::getPixelHeight() const {
     return m_pixel_height;
 }
 
-const Font::Glyph* Font::getGlyph(u32 codepoint) {
-    if(codepoint == (u32)' ') {
-        return &m_space_glyph;
-    } else if(codepoint >= getStartCodepoint() && codepoint <= getEndCodepoint()) {
-        return &m_glyphs[codepoint - getStartCodepoint()];
-    }
-}
-
 i32 Font::getKernAdvance(u32 pixel_height, u32 c0, u32 c1) const {
     std::optional<Glyph> c0g;
     std::optional<Glyph> c1g;
@@ -272,6 +263,30 @@ u32 Font::getStartCodepoint() const {
 
 u32 Font::getEndCodepoint() const {
     return m_end_codepoint;
+}
+
+u32 Font::calcStringPixelWidth(std::string& str, u32 pixel_height) const {
+    i32 xpos = 0;
+    for (int i = 0; i < str.size(); ++i) {
+
+        i32 advance;
+        i32 lsb = 0;
+        getGlyphAdvance(32, str[i], advance, lsb);
+
+        // Calc an offset for the glyph to orient it in accordence to the font metrics since they always render from the center.
+        int xoffset = advance / 2;
+        if (i == 0) {
+            xoffset -= lsb; // lsb is always negative
+        }
+
+        xpos += advance;
+        int kern = 0;
+        if (i < str.size() - 1) {
+            xpos += getKernAdvance(32, str[i], str[i + 1]);
+        }
+
+    }
+    return xpos * calcScale(pixel_height);
 }
 
 f32 Font::calcScale(u32 pixel_height) const {

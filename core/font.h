@@ -56,11 +56,11 @@ public:
     glm::vec2 getBitmapSize() const;
     glm::vec2 getBoundingBoxSize() const;
     u32 getPixelHeight() const;
-    const Glyph* getGlyph(u32 codepoint);
     i32 getKernAdvance(u32 pixel_height, u32 c0, u32 c1) const;
     void getGlyphAdvance(u32 pixel_height, u32 glyph, i32& advance, i32& lsb) const;
     u32 getStartCodepoint() const;
     u32 getEndCodepoint() const;
+    u32 calcStringPixelWidth(std::string& str, u32 pixel_height) const;
     std::vector<unsigned char> generateBitmap(u32 codepoint);
 private:
     Font(std::string font_name, u32 start_codepoint, u32 end_codepoint, u32 pixel_height);
