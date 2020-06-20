@@ -64,6 +64,8 @@ void Label::setValue(const std::string& value, u32 pixel_height, glm::vec4 color
             m_draw_context.boxUpload(boxes);
         }
 
+        m_pixel_width = xpos * m_font->calcScale(m_pixel_height);
+
     } else {
         m_draw_context.clear();
     }
@@ -97,4 +99,32 @@ void Label::draw(Draw::CallQueue& draw_buffer, f32 scale) {
     debugViewUpdate(); // Updating each draw to ensure the boxes follow regardless of if the label updates.
     debugViewDraw(draw_buffer);
 
+}
+
+u32 Label::getPixelWidth() {
+    return m_pixel_width;
+}
+
+u32 Label::calcPixelWidth(const std::string& value, u32 pixel_height) {
+    i32 xpos = 0;
+    for (int i = 0; i < value.size(); ++i) {
+
+        i32 advance;
+        i32 lsb = 0;
+        m_font->getGlyphAdvance(32, value[i], advance, lsb);
+
+        // Calc an offset for the glyph to orient it in accordence to the font metrics since they always render from the center.
+        int xoffset = advance / 2;
+        if (i == 0) {
+            xoffset -= lsb; // lsb is always negative
+        }
+
+        xpos += advance;
+        int kern = 0;
+        if (i < value.size() - 1) {
+            xpos += m_font->getKernAdvance(32, value[i], value[i + 1]);
+        }
+
+    }
+    return xpos * m_font->calcScale(pixel_height);
 }

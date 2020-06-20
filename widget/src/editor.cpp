@@ -19,11 +19,40 @@ Editor::Editor(Widget* parent) : Widget(parent) {
 void Editor::update() {}
 
 void Editor::onCodepoint(const Event::Codepoint& codepoint) {
-
+    auto& line = m_lines[m_active_line_index];
+    line.value += (char)codepoint.value;
+    line.label.setValue(line.value, 24, {0.0f, 0.0f, 0.0f, 1.0f});
+    if(line.label.getPixelWidth() > line.label.getSize().x) {
+        static std::string copy;
+        static std::string buffer;
+        copy = line.value;
+        buffer = "";
+        u32 index = 0;
+        while(line.label.calcPixelWidth(copy, 24) > line.label.getSize().x) {
+            ++index;
+            copy.pop_back();
+        }
+        while(line.value.at(line.value.size() - 1 - index) != ' ') {
+            ++index;
+        }
+        ++m_active_line_index;
+        if(m_active_line_index > 4) {
+            m_active_line_index = 0;
+        }
+        auto& next_line = m_lines[m_active_line_index];
+        next_line.value = line.value.substr(line.value.size() -index, index);
+        next_line.label.setValue(next_line.value, 24, {0.0f, 0.0f, 0.0f, 1.0f});
+    }
+    std::cout << line.label.getPixelWidth() << std::endl;
 }
 
 void Editor::onMacro(const Event::Macro& macro) {
-
+    auto& line = m_lines[m_active_line_index];
+    if(macro == Event::Macro::Backspace && !line.value.empty()) {
+        line.value.pop_back();
+        line.label.setValue(line.value, 24, {0.0f, 0.0f, 0.0f, 1.0f});
+        std::cout << line.label.getPixelWidth() << std::endl;
+    }
 }
 
 void Editor::onMouseClick(Event::MouseClick mouse_click) {
