@@ -4,8 +4,6 @@
 
 #include "label.h"
 
-Label::Label() {}
-
 Label::Label(Widget* parent) : Widget(parent) {
     m_anchor = Widget::Anchor::Center;
     m_shader = Shader::Cache::fetch("msdf_draw");
@@ -13,11 +11,11 @@ Label::Label(Widget* parent) : Widget(parent) {
     m_size = {1000.0f, 0.0f};
 }
 
-void Label::setValue(const std::string& value, u32 pixel_height) {
+void Label::setValue(const std::string& value, u32 pixel_height, glm::vec4 color) {
 
     m_pixel_height = pixel_height;
     m_size.y = m_font->getPixelHeight() * (m_pixel_height / m_font->getPixelHeight());
-    updateDrawSize();
+    m_draw_size = m_size * getScale();
 
     if(!value.empty()) {
 
@@ -40,7 +38,7 @@ void Label::setValue(const std::string& value, u32 pixel_height) {
             if (value[i] != ' ') {
 
                 Draw::Box box;
-                box.setColor({0.0f, 0.0f, 0.0f, 1.0f});
+                box.setColor(color);
                 box.setUVDepth((int) value[i] - m_font->getStartCodepoint());
 
                 glm::mat4 model = glm::mat4(1.0f);
@@ -75,15 +73,14 @@ void Label::setValue(const std::string& value, u32 pixel_height) {
 void Label::draw(Draw::CallQueue& draw_buffer, f32 scale) {
 
     if(setScaleAndReportChange(scale)) {
-        updateDrawSize();
+        m_draw_size = m_size * getScale();
     }
 
     if (m_draw_context.size() > 0) {
 
         glm::vec2 draw_pos = calcDrawPos();
-        auto draw_size = getDrawSize();
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(draw_pos.x - draw_size.x / 2, draw_pos.y, 0.0f));
+        model = glm::translate(model, glm::vec3(draw_pos.x - m_draw_size.x / 2, draw_pos.y, 0.0f));
         model = glm::scale(model, glm::vec3(m_font->calcScale(m_pixel_height) * getScale(),
                                             m_font->calcScale(m_pixel_height) * getScale(), 0.0f));
 

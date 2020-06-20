@@ -13,10 +13,10 @@
 
 class Label : public Widget {
 public:
-    Label();
+    Label() = delete;
     explicit Label(Widget* parent);
     // string value is not stored internally to prevent conflicts.
-    void setValue(const std::string& value, u32 pixel_height);
+    void setValue(const std::string& value, u32 pixel_height, glm::vec4 color);
     void draw(Draw::CallQueue& draw_buffer, f32 scale) override ;
 private:
     u32 m_pixel_height = 36;

@@ -47,18 +47,16 @@ public:
 protected:
     void debugViewUpdate();
     void debugViewDraw(Draw::CallQueue& draw_buffer);
-    const glm::vec2& getDrawSize();
     const f32& getScale();
     b32 setScaleAndReportChange(f32 scale);
-    void updateDrawSize();
     glm::vec2 calcDrawPos();
     glm::vec2 m_size = {1.0f, 1.0f };
+    glm::vec2 m_draw_size = m_size;
     glm::vec2 m_offset = {0.0f, 0.0f};
     Widget* m_parent = nullptr;
     b32 m_offset_normalized = false;
     Anchor m_anchor = Anchor::TopLeft;
 private:
-    glm::vec2 m_draw_size = m_size;
     f32 m_scale = 0.0f;
     struct {
         Draw::Context context;

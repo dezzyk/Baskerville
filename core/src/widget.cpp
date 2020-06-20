@@ -152,10 +152,6 @@ void Widget::debugViewDraw(Draw::CallQueue& draw_buffer) {
     }
 }
 
-const glm::vec2& Widget::getDrawSize() {
-    return m_draw_size;
-}
-
 const f32& Widget::getScale() {
     return m_scale;
 }
@@ -166,10 +162,6 @@ b32 Widget::setScaleAndReportChange(f32 scale) {
     }
     m_scale = scale;
     return true;
-}
-
-void Widget::updateDrawSize() {
-    m_draw_size = m_size * m_scale;
 }
 
 glm::vec2 Widget::calcDrawPos() {
