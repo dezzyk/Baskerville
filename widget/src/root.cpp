@@ -28,16 +28,10 @@ void Root::update() {}
 
 void Root::onCodepoint(const Event::Codepoint& codepoint) {
     m_editor.onCodepoint(codepoint);
-    //m_test_value += (char)codepoint.value;
-    //m_test.setValue(m_test_value, 24, {0.0f, 0.0f, 0.0f, 1.0f});
 }
 
 void Root::onMacro(const Event::Macro& macro) {
     m_editor.onMacro(macro);
-    //if(macro == Event::Macro::Backspace && !m_test_value.empty()) {
-        //m_test_value.pop_back();
-        //m_test.setValue(m_test_value, 24, {0.0f, 0.0f, 0.0f, 1.0f});
-    //}
 }
 
 void Root::onMouseClick(Event::MouseClick mouse_click) {}

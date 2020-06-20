@@ -25,6 +25,4 @@ private:
     Draw::Context m_draw_context;
     const Shader* m_shader = nullptr;
     Editor m_editor;
-    //Label m_test;
-    //std::string m_test_value = "";
 };

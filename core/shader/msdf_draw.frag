@@ -22,7 +22,7 @@ void main(){
     float toPixels = 8.0 * inversesqrt( dx * dx + dy * dy );
     float sigDist = median( samp.r, samp.g, samp.b ) - 0.5;
     float opacity = clamp( sigDist * toPixels + 0.5, 0.0, 1.0 );
-    draw_color = vec4(f_color.rgb, opacity);
+    draw_color = vec4(f_color.rgb, opacity * f_color.a);
 
 }
 )"

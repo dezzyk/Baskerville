@@ -5,13 +5,14 @@
 #include "label.h"
 
 Label::Label(Widget* parent) : Widget(parent) {
-    m_anchor = Widget::Anchor::Center;
+    anchor = Widget::Anchor::Center;
     m_shader = Shader::Cache::fetch("msdf_draw");
     m_size = {0.0f, 0.0f};
 }
 
 void Label::setValue(const std::string& value, const Font* font, u32 pixel_height, glm::vec4 color) {
 
+    //m_color = color;
     m_font = font;
     if(m_font != nullptr) {
 

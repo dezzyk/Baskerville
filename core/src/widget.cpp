@@ -13,11 +13,10 @@ Widget::~Widget() {}
 
 Widget::Widget(Widget&& other) noexcept :
         m_size(other.m_size),
-        m_offset(other.m_offset),
+        offset(other.offset),
         m_draw_size(other.m_draw_size),
         m_parent(other.m_parent),
-        m_offset_normalized(other.m_offset_normalized),
-        m_anchor(other.m_anchor),
+        anchor(other.anchor),
         m_scale(other.m_scale),
         m_debug_draw(std::move(other.m_debug_draw)) {}
 
@@ -33,16 +32,8 @@ b32 Widget::pointIntersect(glm::vec2 pos) {
            pos.y >= (widget_pos.y - (m_draw_size.y / 2)) && pos.y <= (widget_pos.y + (m_draw_size.y / 2));
 }
 
-const glm::vec2& Widget::getSize() const{
+const glm::vec2& Widget::getSize() const {
     return m_size;
-}
-
-const glm::vec2& Widget::getOffset() const{
-    return m_offset;
-}
-
-const Widget::Anchor& Widget::getAnchor() const{
-    return m_anchor;
 }
 
 void Widget::debugViewUpdate() {
@@ -64,8 +55,6 @@ void Widget::debugViewUpdate() {
         m_debug_draw.draw_attempted = true;
     }
     if((m_debug_draw.shader != nullptr && m_debug_draw.shader->getHandle().has_value()) && m_debug_draw.context.valid()) {
-
-
 
         static std::array<Draw::Box, 8> boxes;
         boxes = {};
@@ -172,50 +161,50 @@ glm::vec2 Widget::calcDrawPos() {
     glm::vec2 draw_pos = {m_draw_size.x / 2, m_draw_size.y / 2};
     if(m_parent != nullptr) {
         draw_pos = m_parent->calcDrawPos();
-        switch (m_anchor) {
+        switch (anchor) {
             case Widget::Anchor::TopLeft  : {
-                draw_pos.x += ((m_parent->m_draw_size.x / -2) + (m_draw_size.x / 2)) + (m_offset.x * (m_parent->m_draw_size.x - m_draw_size.x));
-                draw_pos.y -= ((m_parent->m_draw_size.y / -2) + (m_draw_size.y / 2)) + (m_offset.y * (m_parent->m_draw_size.y - m_draw_size.y));
+                draw_pos.x += ((m_parent->m_draw_size.x / -2) + (m_draw_size.x / 2)) + (offset.x * (m_parent->m_draw_size.x - m_draw_size.x));
+                draw_pos.y -= ((m_parent->m_draw_size.y / -2) + (m_draw_size.y / 2)) + (offset.y * (m_parent->m_draw_size.y - m_draw_size.y));
             }
             break;
             case Widget::Anchor::Top  : {
-                draw_pos.x += (m_offset.x * (m_parent->m_draw_size.x - m_draw_size.x));
-                draw_pos.y -= ((m_parent->m_draw_size.y / -2) + (m_draw_size.y / 2)) + (m_offset.y * (m_parent->m_draw_size.y - m_draw_size.y));
+                draw_pos.x += (offset.x * (m_parent->m_draw_size.x - m_draw_size.x));
+                draw_pos.y -= ((m_parent->m_draw_size.y / -2) + (m_draw_size.y / 2)) + (offset.y * (m_parent->m_draw_size.y - m_draw_size.y));
             }
             break;
             case Widget::Anchor::TopRight  : {
-                draw_pos.x -= ((m_parent->m_draw_size.x / -2) + (m_draw_size.x / 2)) + (m_offset.x * (m_parent->m_draw_size.x - m_draw_size.x));
-                draw_pos.y -= ((m_parent->m_draw_size.y / -2) + (m_draw_size.y / 2)) + (m_offset.y * (m_parent->m_draw_size.y - m_draw_size.y));
+                draw_pos.x -= ((m_parent->m_draw_size.x / -2) + (m_draw_size.x / 2)) + (offset.x * (m_parent->m_draw_size.x - m_draw_size.x));
+                draw_pos.y -= ((m_parent->m_draw_size.y / -2) + (m_draw_size.y / 2)) + (offset.y * (m_parent->m_draw_size.y - m_draw_size.y));
             }
             break;
             case Widget::Anchor::Left  : {
-                draw_pos.x += ((m_parent->m_draw_size.x / -2) + (m_draw_size.x / 2)) + (m_offset.x * (m_parent->m_draw_size.x - m_draw_size.x));
-                draw_pos.y += (m_offset.y * (m_parent->m_draw_size.y - m_draw_size.y));
+                draw_pos.x += ((m_parent->m_draw_size.x / -2) + (m_draw_size.x / 2)) + (offset.x * (m_parent->m_draw_size.x - m_draw_size.x));
+                draw_pos.y += (offset.y * (m_parent->m_draw_size.y - m_draw_size.y));
             }
             break;
             case Widget::Anchor::Center  : {
-                draw_pos.x += (m_offset.x * (m_parent->m_draw_size.x - m_draw_size.x));
-                draw_pos.y += (m_offset.y * (m_parent->m_draw_size.y - m_draw_size.y));
+                draw_pos.x += (offset.x * (m_parent->m_draw_size.x - m_draw_size.x));
+                draw_pos.y += (offset.y * (m_parent->m_draw_size.y - m_draw_size.y));
             }
                 break;
             case Widget::Anchor::Right  : {
-                draw_pos.x -= ((m_parent->m_draw_size.x / -2) + (m_draw_size.x / 2)) + (m_offset.x * (m_parent->m_draw_size.x - m_draw_size.x));
-                draw_pos.y += (m_offset.y * (m_parent->m_draw_size.y - m_draw_size.y));
+                draw_pos.x -= ((m_parent->m_draw_size.x / -2) + (m_draw_size.x / 2)) + (offset.x * (m_parent->m_draw_size.x - m_draw_size.x));
+                draw_pos.y += (offset.y * (m_parent->m_draw_size.y - m_draw_size.y));
             }
             break;
             case Widget::Anchor::BottomLeft  : {
-                draw_pos.x += ((m_parent->m_draw_size.x / -2) + (m_draw_size.x / 2)) + (m_offset.x * (m_parent->m_draw_size.x - m_draw_size.x));
-                draw_pos.y += ((m_parent->m_draw_size.y / -2) + (m_draw_size.y / 2)) + (m_offset.y * (m_parent->m_draw_size.y - m_draw_size.y));
+                draw_pos.x += ((m_parent->m_draw_size.x / -2) + (m_draw_size.x / 2)) + (offset.x * (m_parent->m_draw_size.x - m_draw_size.x));
+                draw_pos.y += ((m_parent->m_draw_size.y / -2) + (m_draw_size.y / 2)) + (offset.y * (m_parent->m_draw_size.y - m_draw_size.y));
             }
             break;
             case Widget::Anchor::Bottom  : {
-                draw_pos.x += (m_offset.x * (m_parent->m_draw_size.x - m_draw_size.x));
-                draw_pos.y += ((m_parent->m_draw_size.y / -2) + (m_draw_size.y / 2)) + (m_offset.y * (m_parent->m_draw_size.y - m_draw_size.y));
+                draw_pos.x += (offset.x * (m_parent->m_draw_size.x - m_draw_size.x));
+                draw_pos.y += ((m_parent->m_draw_size.y / -2) + (m_draw_size.y / 2)) + (offset.y * (m_parent->m_draw_size.y - m_draw_size.y));
             }
             break;
             case Widget::Anchor::BottomRight  : {
-                draw_pos.x -= ((m_parent->m_draw_size.x / -2) + (m_draw_size.x / 2)) + (m_offset.x * (m_parent->m_draw_size.x - m_draw_size.x));
-                draw_pos.y += ((m_parent->m_draw_size.y / -2) + (m_draw_size.y / 2)) + (m_offset.y * (m_parent->m_draw_size.y - m_draw_size.y));
+                draw_pos.x -= ((m_parent->m_draw_size.x / -2) + (m_draw_size.x / 2)) + (offset.x * (m_parent->m_draw_size.x - m_draw_size.x));
+                draw_pos.y += ((m_parent->m_draw_size.y / -2) + (m_draw_size.y / 2)) + (offset.y * (m_parent->m_draw_size.y - m_draw_size.y));
             }
             break;
         }

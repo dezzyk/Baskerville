@@ -42,8 +42,8 @@ public:
     virtual void draw(Draw::CallQueue& draw_buffer, f32 scale);
     b32 pointIntersect(glm::vec2 pos);
     const glm::vec2& getSize() const;
-    const glm::vec2& getOffset() const;
-    const Anchor& getAnchor() const;
+    glm::vec2 offset = {0.0f, 0.0f};
+    Anchor anchor = Anchor::TopLeft;
 protected:
     void debugViewUpdate();
     void debugViewDraw(Draw::CallQueue& draw_buffer);
@@ -52,10 +52,8 @@ protected:
     glm::vec2 calcDrawPos();
     glm::vec2 m_size = {1.0f, 1.0f };
     glm::vec2 m_draw_size = m_size;
-    glm::vec2 m_offset = {0.0f, 0.0f};
     Widget* m_parent = nullptr;
     b32 m_offset_normalized = false;
-    Anchor m_anchor = Anchor::TopLeft;
 private:
     f32 m_scale = 0.0f;
     struct {

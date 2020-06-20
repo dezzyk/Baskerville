@@ -21,6 +21,7 @@ public:
     struct Line {
         Label label;
         std::string value;
+        f32 fade_offset = -1.0;
     };
     explicit Editor(Widget* parent);
     void update() override ;
@@ -33,6 +34,8 @@ private:
     std::string m_current_paragraph;
     const Font* m_font = nullptr;
     std::vector<Line> m_lines;
-    u32 m_active_line_index = 0;
+    Line* cur_line = nullptr;
+    Line* prev_line = nullptr;
+    u32 m_cur_line_index = 0;
     u32 m_font_pixel_height = 24;
 };
