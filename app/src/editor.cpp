@@ -21,15 +21,11 @@ Editor::Editor(Widget* parent) : Widget(parent) {
     cur_line = &m_lines[m_cur_line_index];
     prev_line = &m_lines[4];
 
-    // Temp
-
-    m_project["name"] = "Test Project";
-    m_project["word_count"] = 0;
-    m_current_paragraph = "";
-
-    //
-
     m_font = Font::Cache::fetch("editor");
+
+    prev_line->value = Project::getLastLine();
+    prev_line->label.setValue(prev_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 0.33f});
+
 }
 
 void Editor::update() {
@@ -52,9 +48,9 @@ void Editor::onCodepoint(const Event::Codepoint& codepoint) {
             }
             buffer = cur_line->value.substr(cur_line->value.size() - index, index);
             cur_line->value.erase(cur_line->value.size() - index, index);
-            m_current_paragraph += cur_line->value;
+            Project::pushLine(cur_line->value);
             cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 0.33f});
-            cur_line->label.offset.y = (m_font_pixel_height / getSize().y) * getScale();
+            //cur_line->label.offset.y = (m_font_pixel_height / getSize().y) * getScale();
             prev_line = cur_line;
             ++m_cur_line_index;
             if(m_cur_line_index > 4) {
@@ -66,8 +62,8 @@ void Editor::onCodepoint(const Event::Codepoint& codepoint) {
             cur_line->label.offset.y = 0.0;
         } else {
             cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 0.33f});
-            m_current_paragraph += cur_line->value;
-            cur_line->label.offset.y = (m_font_pixel_height / getSize().y) * getScale();
+            Project::pushLine(cur_line->value);
+            //cur_line->label.offset.y = (m_font_pixel_height / getSize().y) * getScale();
             prev_line = cur_line;
             ++m_cur_line_index;
             if(m_cur_line_index > 4) {
@@ -81,7 +77,6 @@ void Editor::onCodepoint(const Event::Codepoint& codepoint) {
     } else {
         cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 1.0f});
     }
-    std::cout << m_current_paragraph << std::endl;
 }
 
 void Editor::onMacro(const Event::Macro& macro) {
@@ -92,11 +87,10 @@ void Editor::onMacro(const Event::Macro& macro) {
     }
     else if(macro == Event::Macro::Enter) {
         if(!cur_line->value.empty()) {
-            m_project["paragraphs"].push_back(m_current_paragraph);
-            m_current_paragraph = "";
+            Project::completeParagraph();
             prev_line = cur_line;
             prev_line->label.setValue(prev_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 0.33f});
-            prev_line->label.offset.y = (m_font_pixel_height / getSize().y) * getScale();
+            //prev_line->label.offset.y = (m_font_pixel_height / getSize().y) * getScale();
             ++m_cur_line_index;
             if (m_cur_line_index > 4) {
                 m_cur_line_index = 0;
@@ -118,6 +112,7 @@ void Editor::draw(Draw::CallQueue& draw_buffer, f32 scale) {
     m_size.y = m_parent->getSize().y;
     if(setScaleAndReportChange(scale)) {
         m_draw_size = {m_size.x * getScale(), m_size.y};
+        prev_line->label.offset.y = (m_font_pixel_height / getSize().y) * getScale();
     }
 
     cur_line->label.draw(draw_buffer, scale);

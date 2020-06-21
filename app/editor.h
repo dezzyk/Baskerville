@@ -8,6 +8,7 @@
 #include "widget.h"
 #include "label.h"
 #include "font.h"
+#include "project.h"
 
 #include "nlohmann/json.hpp"
 
@@ -25,13 +26,13 @@ public:
     };
     explicit Editor(Widget* parent);
     void update() override ;
-    void onCodepoint(const Event::Codepoint& codepoint) override ;
-    void onMacro(const Event::Macro& macro) override ;
+    void onCodepoint(const Event::Codepoint& codepoint);
+    void onMacro(const Event::Macro& macro);
     void onMouseClick(Event::MouseClick mouse_click) override ;
     void draw(Draw::CallQueue& draw_buffer, f32 scale) override ;
 private:
-    json m_project;
-    std::string m_current_paragraph;
+    //json m_project;
+    //std::string m_current_paragraph;
     const Font* m_font = nullptr;
     std::vector<Line> m_lines;
     Line* cur_line = nullptr;

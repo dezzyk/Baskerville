@@ -8,6 +8,7 @@
 #include "widget.h"
 #include "draw.h"
 #include "editor.h"
+#include "project.h"
 
 #include "glm/glm.hpp"
 

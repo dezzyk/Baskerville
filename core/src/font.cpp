@@ -20,7 +20,6 @@
 #include <filesystem>
 #include <iostream>
 #include <thread>
-#include <future>
 
 const Font* Font::Cache::load(std::string font_name,
                                 std::string filename,

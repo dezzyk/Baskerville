@@ -13,6 +13,8 @@
 #include "root.h"
 #include "shader.h"
 
+#include "project.h"
+
 #include "meta.h"
 
 Platform::Manager platform;
@@ -38,6 +40,8 @@ int main() {
 #include "shader/msdf_draw.frag"
         ;
         Shader::Cache::load("msdf_draw", vert, frag);
+
+        Project::startup();
 
         root = new Root();
 
@@ -81,6 +85,8 @@ int main() {
         }
 
         delete root;
+
+        Project::shutdown();
 
         shader_cache.clear();
         font_cache.clear();
