@@ -2,20 +2,19 @@
 #define NOMINMAX
 
 #include "common.h"
-
-#include <iostream>
-#include <string>
-#include <chrono>
-
 #include "event.h"
 #include "platform.h"
 #include "font.h"
 #include "root.h"
 #include "shader.h"
-
 #include "project.h"
-
 #include "meta.h"
+
+#include "nfd/nfd.h"
+
+#include <iostream>
+#include <string>
+#include <chrono>
 
 Platform::Manager platform;
 

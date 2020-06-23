@@ -68,6 +68,11 @@ b32 Platform::Manager::startup(u32 height) {
                     macro.push({Event::Macro::Cut} );
                 } else if (key == GLFW_KEY_S) {
                     macro.push({Event::Macro::Save} );
+                    std::cout << "saved" << std::endl;
+                } else if (key == GLFW_KEY_O) {
+                    macro.push({Event::Macro::Open} );
+                } else if (key == GLFW_KEY_N) {
+                    macro.push({Event::Macro::New} );
                 }
             }
         });

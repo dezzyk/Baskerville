@@ -100,6 +100,14 @@ void Editor::onMacro(const Event::Macro& macro) {
             cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 1.0f});
             cur_line->label.offset.y = 0.0;
         }
+    } else if(macro == Event::Macro::Save) {
+        Project::save();
+    } else if(macro == Event::Macro::Open) {
+        Project::open();
+        prev_line->value = Project::getLastLine();
+        prev_line->label.setValue(prev_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 0.33f});
+        cur_line->value = "";
+        cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 1.0f});
     }
 }
 
@@ -110,9 +118,9 @@ void Editor::onMouseClick(Event::MouseClick mouse_click) {
 void Editor::draw(Draw::CallQueue& draw_buffer, f32 scale) {
 
     m_size.y = m_parent->getSize().y;
+    prev_line->label.offset.y = (m_font_pixel_height / getSize().y) * getScale();
     if(setScaleAndReportChange(scale)) {
         m_draw_size = {m_size.x * getScale(), m_size.y};
-        prev_line->label.offset.y = (m_font_pixel_height / getSize().y) * getScale();
     }
 
     cur_line->label.draw(draw_buffer, scale);

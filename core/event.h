@@ -58,6 +58,8 @@ namespace Event {
         Enter,
         Tab,
         Save,
+        Open,
+        New,
         ArrowUp,
         ArrowDown,
         ArrowLeft,

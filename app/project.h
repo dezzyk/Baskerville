@@ -18,8 +18,8 @@ using json = nlohmann::json ;
 namespace Project {
     void startup();
     void shutdown();
-    void open(const std::filesystem::path& path);
-    void save(const std::filesystem::path& path);
+    void open();
+    void save();
     std::string getCurProjectPath();
     std::string getLastLine();
     void pushLine(std::string line);

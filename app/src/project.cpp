@@ -4,6 +4,8 @@
 
 #include "project.h"
 
+#include "nfd/nfd.h"
+
 #include <iostream>
 
 namespace {
@@ -21,8 +23,9 @@ void Project::startup() {
         std::filesystem::create_directory("cache/");
     }
     if(std::filesystem::exists("cache/project.dat")) {
+        // If the cache exists and the path is not empty, then dump the contents to the applicable file.
+        // The only reason this should happen is if the application crashed as it deletes the cache on shutdown
         std::ifstream input;
-        //std::vector<u8> buffer;
         input.open("cache/project.dat", std::ios::binary);
         input.seekg(0, input.end);
         u32 length = input.tellg();
@@ -31,62 +34,102 @@ void Project::startup() {
         input.read(reinterpret_cast<char*>(buffer.data()), buffer.size());
         input.close();
         data = json::from_cbor(buffer);
-        //cache_file = std::ofstream("cache/project.dat", std::ios::out | std::ios::binary | std::ios::trunc);
+        if(!data["path"].empty()) {
+            std::string path = data["path"];
+            std::ofstream save_file(path, std::ios::out | std::ios::binary);
+            buffer = json::to_cbor(data["data"]);
+            save_file.write(reinterpret_cast<char*>(buffer.data()), buffer.size());
+            save_file.flush();
+        }
     } else {
-        data["path"] = "";
+        data["path"] = std::string();
         data["data"]["paragraphs"] = std::vector<json>();
-        //cache_file = std::ofstream("cache/project.dat", std::ios::out | std::ios::binary | std::ios::trunc);
-    }
-    std::ofstream cache_file = std::ofstream("cache/project.dat", std::ios::out | std::ios::binary | std::ios::trunc);
-    if(!cache_file || !cache_file.is_open() || !cache_file.good()) {
-        std::cout << "Failed to open cache file" << std::endl;
-    } else {
-        buffer = json::to_cbor(data);
-        cache_file.write(reinterpret_cast<char*>(buffer.data()), buffer.size());
-        cache_file.flush();
-        if(!cache_file.good()) {
-            std::cout << "Failed to write to cache file" << std::endl;
+        std::ofstream cache_file = std::ofstream("cache/project.dat", std::ios::out | std::ios::binary | std::ios::trunc);
+        if(!cache_file || !cache_file.is_open() || !cache_file.good()) {
+            std::cout << "Failed to open cache file" << std::endl;
+        } else {
+            buffer = json::to_cbor(data);
+            cache_file.write(reinterpret_cast<char*>(buffer.data()), buffer.size());
+            cache_file.flush();
+            if(!cache_file.good()) {
+                std::cout << "Failed to write to cache file" << std::endl;
+            }
         }
     }
 }
 
 void Project::shutdown() {
-
+    std::filesystem::remove("cache/project.dat");
 }
 
-void Project::open(const std::filesystem::path& path) {
-    if(std::filesystem::exists(path)) {
-        std::ifstream input;
-        //std::vector<u8> buffer;
-        input.open(path, std::ios::binary);
-        input.seekg(0, input.end);
-        u32 length = input.tellg();
-        input.seekg(0, input.beg);
-        buffer.resize(length);
-        input.read(reinterpret_cast<char*>(buffer.data()), buffer.size());
-        input.close();
-        json project_data = json::from_cbor(buffer);
+void Project::open() {
 
-        data["path"] = path.string();
-        data["data"] = project_data;
-        buffer = json::to_cbor(data);
-        std::ofstream cache_file = std::ofstream("cache/project.dat", std::ios::out | std::ios::binary | std::ios::trunc);
-        cache_file.write(reinterpret_cast<char*>(buffer.data()), buffer.size());
-        cache_file.flush();
+    nfdchar_t *outPath = NULL;
+    nfdresult_t result = NFD_OpenDialog( "spt", NULL, &outPath );
+
+    if ( result == NFD_OKAY ) {
+        std::filesystem::path path = outPath;
+        free(outPath);
+        if(std::filesystem::exists(path)) { // Redundant but doesnt hurt
+            std::ifstream input;
+            input.open(path, std::ios::binary);
+            input.seekg(0, input.end);
+            u32 length = input.tellg();
+            input.seekg(0, input.beg);
+            buffer.resize(length);
+            input.read(reinterpret_cast<char*>(buffer.data()), buffer.size());
+            input.close();
+            json project_data = json::from_cbor(buffer);
+
+            data["path"] = path.string();
+            data["data"] = project_data;
+            buffer = json::to_cbor(data);
+            std::ofstream cache_file = std::ofstream("cache/project.dat", std::ios::out | std::ios::binary | std::ios::trunc);
+            cache_file.write(reinterpret_cast<char*>(buffer.data()), buffer.size());
+            cache_file.flush();
+        }
+
+    }
+    else if ( result == NFD_CANCEL ) {
+        std::cout <<"User pressed cancel." << std::endl;
+    }
+    else {
+        printf("Error: %s\n", NFD_GetError() );
     }
 }
 
-void Project::save(const std::filesystem::path &path) {
-    data["path"] = path.string();
-    std::ofstream file(path, std::ios::out | std::ios::binary);
-    buffer = json::to_cbor(data["data"]);
-    // Remember to write to both so that cache is updated with the new path.
-    file.write(reinterpret_cast<char*>(buffer.data()), buffer.size());
-    file.flush();
-    buffer = json::to_cbor(data);
-    std::ofstream cache_file = std::ofstream("cache/project.dat", std::ios::out | std::ios::binary | std::ios::trunc);
-    cache_file.write(reinterpret_cast<char*>(buffer.data()), buffer.size());
-    cache_file.flush();
+void Project::save() {
+
+    std::string path = data["path"];
+    if(!path.empty()) {
+        std::ofstream save_file(path, std::ios::out | std::ios::binary);
+        buffer = json::to_cbor(data["data"]);
+        save_file.write(reinterpret_cast<char*>(buffer.data()), buffer.size());
+        save_file.flush();
+    } else {
+        nfdchar_t* savePath = NULL;
+        nfdresult_t result = NFD_SaveDialog("spt", NULL, &savePath);
+        if (result == NFD_OKAY) {
+            std::filesystem::path path = savePath;
+            path += ".spt";
+            free(savePath);
+            data["path"] = path.string();
+            std::ofstream save_file(path, std::ios::out | std::ios::binary);
+            buffer = json::to_cbor(data["data"]);
+            // Remember to write to both so that cache is updated with the new path.
+            save_file.write(reinterpret_cast<char*>(buffer.data()), buffer.size());
+            save_file.flush();
+            buffer = json::to_cbor(data);
+            std::ofstream cache_file = std::ofstream("cache/project.dat",
+                                                     std::ios::out | std::ios::binary | std::ios::trunc);
+            cache_file.write(reinterpret_cast<char*>(buffer.data()), buffer.size());
+            cache_file.flush();
+        } else if (result == NFD_CANCEL) {
+            std::cout <<"User pressed cancel." << std::endl;
+        } else {
+            printf("Error: %s\n", NFD_GetError());
+        }
+    }
 }
 
 std::string Project::getCurProjectPath() {
