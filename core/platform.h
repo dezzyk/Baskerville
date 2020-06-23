@@ -10,7 +10,7 @@
 
 #include "glm/glm.hpp"
 #include "glad/glad.h"
-#include "glfw/glfw3.h"
+#include "SDL2/SDL.h"
 
 class Platform {
 public:
@@ -18,10 +18,11 @@ public:
     public:
         b32 startup(u32 height);
         void shutdown();
-        void pollEvents();
-        b32 pollCodepoint(Event::Codepoint& value);
-        b32 pollMacro(Event::Macro& value);
-        b32 pollMouseClick(Event::MouseClick& value);
+        b32 pollEvents(Event::Container& event);
+        //void pollEvents();
+        //b32 pollCodepoint(Event::Codepoint& value);
+        //b32 pollMacro(Event::Macro& value);
+        //b32 pollMouseClick(Event::MouseClick& value);
         void swap();
         b32 shouldQuit();
         void executeDrawCalls();
@@ -32,10 +33,13 @@ public:
     static const glm::vec2 getMousePos();
 private:
     static Draw::CallQueue call_queue;
-    static GLFWwindow* window;
-    static Event::RingQueue<Event::Codepoint, 128> codepoint;
-    static Event::RingQueue<Event::Macro, 16> macro;
-    static Event::RingQueue<Event::MouseClick, 16> mouse_click;
+    static SDL_Window* window;
+    static SDL_GLContext context;
+    //static GLFWwindow* window;
+    //static Event::RingQueue<Event::Codepoint, 128> codepoint;
+    //static Event::RingQueue<Event::Macro, 16> macro;
+    //static Event::RingQueue<Event::MouseClick, 16> mouse_click;
     static f32 viewport_scaler;
     static u32 target_height;
+    static b32 should_close;
 };

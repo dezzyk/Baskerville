@@ -22,6 +22,7 @@ Widget::Widget(Widget&& other) noexcept :
 
 void Widget::update() {}
 void Widget::onCodepoint(const Event::Codepoint& codepoint) {}
+void Widget::onTextInput(const Event::TextInput& text) {}
 void Widget::onMacro(const Event::Macro& macro) {}
 void Widget::onMouseClick(Event::MouseClick mouse_click) {}
 void Widget::draw(Draw::CallQueue& draw_buffer, f32 scale) {}

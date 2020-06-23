@@ -79,6 +79,53 @@ void Editor::onCodepoint(const Event::Codepoint& codepoint) {
     }
 }
 
+void Editor::onTextInput(const Event::TextInput& text) {
+
+    cur_line = &m_lines[m_cur_line_index];
+    cur_line->value += text.value;
+    if(m_font->calcStringPixelWidth(cur_line->value, m_font_pixel_height) > cur_line->label.getSize().x) {
+        if(cur_line->value[cur_line->value.size() - 1] != ' ') {
+            static std::string buffer;
+            u32 index = 0;
+            while(cur_line->value.at(cur_line->value.size() - 1 - index) != ' ') {
+                ++index;
+                if(index == cur_line->value.size()) {
+                    break;
+                }
+            }
+            buffer = cur_line->value.substr(cur_line->value.size() - index, index);
+            cur_line->value.erase(cur_line->value.size() - index, index);
+            Project::pushLine(cur_line->value);
+            cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 0.33f});
+            //cur_line->label.offset.y = (m_font_pixel_height / getSize().y) * getScale();
+            prev_line = cur_line;
+            ++m_cur_line_index;
+            if(m_cur_line_index > 4) {
+                m_cur_line_index = 0;
+            }
+            cur_line = &m_lines[m_cur_line_index];
+            cur_line->value = buffer;
+            cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 1.0f});
+            cur_line->label.offset.y = 0.0;
+        } else {
+            cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 0.33f});
+            Project::pushLine(cur_line->value);
+            //cur_line->label.offset.y = (m_font_pixel_height / getSize().y) * getScale();
+            prev_line = cur_line;
+            ++m_cur_line_index;
+            if(m_cur_line_index > 4) {
+                m_cur_line_index = 0;
+            }
+            cur_line = &m_lines[m_cur_line_index];
+            cur_line->value = "";
+            cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 1.0f});
+            cur_line->label.offset.y = 0.0;
+        }
+    } else {
+        cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 1.0f});
+    }
+}
+
 void Editor::onMacro(const Event::Macro& macro) {
     //auto& line = m_lines[m_cur_line_index];
     if(macro == Event::Macro::Backspace && !cur_line->value.empty()) {

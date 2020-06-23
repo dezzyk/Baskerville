@@ -11,15 +11,42 @@
 #include <iostream>
 
 Draw::CallQueue Platform::call_queue;
-Event::RingQueue<Event::Codepoint, 128> Platform::codepoint;
-Event::RingQueue<Event::Macro, 16> Platform::macro;
-Event::RingQueue<Event::MouseClick, 16> Platform::mouse_click;
-GLFWwindow* Platform::window = nullptr;
+//Event::RingQueue<Event::Codepoint, 128> Platform::codepoint;
+//Event::RingQueue<Event::Macro, 16> Platform::macro;
+//Event::RingQueue<Event::MouseClick, 16> Platform::mouse_click;
+SDL_Window* Platform::window = nullptr;
+SDL_GLContext  Platform::context;
 f32 Platform::viewport_scaler = 1.0f;
 u32 Platform::target_height = 0;
+b32 Platform::should_close = false;
 
 b32 Platform::Manager::startup(u32 height) {
-    if(glfwInit()) {
+    if(!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
+        target_height = height;
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+        window = SDL_CreateWindow("Baskerville", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                                  960, 540, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_MAXIMIZED | SDL_WINDOW_ALLOW_HIGHDPI);
+        context = SDL_GL_CreateContext(window);
+        SDL_GL_MakeCurrent(window, context);
+        SDL_GL_SetSwapInterval(1);
+
+        if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) {
+            std::cout << "Failed to load glad" << std::endl;
+            return false;
+        };
+
+        glm::vec2 viewport = getViewportSize();
+        glViewport(0, 0, viewport.x, viewport.y);
+        glEnable(GL_BLEND); CheckGLError();
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); CheckGLError();
+        glClearColor(0.0, 0.0, 0.0, 1.0); CheckGLError();
+
+        SDL_StartTextInput();
+        return true;
+    }
+    return false;
+    /*if(glfwInit()) {
         target_height = height;
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -104,19 +131,85 @@ b32 Platform::Manager::startup(u32 height) {
         glClearColor(0.0, 0.0, 0.0, 1.0); CheckGLError();
         return true;
     }
-    return false;
+    return false;*/
 }
 
 void Platform::Manager::shutdown() {
-    glfwDestroyWindow(window);
-    glfwTerminate();
+    //glfwDestroyWindow(window);
+    //glfwTerminate();
+    SDL_GL_DeleteContext(context);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
 }
 
-void Platform::Manager::pollEvents() {
+/*void Platform::Manager::pollEvents() {
     glfwPollEvents();
+}*/
+
+b32 Platform::Manager::pollEvents(Event::Container& event) {
+    SDL_Event e;
+    event.type = {};
+    if(SDL_PollEvent(&e)) {
+        if (e.type == SDL_QUIT) {
+            should_close = true;
+            return false;
+        } else if (e.type == SDL_TEXTINPUT) {
+            if(!(SDL_GetModState() & KMOD_CTRL &&
+            ( e.text.text[ 0 ] == 'c' ||
+            e.text.text[ 0 ] == 'C' ||
+            e.text.text[ 0 ] == 'v' ||
+            e.text.text[ 0 ] == 'V' ||
+            e.text.text[ 0 ] == 'n' ||
+            e.text.text[ 0 ] == 'N' ||
+            e.text.text[ 0 ] == 'o' ||
+            e.text.text[ 0 ] == 'O' ||
+            e.text.text[ 0 ] == 's' ||
+            e.text.text[ 0 ] == 'S' ||
+            e.text.text[ 0 ] == 'x' ||
+            e.text.text[ 0 ] == 'X' ))) {
+                std::string_view str(e.text.text);
+                event.type = Meta::MakeType<Event::TextInput>();
+                strcpy(event.value.text.value, e.text.text);
+                //str.copy(event.value.text.value, 0, str.size());
+                return true;
+            }
+        } else if( e.type == SDL_KEYDOWN ) {
+            if( e.key.keysym.sym == SDLK_BACKSPACE) {
+                event.type = Meta::MakeType<Event::Macro>();
+                event.value.macro = Event::Macro::Backspace;
+            } else if( e.key.keysym.sym == SDLK_c && SDL_GetModState() & KMOD_CTRL ) {
+                event.type = Meta::MakeType<Event::Macro>();
+                event.value.macro = Event::Macro::Copy;
+            } else if( e.key.keysym.sym == SDLK_v && SDL_GetModState() & KMOD_CTRL ) {
+                event.type = Meta::MakeType<Event::Macro>();
+                event.value.macro = Event::Macro::Paste;
+            } else if( e.key.keysym.sym == SDLK_s && SDL_GetModState() & KMOD_CTRL ) {
+                event.type = Meta::MakeType<Event::Macro>();
+                event.value.macro = Event::Macro::Save;
+            } else if( e.key.keysym.sym == SDLK_o && SDL_GetModState() & KMOD_CTRL ) {
+                event.type = Meta::MakeType<Event::Macro>();
+                event.value.macro = Event::Macro::Open;
+            } else if( e.key.keysym.sym == SDLK_n && SDL_GetModState() & KMOD_CTRL ) {
+                event.type = Meta::MakeType<Event::Macro>();
+                event.value.macro = Event::Macro::New;
+            } else if( e.key.keysym.sym == SDLK_KP_ENTER && SDL_GetModState() & KMOD_CTRL ) {
+                event.type = Meta::MakeType<Event::Macro>();
+                event.value.macro = Event::Macro::Enter;
+            }
+            return true;
+        } else if(e.type == SDL_MOUSEBUTTONDOWN) {
+            // TODO mouse events
+            return true;
+        } else if(e.type == SDL_WINDOWEVENT && e.window.event == SDL_WINDOWEVENT_RESIZED) {
+            glm::vec2 size = getViewportSize();
+            glViewport(0, 0, size.x, size.y);
+            viewport_scaler = (size.y / target_height);
+            return true;
+        }
+    }
 }
 
-b32 Platform::Manager::pollCodepoint(Event::Codepoint& value) {
+/*b32 Platform::Manager::pollCodepoint(Event::Codepoint& value) {
     if(codepoint.size() > 0) {
         value = codepoint.front();
         codepoint.pop();
@@ -141,14 +234,16 @@ b32 Platform::Manager::pollMouseClick(Event::MouseClick& value) {
         return true;
     }
     return false;
-}
+}*/
 
 void Platform::Manager::swap() {
-    glfwSwapBuffers(window);
+    //glfwSwapBuffers(window);
+    SDL_GL_SwapWindow(window);
 }
 
 b32 Platform::Manager::shouldQuit() {
-    return glfwWindowShouldClose(window);
+    //return glfwWindowShouldClose(window);
+    return should_close;
 }
 
 Draw::CallQueue& Platform::Manager::getDrawCallQueue() {
@@ -225,12 +320,14 @@ void Platform::Manager::executeDrawCalls() {
 
 const glm::vec2 Platform::getViewportSize() {
     int x, y;
-    glfwGetFramebufferSize(window, &x, & y);
+    //glfwGetFramebufferSize(window, &x, & y);
+    SDL_GL_GetDrawableSize(window, &x, &y);
     return {x, y};
 }
 
 const glm::vec2 Platform::getMousePos() {
-    f64 x, y;
-    glfwGetCursorPos(window, &x, & y);
+    int x, y;
+    SDL_GetMouseState(&x, &y);
+    //glfwGetCursorPos(window, &x, & y);
     return {x, y};
 }

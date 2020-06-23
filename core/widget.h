@@ -37,6 +37,7 @@ public:
     };
     virtual void update();
     virtual void onCodepoint(const Event::Codepoint& codepoint);
+    virtual void onTextInput(const Event::TextInput& text);
     virtual void onMacro(const Event::Macro& macro);
     virtual void onMouseClick(Event::MouseClick mouse_click);
     virtual void draw(Draw::CallQueue& draw_buffer, f32 scale);

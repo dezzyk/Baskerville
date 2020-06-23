@@ -5,10 +5,12 @@
 #pragma once
 
 #include "common.h"
+#include "meta.h"
 
 #include "glm/glm.hpp"
 
 #include <optional>
+#include <string_view>
 
 class Window;
 
@@ -47,6 +49,10 @@ namespace Event {
         u32 value = 0;
     };
 
+    struct TextInput {
+        char value[32];
+    };
+
     enum class Macro {
         SelectAll,
         Backspace,
@@ -69,6 +75,18 @@ namespace Event {
     struct MouseClick {
         glm::vec2 pos = {0.0f, 0.0f};
         b32 button = 0;
+    };
+
+    struct Container {
+        Meta::Type type;
+        union Value {
+            Value() {}
+            TextInput text;
+            Codepoint codepoint;
+            Macro macro;
+            MouseClick mouseClick;
+        };
+        Value value;
     };
 
 }

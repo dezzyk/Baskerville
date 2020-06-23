@@ -19,6 +19,7 @@ public:
     Root();
     void update() override ;
     void onCodepoint(const Event::Codepoint& codepoint) override ;
+    void onTextInput(const Event::TextInput& text) override ;
     void onMacro(const Event::Macro& macro) override ;
     void onMouseClick(Event::MouseClick mouse_click) override ;
     void draw(Draw::CallQueue& draw_buffer, f32 scale) override ;

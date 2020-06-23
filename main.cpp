@@ -25,7 +25,7 @@ Root* root;
 
 using timestamp = std::chrono::time_point<std::chrono::high_resolution_clock>;
 
-int main() {
+int main(int argc, char *argv[]) {
 
     if(platform.startup(1080)) {
 
@@ -56,18 +56,15 @@ int main() {
             u32 update_count = 0;
             while (update_accumulator >= update_rate) {
 
-                platform.pollEvents();
-                Event::Codepoint codepoint;
-                Event::Macro macro;
-                Event::MouseClick mouse_click;
-                while(platform.pollMacro(macro)) {
-                    root->onMacro(macro);
-                }
-                while(platform.pollCodepoint(codepoint)) {
-                    root->onCodepoint(codepoint);
-                }
-                while(platform.pollMouseClick(mouse_click)) {
-                    root->onMouseClick(mouse_click);
+                Event::Container event;
+                while(platform.pollEvents(event)) {
+                    if(event.type == Meta::MakeType<Event::TextInput>()) {
+                        root->onTextInput(event.value.text);
+                    } else if(event.type == Meta::MakeType<Event::Macro>()) {
+                        root->onMacro(event.value.macro);
+                    } else if(event.type == Meta::MakeType<Event::MouseClick>()) {
+                        root->onMouseClick(event.value.mouseClick);
+                    }
                 }
                 root->update();
                 update_accumulator -= update_rate;

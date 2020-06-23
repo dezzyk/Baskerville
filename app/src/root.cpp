@@ -30,6 +30,10 @@ void Root::onCodepoint(const Event::Codepoint& codepoint) {
     m_editor.onCodepoint(codepoint);
 }
 
+void Root::onTextInput(const Event::TextInput& text) {
+    m_editor.onTextInput(text);
+}
+
 void Root::onMacro(const Event::Macro& macro) {
     m_editor.onMacro(macro);
 }

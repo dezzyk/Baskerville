@@ -24,5 +24,8 @@ file(GLOB_RECURSE dep_srcs
 add_executable(Baskerville main.cpp ${core_srcs} ${widget_srcs} ${dep_srcs})
 
 target_compile_definitions(Baskerville PUBLIC MSDFGEN_USE_CPP11 BASKERVILLE_DEBUG_DRAW BASKERVILLE_IN_DEV)
-target_link_libraries(Baskerville opengl32.lib comctl32.lib ${CMAKE_CURRENT_SOURCE_DIR}/dep/glfw/lib/glfw3.lib ${CMAKE_CURRENT_SOURCE_DIR}/dep/nfd/lib/nfd.lib)
+target_link_libraries(Baskerville opengl32.lib comctl32.lib
+        ${CMAKE_CURRENT_SOURCE_DIR}/dep/SDL2/lib/SDL2.lib
+        ${CMAKE_CURRENT_SOURCE_DIR}/dep/SDL2/lib/SDL2main.lib
+        ${CMAKE_CURRENT_SOURCE_DIR}/dep/nfd/lib/nfd.lib)
 target_include_directories(Baskerville PUBLIC dep core app)
