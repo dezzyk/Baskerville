@@ -42,6 +42,10 @@ int main(int argc, char *argv[]) {
 
         Project::startup();
 
+        Platform::cautionMessageBox("test", "test");
+        b32 res = false;
+        Platform::cautionOptionBox("test", "test", res);
+
         root = new Root();
 
         std::chrono::duration<u64, std::nano> update_accumulator(0);

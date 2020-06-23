@@ -31,6 +31,12 @@ public:
     };
     static const glm::vec2 getViewportSize();
     static const glm::vec2 getMousePos();
+    static void errorMessageBox(const char* title, const char* msg);
+    static void cautionMessageBox(const char* title, const char* msg);
+    static void infoMessageBox(const char* title, const char* msg);
+    static const b32 errorOptionBox(const char* title, const char* msg, b32& res);
+    static const b32 cautionOptionBox(const char* title, const char* msg, b32& res);
+    static const b32 infoOptionBox(const char* title, const char* msg, b32& res);
 private:
     static Draw::CallQueue call_queue;
     static SDL_Window* window;

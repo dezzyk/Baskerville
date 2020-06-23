@@ -331,3 +331,136 @@ const glm::vec2 Platform::getMousePos() {
     //glfwGetCursorPos(window, &x, & y);
     return {x, y};
 }
+
+void Platform::errorMessageBox(const char* title, const char* msg) {
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+                             title,
+                             msg,
+                             NULL);
+}
+
+void Platform::cautionMessageBox(const char* title, const char* msg) {
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING,
+                             title,
+                             msg,
+                             NULL);
+}
+
+void Platform::infoMessageBox(const char* title, const char* msg) {
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION,
+                             title,
+                             msg,
+                             NULL);
+}
+
+const b32 Platform::errorOptionBox(const char* title, const char* msg, b32& res) {
+    const SDL_MessageBoxButtonData buttons[] = {
+            { 0, 0, "no" },
+            { 0, 1, "yes" }
+    };
+    const SDL_MessageBoxColorScheme colorScheme = {
+            { /* .colors (.r, .g, .b) */
+                    /* [SDL_MESSAGEBOX_COLOR_BACKGROUND] */
+                    { 255,   0,   0 },
+                    /* [SDL_MESSAGEBOX_COLOR_TEXT] */
+                    {   0, 255,   0 },
+                    /* [SDL_MESSAGEBOX_COLOR_BUTTON_BORDER] */
+                    { 255, 255,   0 },
+                    /* [SDL_MESSAGEBOX_COLOR_BUTTON_BACKGROUND] */
+                    {   0,   0, 255 },
+                    /* [SDL_MESSAGEBOX_COLOR_BUTTON_SELECTED] */
+                    { 255,   0, 255 }
+            }
+    };
+    const SDL_MessageBoxData messageboxdata = {
+            SDL_MESSAGEBOX_ERROR, /* .flags */
+            NULL, /* .window */
+            title, /* .title */
+            msg, /* .message */
+            SDL_arraysize(buttons), /* .numbuttons */
+            buttons, /* .buttons */
+            &colorScheme /* .colorScheme */
+    };
+    int buttonid;
+    if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
+        SDL_Log("error displaying message box");
+        return false;
+    }
+    res = buttonid;
+    return true;
+
+}
+
+const b32 Platform::cautionOptionBox(const char* title, const char* msg, b32& res) {
+    const SDL_MessageBoxButtonData buttons[] = {
+            { 0, 0, "no" },
+            { 0, 1, "yes" }
+    };
+    const SDL_MessageBoxColorScheme colorScheme = {
+            { /* .colors (.r, .g, .b) */
+                    /* [SDL_MESSAGEBOX_COLOR_BACKGROUND] */
+                    { 255,   0,   0 },
+                    /* [SDL_MESSAGEBOX_COLOR_TEXT] */
+                    {   0, 255,   0 },
+                    /* [SDL_MESSAGEBOX_COLOR_BUTTON_BORDER] */
+                    { 255, 255,   0 },
+                    /* [SDL_MESSAGEBOX_COLOR_BUTTON_BACKGROUND] */
+                    {   0,   0, 255 },
+                    /* [SDL_MESSAGEBOX_COLOR_BUTTON_SELECTED] */
+                    { 255,   0, 255 }
+            }
+    };
+    const SDL_MessageBoxData messageboxdata = {
+            SDL_MESSAGEBOX_WARNING, /* .flags */
+            NULL, /* .window */
+            title, /* .title */
+            msg, /* .message */
+            SDL_arraysize(buttons), /* .numbuttons */
+            buttons, /* .buttons */
+            &colorScheme /* .colorScheme */
+    };
+    int buttonid;
+    if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
+        SDL_Log("error displaying message box");
+        return false;
+    }
+    res = buttonid;
+    return true;
+}
+
+const b32 Platform::infoOptionBox(const char* title, const char* msg, b32& res) {
+    const SDL_MessageBoxButtonData buttons[] = {
+            { 0, 0, "no" },
+            { 0, 1, "yes" }
+    };
+    const SDL_MessageBoxColorScheme colorScheme = {
+            { /* .colors (.r, .g, .b) */
+                    /* [SDL_MESSAGEBOX_COLOR_BACKGROUND] */
+                    { 255,   0,   0 },
+                    /* [SDL_MESSAGEBOX_COLOR_TEXT] */
+                    {   0, 255,   0 },
+                    /* [SDL_MESSAGEBOX_COLOR_BUTTON_BORDER] */
+                    { 255, 255,   0 },
+                    /* [SDL_MESSAGEBOX_COLOR_BUTTON_BACKGROUND] */
+                    {   0,   0, 255 },
+                    /* [SDL_MESSAGEBOX_COLOR_BUTTON_SELECTED] */
+                    { 255,   0, 255 }
+            }
+    };
+    const SDL_MessageBoxData messageboxdata = {
+            SDL_MESSAGEBOX_INFORMATION, /* .flags */
+            NULL, /* .window */
+            title, /* .title */
+            msg, /* .message */
+            SDL_arraysize(buttons), /* .numbuttons */
+            buttons, /* .buttons */
+            &colorScheme /* .colorScheme */
+    };
+    int buttonid;
+    if (SDL_ShowMessageBox(&messageboxdata, &buttonid) < 0) {
+        SDL_Log("error displaying message box");
+        return false;
+    }
+    res = buttonid;
+    return true;
+}
