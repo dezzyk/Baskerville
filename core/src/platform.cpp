@@ -11,9 +11,6 @@
 #include <iostream>
 
 Draw::CallQueue Platform::call_queue;
-//Event::RingQueue<Event::Codepoint, 128> Platform::codepoint;
-//Event::RingQueue<Event::Macro, 16> Platform::macro;
-//Event::RingQueue<Event::MouseClick, 16> Platform::mouse_click;
 SDL_Window* Platform::window = nullptr;
 SDL_GLContext  Platform::context;
 f32 Platform::viewport_scaler = 1.0f;
@@ -46,105 +43,13 @@ b32 Platform::Manager::startup(u32 height) {
         return true;
     }
     return false;
-    /*if(glfwInit()) {
-        target_height = height;
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        window = glfwCreateWindow(960, 540, "test", nullptr, nullptr);
-        if (!window) {
-            std::cout << "Failed to create window" << std::endl;
-            return false;
-        }
-        glfwMakeContextCurrent(window);
-        glfwSwapInterval(1);
-        glfwSetCharCallback(window, [](GLFWwindow *window, u32 value) -> void {
-            codepoint.push({value});
-        });
-        glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) -> void {
-            if (key == GLFW_KEY_BACKSPACE && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                macro.push({Event::Macro::Backspace });
-            } else if (key == GLFW_KEY_ESCAPE && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                macro.push({Event::Macro::Escape });
-            } else if (key == GLFW_KEY_TAB && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                macro.push({Event::Macro::Tab });
-            } else if (key == GLFW_KEY_ENTER && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                macro.push({Event::Macro::Enter });
-            } else if (key == GLFW_KEY_DELETE && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                macro.push({Event::Macro::Delete });
-            } else if (key == GLFW_KEY_UP && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                macro.push({Event::Macro::ArrowUp });
-            } else if (key == GLFW_KEY_DOWN && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                macro.push({Event::Macro::ArrowDown });
-            } else if (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                macro.push({Event::Macro::ArrowLeft });
-            } else if (key == GLFW_KEY_RIGHT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
-                macro.push({Event::Macro::ArrowRight });
-            } else if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS ||
-                       glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_REPEAT ||
-                       glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS ||
-                       glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_REPEAT) {
-                if (key == GLFW_KEY_A) {
-                    macro.push({Event::Macro::SelectAll} );
-                } else if (key == GLFW_KEY_C) {
-                    macro.push({Event::Macro::Copy} );
-                } else if (key == GLFW_KEY_V) {
-                    macro.push({Event::Macro::Paste} );
-                } else if (key == GLFW_KEY_X) {
-                    macro.push({Event::Macro::Cut} );
-                } else if (key == GLFW_KEY_S) {
-                    macro.push({Event::Macro::Save} );
-                    std::cout << "saved" << std::endl;
-                } else if (key == GLFW_KEY_O) {
-                    macro.push({Event::Macro::Open} );
-                } else if (key == GLFW_KEY_N) {
-                    macro.push({Event::Macro::New} );
-                }
-            }
-        });
-        glfwSetFramebufferSizeCallback(window, [](GLFWwindow *window, int w, int h) {
-            glViewport(0, 0, w, h);
-            viewport_scaler = ((f32)h / target_height);
-        });
-        glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods) {
-            if(action == GLFW_PRESS && (button == GLFW_MOUSE_BUTTON_RIGHT || button == GLFW_MOUSE_BUTTON_LEFT)) {
-                // GL drops with y pos 0 at bottom, GLFW reports with y pos 0 at top, reverse the y pos.
-                double x, y;
-                glfwGetCursorPos(window, &x, &y);
-                glm::vec2 viewport = getViewportSize();
-                b32 button = true;
-                if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-                    button = false;
-                }
-                mouse_click.push({{x, viewport.y - y}, button});
-            }
-        });
-        if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
-            std::cout << "Failed to load glad" << std::endl;
-            return false;
-        };
-        glm::vec2 viewport = getViewportSize();
-        glViewport(0, 0, viewport.x, viewport.y);
-        glEnable(GL_BLEND); CheckGLError();
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); CheckGLError();
-        glClearColor(0.0, 0.0, 0.0, 1.0); CheckGLError();
-        return true;
-    }
-    return false;*/
 }
 
 void Platform::Manager::shutdown() {
-    //glfwDestroyWindow(window);
-    //glfwTerminate();
     SDL_GL_DeleteContext(context);
     SDL_DestroyWindow(window);
     SDL_Quit();
 }
-
-/*void Platform::Manager::pollEvents() {
-    glfwPollEvents();
-}*/
 
 b32 Platform::Manager::pollEvents(Event::Container& event) {
     SDL_Event e;
@@ -170,7 +75,6 @@ b32 Platform::Manager::pollEvents(Event::Container& event) {
                 std::string_view str(e.text.text);
                 event.type = Meta::MakeType<Event::TextInput>();
                 strcpy(event.value.text.value, e.text.text);
-                //str.copy(event.value.text.value, 0, str.size());
                 return true;
             }
         } else if( e.type == SDL_KEYDOWN ) {
@@ -209,40 +113,11 @@ b32 Platform::Manager::pollEvents(Event::Container& event) {
     }
 }
 
-/*b32 Platform::Manager::pollCodepoint(Event::Codepoint& value) {
-    if(codepoint.size() > 0) {
-        value = codepoint.front();
-        codepoint.pop();
-        return true;
-    }
-    return false;
-}
-
-b32 Platform::Manager::pollMacro(Event::Macro& value) {
-    if(macro.size() > 0) {
-        value = macro.front();
-        macro.pop();
-        return true;
-    }
-    return false;
-}
-
-b32 Platform::Manager::pollMouseClick(Event::MouseClick& value) {
-    if(mouse_click.size() > 0) {
-        value = mouse_click.front();
-        mouse_click.pop();
-        return true;
-    }
-    return false;
-}*/
-
 void Platform::Manager::swap() {
-    //glfwSwapBuffers(window);
     SDL_GL_SwapWindow(window);
 }
 
 b32 Platform::Manager::shouldQuit() {
-    //return glfwWindowShouldClose(window);
     return should_close;
 }
 
@@ -320,7 +195,6 @@ void Platform::Manager::executeDrawCalls() {
 
 const glm::vec2 Platform::getViewportSize() {
     int x, y;
-    //glfwGetFramebufferSize(window, &x, & y);
     SDL_GL_GetDrawableSize(window, &x, &y);
     return {x, y};
 }
@@ -328,7 +202,6 @@ const glm::vec2 Platform::getViewportSize() {
 const glm::vec2 Platform::getMousePos() {
     int x, y;
     SDL_GetMouseState(&x, &y);
-    //glfwGetCursorPos(window, &x, & y);
     return {x, y};
 }
 

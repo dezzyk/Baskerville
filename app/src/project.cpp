@@ -3,63 +3,79 @@
 //
 
 #include "project.h"
+#include "platform.h"
 
 #include "nfd/nfd.h"
+#include "SDL2/SDL.h"
 
 #include <iostream>
 
 namespace {
 
     json data;
-    //std::filesystem::path open_path;
-    //std::ofstream cache_file;
+    std::filesystem::path proj_path;
     b32 loaded = false;
     std::vector<u8> buffer;
 
 }
 
 void Project::startup() {
-    if(!std::filesystem::exists("cache")) {
-        std::filesystem::create_directory("cache/");
-    }
-    if(std::filesystem::exists("cache/project.dat")) {
-        // If the cache exists and the path is not empty, then dump the contents to the applicable file.
-        // The only reason this should happen is if the application crashed as it deletes the cache on shutdown
-        std::ifstream input;
-        input.open("cache/project.dat", std::ios::binary);
-        input.seekg(0, input.end);
-        u32 length = input.tellg();
-        input.seekg(0, input.beg);
-        buffer.resize(length);
-        input.read(reinterpret_cast<char*>(buffer.data()), buffer.size());
-        input.close();
-        data = json::from_cbor(buffer);
-        if(!data["path"].empty()) {
-            std::string path = data["path"];
-            std::ofstream save_file(path, std::ios::out | std::ios::binary);
-            buffer = json::to_cbor(data["data"]);
-            save_file.write(reinterpret_cast<char*>(buffer.data()), buffer.size());
-            save_file.flush();
-        }
-    } else {
-        data["path"] = std::string();
-        data["data"]["paragraphs"] = std::vector<json>();
-        std::ofstream cache_file = std::ofstream("cache/project.dat", std::ios::out | std::ios::binary | std::ios::trunc);
-        if(!cache_file || !cache_file.is_open() || !cache_file.good()) {
-            std::cout << "Failed to open cache file" << std::endl;
+    proj_path = SDL_GetPrefPath("Saltpowered", "Baskerville");
+    if(!proj_path.empty()) {
+        proj_path += "project.dat";
+        if (std::filesystem::exists(proj_path)) {
+            b32 res = false;
+            Platform::cautionOptionBox("Baskerville", "A previous session was not closed cleanly. Would you like to save the cached data?", res);
+            if(res) {
+                std::ifstream input;
+                input.open(proj_path, std::ios::binary);
+                input.seekg(0, input.end);
+                u32 length = input.tellg();
+                input.seekg(0, input.beg);
+                buffer.resize(length);
+                input.read(reinterpret_cast<char*>(buffer.data()), buffer.size());
+                input.close();
+                data = json::from_cbor(buffer);
+                save();
+            } else {
+                data["path"] = std::string();
+                data["data"]["paragraphs"] = std::vector<json>();
+                std::ofstream cache_file = std::ofstream(proj_path,
+                                                         std::ios::out | std::ios::binary | std::ios::trunc);
+                if (!cache_file || !cache_file.is_open() || !cache_file.good()) {
+                    std::cout << "Failed to open cache file" << std::endl;
+                } else {
+                    buffer = json::to_cbor(data);
+                    cache_file.write(reinterpret_cast<char*>(buffer.data()), buffer.size());
+                    cache_file.flush();
+                    if (!cache_file.good()) {
+                        std::cout << "Failed to write to cache file" << std::endl;
+                    }
+                }
+            }
         } else {
-            buffer = json::to_cbor(data);
-            cache_file.write(reinterpret_cast<char*>(buffer.data()), buffer.size());
-            cache_file.flush();
-            if(!cache_file.good()) {
-                std::cout << "Failed to write to cache file" << std::endl;
+            data["path"] = std::string();
+            data["data"]["paragraphs"] = std::vector<json>();
+            std::ofstream cache_file = std::ofstream(proj_path,
+                                                     std::ios::out | std::ios::binary | std::ios::trunc);
+            if (!cache_file || !cache_file.is_open() || !cache_file.good()) {
+                std::cout << "Failed to open cache file" << std::endl;
+            } else {
+                buffer = json::to_cbor(data);
+                cache_file.write(reinterpret_cast<char*>(buffer.data()), buffer.size());
+                cache_file.flush();
+                if (!cache_file.good()) {
+                    std::cout << "Failed to write to cache file" << std::endl;
+                }
             }
         }
     }
 }
 
 void Project::shutdown() {
-    std::filesystem::remove("cache/project.dat");
+    if(!proj_path.empty()) {
+        std::filesystem::remove(proj_path);
+    }
 }
 
 void Project::open() {
@@ -84,7 +100,7 @@ void Project::open() {
             data["path"] = path.string();
             data["data"] = project_data;
             buffer = json::to_cbor(data);
-            std::ofstream cache_file = std::ofstream("cache/project.dat", std::ios::out | std::ios::binary | std::ios::trunc);
+            std::ofstream cache_file = std::ofstream(proj_path, std::ios::out | std::ios::binary | std::ios::trunc);
             cache_file.write(reinterpret_cast<char*>(buffer.data()), buffer.size());
             cache_file.flush();
         }
@@ -120,7 +136,7 @@ void Project::save() {
             save_file.write(reinterpret_cast<char*>(buffer.data()), buffer.size());
             save_file.flush();
             buffer = json::to_cbor(data);
-            std::ofstream cache_file = std::ofstream("cache/project.dat",
+            std::ofstream cache_file = std::ofstream(proj_path,
                                                      std::ios::out | std::ios::binary | std::ios::trunc);
             cache_file.write(reinterpret_cast<char*>(buffer.data()), buffer.size());
             cache_file.flush();
@@ -155,7 +171,7 @@ void Project::pushLine(std::string line) {
         data["data"]["paragraphs"][0]["lines"].push_back(line);
     }
     buffer = json::to_cbor(data);
-    std::ofstream cache_file = std::ofstream("cache/project.dat", std::ios::out | std::ios::binary | std::ios::trunc);
+    std::ofstream cache_file = std::ofstream(proj_path, std::ios::out | std::ios::binary | std::ios::trunc);
     cache_file.write(reinterpret_cast<char*>(buffer.data()), buffer.size());
     cache_file.flush();
 }
@@ -163,7 +179,7 @@ void Project::pushLine(std::string line) {
 void Project::completeParagraph() {
     data["data"]["paragraphs"].push_back(json());
     buffer = json::to_cbor(data);
-    std::ofstream cache_file = std::ofstream("cache/project.dat", std::ios::out | std::ios::binary | std::ios::trunc);
+    std::ofstream cache_file = std::ofstream(proj_path, std::ios::out | std::ios::binary | std::ios::trunc);
     cache_file.write(reinterpret_cast<char*>(buffer.data()), buffer.size());
     cache_file.flush();
 }

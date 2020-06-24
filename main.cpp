@@ -10,8 +10,6 @@
 #include "project.h"
 #include "meta.h"
 
-#include "nfd/nfd.h"
-
 #include <iostream>
 #include <string>
 #include <chrono>
@@ -41,10 +39,6 @@ int main(int argc, char *argv[]) {
         Shader::Cache::load("msdf_draw", vert, frag);
 
         Project::startup();
-
-        Platform::cautionMessageBox("test", "test");
-        b32 res = false;
-        Platform::cautionOptionBox("test", "test", res);
 
         root = new Root();
 
