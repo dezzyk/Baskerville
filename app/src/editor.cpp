@@ -97,7 +97,6 @@ void Editor::onTextInput(const Event::TextInput& text) {
             cur_line->value.erase(cur_line->value.size() - index, index);
             Project::pushLine(cur_line->value);
             cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 0.33f});
-            //cur_line->label.offset.y = (m_font_pixel_height / getSize().y) * getScale();
             prev_line = cur_line;
             ++m_cur_line_index;
             if(m_cur_line_index > 4) {
@@ -110,7 +109,6 @@ void Editor::onTextInput(const Event::TextInput& text) {
         } else {
             cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 0.33f});
             Project::pushLine(cur_line->value);
-            //cur_line->label.offset.y = (m_font_pixel_height / getSize().y) * getScale();
             prev_line = cur_line;
             ++m_cur_line_index;
             if(m_cur_line_index > 4) {
@@ -127,7 +125,6 @@ void Editor::onTextInput(const Event::TextInput& text) {
 }
 
 void Editor::onMacro(const Event::Macro& macro) {
-    //auto& line = m_lines[m_cur_line_index];
     if(macro == Event::Macro::Backspace && !cur_line->value.empty()) {
         cur_line->value.pop_back();
         cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 1.0f});
@@ -137,7 +134,6 @@ void Editor::onMacro(const Event::Macro& macro) {
             Project::completeParagraph();
             prev_line = cur_line;
             prev_line->label.setValue(prev_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 0.33f});
-            //prev_line->label.offset.y = (m_font_pixel_height / getSize().y) * getScale();
             ++m_cur_line_index;
             if (m_cur_line_index > 4) {
                 m_cur_line_index = 0;

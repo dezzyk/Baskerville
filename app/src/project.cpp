@@ -127,7 +127,9 @@ void Project::save() {
         nfdresult_t result = NFD_SaveDialog("spt", NULL, &savePath);
         if (result == NFD_OKAY) {
             std::filesystem::path path = savePath;
-            path += ".spt";
+            if(path.filename().extension().empty()) {
+                path += ".spt";
+            }
             free(savePath);
             data["path"] = path.string();
             std::ofstream save_file(path, std::ios::out | std::ios::binary);
