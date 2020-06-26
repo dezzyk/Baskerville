@@ -16,13 +16,15 @@ SDL_GLContext  Platform::context;
 f32 Platform::viewport_scaler = 1.0f;
 u32 Platform::target_height = 0;
 b32 Platform::should_close = false;
+std::filesystem::path Platform::pref_path;
 
-b32 Platform::Manager::startup(u32 height) {
+b32 Platform::Manager::startup(const char* app_name, const char* org_name, u32 height) {
     if(!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
+        pref_path = SDL_GetPrefPath(org_name, app_name);
         target_height = height;
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-        window = SDL_CreateWindow("Baskerville", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+        window = SDL_CreateWindow(app_name, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                   960, 540, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_MAXIMIZED | SDL_WINDOW_ALLOW_HIGHDPI);
         context = SDL_GL_CreateContext(window);
         SDL_GL_MakeCurrent(window, context);
@@ -96,7 +98,10 @@ b32 Platform::Manager::pollEvents(Event::Container& event) {
             } else if( e.key.keysym.sym == SDLK_n && SDL_GetModState() & KMOD_CTRL ) {
                 event.type = Meta::MakeType<Event::Macro>();
                 event.value.macro = Event::Macro::New;
-            } else if( e.key.keysym.sym == SDLK_KP_ENTER && SDL_GetModState() & KMOD_CTRL ) {
+            } else if( e.key.keysym.sym == SDLK_e && SDL_GetModState() & KMOD_CTRL ) {
+                event.type = Meta::MakeType<Event::Macro>();
+                event.value.macro = Event::Macro::Export;
+            } else if( e.key.keysym.sym == SDLK_KP_ENTER) {
                 event.type = Meta::MakeType<Event::Macro>();
                 event.value.macro = Event::Macro::Enter;
             }
@@ -203,6 +208,10 @@ const glm::vec2 Platform::getMousePos() {
     int x, y;
     SDL_GetMouseState(&x, &y);
     return {x, y};
+}
+
+const std::filesystem::path& Platform::getPrefPath() {
+    return pref_path;
 }
 
 void Platform::errorMessageBox(const char* title, const char* msg) {

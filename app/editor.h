@@ -9,6 +9,7 @@
 #include "label.h"
 #include "font.h"
 #include "project.h"
+#include "cache.h"
 
 #include "nlohmann/json.hpp"
 
@@ -24,7 +25,7 @@ public:
         std::string value;
         f32 fade_offset = -1.0;
     };
-    explicit Editor(Widget* parent);
+    explicit Editor(Widget* parent, CacheBank& cache);
     void update() override ;
     void onCodepoint(const Event::Codepoint& codepoint) override ;
     void onTextInput(const Event::TextInput& text) override ;
@@ -32,8 +33,7 @@ public:
     void onMouseClick(Event::MouseClick mouse_click) override ;
     void draw(Draw::CallQueue& draw_buffer, f32 scale) override ;
 private:
-    //json m_project;
-    //std::string m_current_paragraph;
+    Project m_project;
     const Font* m_font = nullptr;
     std::vector<Line> m_lines;
     Line* cur_line = nullptr;

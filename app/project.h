@@ -5,6 +5,7 @@
 #pragma once
 
 #include "common.h"
+#include "cache.h"
 
 #include "nlohmann/json.hpp"
 
@@ -15,13 +16,23 @@
 
 using json = nlohmann::json ;
 
-namespace Project {
-    void startup();
-    void shutdown();
+class Project {
+public:
+    Project();
+    Project(CacheBank& cache_bank);
+    Project(Project&& other) noexcept;
+    Project& operator=(Project&& data);
+    ~Project();
+    Project(const Project&) = delete;
+    Project& operator=(const Project& data) = delete;
     void open();
     void save();
-    std::string getCurProjectPath();
+    void exportToDocx();
     std::string getLastLine();
     void pushLine(std::string line);
     void completeParagraph();
-}
+private:
+    CacheBank* m_cache_bank = nullptr;
+    CacheBank::Cache* m_app_cache = nullptr;
+    CacheBank::Cache* m_project_cache = nullptr;
+};

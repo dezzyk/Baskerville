@@ -9,6 +9,7 @@
 #include "draw.h"
 #include "editor.h"
 #include "project.h"
+#include "cache.h"
 
 #include "glm/glm.hpp"
 
@@ -16,7 +17,7 @@
 
 class Root : public Widget {
 public:
-    Root();
+    Root(CacheBank& cache);
     void update() override ;
     void onCodepoint(const Event::Codepoint& codepoint) override ;
     void onTextInput(const Event::TextInput& text) override ;

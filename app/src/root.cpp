@@ -7,7 +7,7 @@
 #include "gl_err.h"
 
 // NOTE: ALL child widget's must be instantiated shorthand like this
-Root::Root() : m_editor(this) {
+Root::Root(CacheBank& cache) : m_editor(this, cache) {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     m_shader = Shader::Cache::fetch("box_draw");
     if(m_shader == nullptr) {

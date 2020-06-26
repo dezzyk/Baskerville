@@ -9,15 +9,16 @@
 #include "shader.h"
 #include "project.h"
 #include "meta.h"
+#include "cache.h"
 
 #include <iostream>
 #include <string>
 #include <chrono>
 
 Platform::Manager platform;
-
 Shader::Cache shader_cache;
 Font::Cache font_cache;
+CacheBank cache;
 
 Root* root;
 
@@ -25,7 +26,7 @@ using timestamp = std::chrono::time_point<std::chrono::high_resolution_clock>;
 
 int main(int argc, char *argv[]) {
 
-    if(platform.startup(1080)) {
+    if(platform.startup("Baskerville", "Saltpowered", 1080)) {
 
         Font::Cache::load("editor", "LibreBaskerville-Regular.ttf", 33, 126, 24);
 
@@ -38,9 +39,7 @@ int main(int argc, char *argv[]) {
         ;
         Shader::Cache::load("msdf_draw", vert, frag);
 
-        Project::startup();
-
-        root = new Root();
+        root = new Root(cache);
 
         std::chrono::duration<u64, std::nano> update_accumulator(0);
         std::chrono::duration<u64, std::milli> update_rate((u32)((1.0 / (f32)120) * 1000)); // Locked to 120, change later
@@ -79,8 +78,6 @@ int main(int argc, char *argv[]) {
         }
 
         delete root;
-
-        Project::shutdown();
 
         shader_cache.clear();
         font_cache.clear();

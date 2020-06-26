@@ -12,11 +12,13 @@
 #include "glad/glad.h"
 #include "SDL2/SDL.h"
 
+#include <filesystem>
+
 class Platform {
 public:
     class Manager {
     public:
-        b32 startup(u32 height);
+        b32 startup(const char* app_name, const char* org_name, u32 height);
         void shutdown();
         b32 pollEvents(Event::Container& event);
         void swap();
@@ -27,6 +29,7 @@ public:
     };
     static const glm::vec2 getViewportSize();
     static const glm::vec2 getMousePos();
+    static const std::filesystem::path& getPrefPath();
     static void errorMessageBox(const char* title, const char* msg);
     static void cautionMessageBox(const char* title, const char* msg);
     static void infoMessageBox(const char* title, const char* msg);
@@ -40,4 +43,5 @@ private:
     static f32 viewport_scaler;
     static u32 target_height;
     static b32 should_close;
+    static std::filesystem::path pref_path;
 };

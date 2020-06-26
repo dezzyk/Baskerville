@@ -66,6 +66,7 @@ namespace Event {
         Save,
         Open,
         New,
+        Export,
         ArrowUp,
         ArrowDown,
         ArrowLeft,
