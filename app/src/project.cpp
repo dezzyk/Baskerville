@@ -4,6 +4,8 @@
 
 #include "project.h"
 #include "platform.h"
+#include "data_path.h"
+#include "duckx/duckx.hpp"
 
 #include "nfd/nfd.h"
 #include "SDL2/SDL.h"
@@ -214,7 +216,24 @@ void Project::save() {
 }
 
 void Project::exportToDocx() {
-
+    nfdchar_t* savePath = NULL;
+    nfdresult_t result = NFD_SaveDialog("docx", NULL, &savePath);
+    if (result == NFD_OKAY) {
+        std::filesystem::path path = savePath;
+        if (path.filename().extension() != ".docx") {
+            path += ".docx";
+        }
+        free(savePath);
+        std::string template_path = global_data_path;
+        template_path += "template.docx";
+        std::filesystem::copy(template_path, path);
+        std::filesystem::rename(path, template_path);
+        duckx::Document new_export(path.string());
+        new_export.paragraphs().insert_paragraph_after(" Test 1 ");
+        new_export.paragraphs().add_run(" Test 2 ");
+        new_export.paragraphs().insert_paragraph_after(" Test 3 ");
+        new_export.save();
+    }
 }
 
 std::string Project::getLastLine() {

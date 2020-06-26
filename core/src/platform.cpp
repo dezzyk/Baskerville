@@ -83,29 +83,36 @@ b32 Platform::Manager::pollEvents(Event::Container& event) {
             if( e.key.keysym.sym == SDLK_BACKSPACE) {
                 event.type = Meta::MakeType<Event::Macro>();
                 event.value.macro = Event::Macro::Backspace;
+                return true;
             } else if( e.key.keysym.sym == SDLK_c && SDL_GetModState() & KMOD_CTRL ) {
                 event.type = Meta::MakeType<Event::Macro>();
                 event.value.macro = Event::Macro::Copy;
+                return true;
             } else if( e.key.keysym.sym == SDLK_v && SDL_GetModState() & KMOD_CTRL ) {
                 event.type = Meta::MakeType<Event::Macro>();
                 event.value.macro = Event::Macro::Paste;
+                return true;
             } else if( e.key.keysym.sym == SDLK_s && SDL_GetModState() & KMOD_CTRL ) {
                 event.type = Meta::MakeType<Event::Macro>();
                 event.value.macro = Event::Macro::Save;
+                return true;
             } else if( e.key.keysym.sym == SDLK_o && SDL_GetModState() & KMOD_CTRL ) {
                 event.type = Meta::MakeType<Event::Macro>();
                 event.value.macro = Event::Macro::Open;
+                return true;
             } else if( e.key.keysym.sym == SDLK_n && SDL_GetModState() & KMOD_CTRL ) {
                 event.type = Meta::MakeType<Event::Macro>();
                 event.value.macro = Event::Macro::New;
+                return true;
             } else if( e.key.keysym.sym == SDLK_e && SDL_GetModState() & KMOD_CTRL ) {
                 event.type = Meta::MakeType<Event::Macro>();
                 event.value.macro = Event::Macro::Export;
+                return true;
             } else if( e.key.keysym.sym == SDLK_KP_ENTER) {
                 event.type = Meta::MakeType<Event::Macro>();
                 event.value.macro = Event::Macro::Enter;
+                return true;
             }
-            return true;
         } else if(e.type == SDL_MOUSEBUTTONDOWN) {
             // TODO mouse events
             return true;
@@ -116,6 +123,7 @@ b32 Platform::Manager::pollEvents(Event::Container& event) {
             return true;
         }
     }
+    return false;
 }
 
 void Platform::Manager::swap() {
