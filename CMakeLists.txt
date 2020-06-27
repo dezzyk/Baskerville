@@ -28,16 +28,14 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_link_libraries(Baskerville opengl32.lib comctl32.lib
             ${CMAKE_CURRENT_SOURCE_DIR}/dep/SDL2/lib/SDL2.lib
             ${CMAKE_CURRENT_SOURCE_DIR}/dep/SDL2/lib/SDL2main.lib
-            ${CMAKE_CURRENT_SOURCE_DIR}/dep/nfd/lib/nfd.lib
-            ${CMAKE_CURRENT_SOURCE_DIR}/dep/duckx/lib/Debug/duckx.lib)
+            ${CMAKE_CURRENT_SOURCE_DIR}/dep/nfd/lib/nfd.lib)
     message("Debug!")
 else()
     target_compile_definitions(Baskerville PUBLIC MSDFGEN_USE_CPP11)
     target_link_libraries(Baskerville opengl32.lib comctl32.lib
             ${CMAKE_CURRENT_SOURCE_DIR}/dep/SDL2/lib/SDL2.lib
             ${CMAKE_CURRENT_SOURCE_DIR}/dep/SDL2/lib/SDL2main.lib
-            ${CMAKE_CURRENT_SOURCE_DIR}/dep/nfd/lib/nfd.lib
-            ${CMAKE_CURRENT_SOURCE_DIR}/dep/duckx/lib/Release/duckx.lib)
+            ${CMAKE_CURRENT_SOURCE_DIR}/dep/nfd/lib/nfd.lib)
     message("Release!")
 endif()
 target_include_directories(Baskerville PUBLIC dep core app)

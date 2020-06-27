@@ -108,7 +108,7 @@ b32 Platform::Manager::pollEvents(Event::Container& event) {
                 event.type = Meta::MakeType<Event::Macro>();
                 event.value.macro = Event::Macro::Export;
                 return true;
-            } else if( e.key.keysym.sym == SDLK_KP_ENTER) {
+            } else if( e.key.keysym.sym == SDLK_RETURN) {
                 event.type = Meta::MakeType<Event::Macro>();
                 event.value.macro = Event::Macro::Enter;
                 return true;

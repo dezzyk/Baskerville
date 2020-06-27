@@ -131,8 +131,7 @@ void Editor::onMacro(const Event::Macro& macro) {
     if(macro == Event::Macro::Backspace && !cur_line->value.empty()) {
         cur_line->value.pop_back();
         cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 1.0f});
-    }
-    else if(macro == Event::Macro::Enter) {
+    } else if(macro == Event::Macro::Enter) {
         if(!cur_line->value.empty()) {
             m_project.completeParagraph();
             prev_line = cur_line;
@@ -154,6 +153,8 @@ void Editor::onMacro(const Event::Macro& macro) {
         prev_line->label.setValue(prev_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 0.33f});
         cur_line->value = "";
         cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 1.0f});
+    } else if(macro == Event::Macro::Export) {
+        m_project.exportToTXT();
     }
 }
 

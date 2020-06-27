@@ -27,7 +27,7 @@ public:
     Project& operator=(const Project& data) = delete;
     void open();
     void save();
-    void exportToDocx();
+    void exportToTXT();
     std::string getLastLine();
     void pushLine(std::string line);
     void completeParagraph();

@@ -5,7 +5,6 @@
 #include "project.h"
 #include "platform.h"
 #include "data_path.h"
-#include "duckx/duckx.hpp"
 
 #include "nfd/nfd.h"
 #include "SDL2/SDL.h"
@@ -74,20 +73,30 @@ Project::Project(CacheBank& cache_bank) {
     } else {
         std::string path = m_app_cache->data["project_path"];
         if(!path.empty()) {
-            std::vector<u8> buffer;
-            std::ifstream input;
-            input.open(path, std::ios::binary);
-            input.seekg(0, input.end);
-            u32 length = input.tellg();
-            input.seekg(0, input.beg);
-            buffer.resize(length);
-            input.read(reinterpret_cast<char*>(buffer.data()), buffer.size());
-            input.close();
+            if(std::filesystem::exists(path)) {
+                std::vector<u8> buffer;
+                std::ifstream input;
+                input.open(path, std::ios::binary);
+                input.seekg(0, input.end);
+                u32 length = input.tellg();
+                input.seekg(0, input.beg);
+                buffer.resize(length);
+                input.read(reinterpret_cast<char*>(buffer.data()), buffer.size());
+                input.close();
 
-            m_project_cache = m_cache_bank->newCache("project");
-            m_project_cache->data["project_path"] = path;
-            m_project_cache->data["data"] = json::from_cbor(buffer);
-            m_cache_bank->saveCache(m_project_cache);
+                m_project_cache = m_cache_bank->newCache("project");
+                m_project_cache->data["project_path"] = path;
+                m_project_cache->data["data"] = json::from_cbor(buffer);
+                m_cache_bank->saveCache(m_project_cache);
+            } else {
+                m_app_cache->data["project_path"] = "";
+                m_cache_bank->saveCache(m_app_cache);
+                m_project_cache = m_cache_bank->newCache("project");
+                m_project_cache->data["project_path"] = "";
+                m_project_cache->data["data"]["word_count"] = 0;
+                m_project_cache->data["data"]["paragraphs"] = std::vector<json>();
+                m_cache_bank->saveCache(m_project_cache);
+            }
         } else {
             m_project_cache = m_cache_bank->newCache("project");
             m_project_cache->data["project_path"] = "";
@@ -215,33 +224,53 @@ void Project::save() {
 
 }
 
-void Project::exportToDocx() {
-    nfdchar_t* savePath = NULL;
-    nfdresult_t result = NFD_SaveDialog("docx", NULL, &savePath);
-    if (result == NFD_OKAY) {
-        std::filesystem::path path = savePath;
-        if (path.filename().extension() != ".docx") {
-            path += ".docx";
+//Fuck docx
+void Project::exportToTXT() {
+    const std::vector<json> &paragraphs = m_project_cache->data["data"]["paragraphs"];
+    if (!paragraphs.empty()) {
+        nfdchar_t* savePath = NULL;
+        nfdresult_t result = NFD_SaveDialog("txt", NULL, &savePath);
+        if (result == NFD_OKAY) {
+            std::filesystem::path tar_path = savePath;
+            if (tar_path.filename().extension() != ".txt") {
+                tar_path += ".txt";
+            }
+            free(savePath);
+            if (std::filesystem::exists(tar_path)) {
+                std::filesystem::remove(tar_path);
+            }
+            std::ofstream export_file(tar_path);
+            if (!export_file || !export_file.is_open() || !export_file.good()) {
+                std::cout << "Failed to open cache file" << std::endl;
+                return;
+            } else {
+                for (const auto &p : paragraphs) {
+                    std::string total = "";
+                    const std::vector<std::string> &lines = p["lines"];
+                    if (!lines.empty()) {
+                        for (const auto &line : lines) {
+                            total += line;
+                        }
+                    }
+                    if(total != "") {
+                        export_file << "\t" << total << std::endl;
+                    }
+                }
+            }
         }
-        free(savePath);
-        std::string template_path = global_data_path;
-        template_path += "template.docx";
-        std::filesystem::copy(template_path, path);
-        std::filesystem::rename(path, template_path);
-        duckx::Document new_export(path.string());
-        new_export.paragraphs().insert_paragraph_after(" Test 1 ");
-        new_export.paragraphs().add_run(" Test 2 ");
-        new_export.paragraphs().insert_paragraph_after(" Test 3 ");
-        new_export.save();
     }
 }
 
 std::string Project::getLastLine() {
     const std::vector<json>& paragraphs = m_project_cache->data["data"]["paragraphs"];
     if(!paragraphs.empty()) {
-        const std::vector<std::string>& lines = paragraphs[paragraphs.size() - 1]["lines"];
-        if(!lines.empty()) {
-            return lines[lines.size() - 1];
+        int i = 1;
+        while(i <= paragraphs.size()) {
+            const std::vector<std::string> &lines = paragraphs[paragraphs.size() - i]["lines"];
+            if (!lines.empty()) {
+                return lines.back();
+            }
+            ++i;
         }
     }
     return "";
@@ -267,5 +296,7 @@ void Project::pushLine(std::string line) {
 
 void Project::completeParagraph() {
     m_project_cache->data["data"]["paragraphs"].push_back(json());
+    const std::vector<json>& paragraphs = m_project_cache->data["data"]["paragraphs"];
+    m_project_cache->data["data"]["paragraphs"][paragraphs.size() - 1]["lines"] = std::vector<std::string>();
     m_cache_bank->saveCache(m_project_cache);
 }
