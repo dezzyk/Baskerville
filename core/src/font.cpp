@@ -192,7 +192,7 @@ Font::Font(std::string font_name, u32 start_codepoint, u32 end_codepoint, u32 pi
 
         m_texture_handle = texture; CheckGLError();
 
-        stbi_write_bmp("test.bmp", m_bitmap_size.x, m_bitmap_size.y, 3, reinterpret_cast<void*>(workloads[6].bitmaps[1].data()));
+        //stbi_write_bmp("test.bmp", m_bitmap_size.x, m_bitmap_size.y, 3, reinterpret_cast<void*>(workloads[6].bitmaps[1].data()));
 
     }
 }

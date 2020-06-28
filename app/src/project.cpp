@@ -278,9 +278,14 @@ std::string Project::getLastLine() {
 
 void Project::pushLine(std::string line) {
     int word_count = m_project_cache->data["data"]["word_count"];
-    for(auto& c : line) {
-        if(c == ' ') {
-            word_count++;
+    b32 first = false;
+    for(int i = 0; i < line.size(); ++i) {
+        if(line[i] == ' ') {
+            if(i != 0) {
+                if(line[i-1] != ' ') {
+                    word_count++;
+                }
+            }
         }
     }
     m_project_cache->data["data"]["word_count"] = word_count;
