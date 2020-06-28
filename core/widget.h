@@ -35,7 +35,7 @@ public:
         BottomRight,
         Center
     };
-    virtual void update();
+    virtual void update(f32 delta);
     virtual void onCodepoint(const Event::Codepoint& codepoint);
     virtual void onTextInput(const Event::TextInput& text);
     virtual void onMacro(const Event::Macro& macro);

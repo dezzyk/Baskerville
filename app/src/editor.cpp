@@ -31,7 +31,7 @@ Editor::Editor(Widget* parent, CacheBank& cache) : Widget(parent) {
 
 }
 
-void Editor::update() {
+void Editor::update(f32 delta) {
 
 }
 

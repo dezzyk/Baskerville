@@ -24,7 +24,7 @@ Root::Root(CacheBank& cache) : m_editor(this, cache) {
     setScaleAndReportChange(1.0f);
 }
 
-void Root::update() {}
+void Root::update(f32 delta) {}
 
 void Root::onCodepoint(const Event::Codepoint& codepoint) {
     m_editor.onCodepoint(codepoint);

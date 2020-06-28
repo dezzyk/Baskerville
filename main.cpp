@@ -41,17 +41,12 @@ int main(int argc, char *argv[]) {
 
         root = new Root(cache);
 
-        std::chrono::duration<u64, std::nano> update_accumulator(0);
-        std::chrono::duration<u64, std::milli> update_rate((u32)((1.0 / (f32)120) * 1000)); // Locked to 120, change later
         timestamp cur_time = std::chrono::high_resolution_clock::now();
 
         while (!platform.shouldQuit()) {
             timestamp new_time = std::chrono::high_resolution_clock::now();
-            auto frame_time = std::chrono::duration<u64, std::nano>(new_time - cur_time);
+            f32 frame_time = std::chrono::duration<f32, std::milli>(new_time - cur_time).count() / 1000;
             cur_time = new_time;
-            update_accumulator += frame_time;
-            u32 update_count = 0;
-            while (update_accumulator >= update_rate) {
 
                 Event::Container event;
                 while(platform.pollEvents(event)) {
@@ -63,18 +58,12 @@ int main(int argc, char *argv[]) {
                         root->onMouseClick(event.value.mouseClick);
                     }
                 }
-                root->update();
-                update_accumulator -= update_rate;
-                update_count++;
-                if (update_count > 6) {
-                    update_accumulator = std::chrono::duration<u64, std::nano>::zero();
-                }
-            }
-            if (update_count > 0) {
+
+                root->update(frame_time);
+
                 root->draw(platform.getDrawCallQueue(), platform.getViewportScaler());
                 platform.executeDrawCalls();
                 platform.swap();
-            }
         }
 
         delete root;

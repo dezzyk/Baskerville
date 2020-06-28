@@ -28,7 +28,7 @@ Project::Project(CacheBank& cache_bank) {
     if(m_project_cache != nullptr) {
         std::vector<u8> buffer;
         b32 res = false;
-        Platform::cautionOptionBox("Baskerville", "A previous session was not closed cleanly. Would you like to save the cached data?", res);
+        Platform::cautionOptionBox("Baskerville", "A previous session was not closed cleanly. Would you like to load the cached data?", res);
         if(res) {
             std::ifstream input;
             input.open(m_project_cache->path, std::ios::binary);
@@ -61,6 +61,16 @@ Project::Project(CacheBank& cache_bank) {
                 m_project_cache->data["data"] = json::from_cbor(buffer);
                 m_app_cache->data["last_word_count"] = m_project_cache->data["data"]["word_count"];
                 m_cache_bank->saveCache(m_project_cache);
+            } else {
+                m_cache_bank->destroyCache(m_project_cache);
+                m_project_cache = m_cache_bank->newCache("project");
+                m_project_cache->data["project_path"] = "";
+                m_project_cache->data["data"]["word_count"] = 0;
+                m_project_cache->data["data"]["paragraphs"] = std::vector<json>();
+                m_cache_bank->saveCache(m_project_cache);
+                m_app_cache->data["project_path"] = "";
+                m_app_cache->data["last_word_count"] = 0;
+                m_cache_bank->saveCache(m_app_cache);
             }
 
             //m_project_cache->data["data"]["word_count"] = 0;
@@ -142,7 +152,7 @@ Project::~Project() {
     }
 }
 
-void Project::open() {
+b32 Project::open() {
 
     nfdchar_t *outPath = NULL;
     nfdresult_t result = NFD_OpenDialog( "spt", NULL, &outPath );
@@ -169,6 +179,7 @@ void Project::open() {
             m_app_cache->data["project_path"] = path.string();
             m_app_cache->data["last_word_count"] = m_project_cache->data["data"]["word_count"];
             m_cache_bank->saveCache(m_app_cache);
+            return true;
         }
 
     }
@@ -178,10 +189,10 @@ void Project::open() {
     else {
         printf("Error: %s\n", NFD_GetError() );
     }
-
+    return false;
 }
 
-void Project::save() {
+b32 Project::save() {
 
     // Yes this is ugly, but there is a bug where empty strings in the json
     // will still return a size of 1 no matter what if the return is checked directly
@@ -197,6 +208,7 @@ void Project::save() {
         save_file.flush();
         m_app_cache->data["last_word_count"] = m_project_cache->data["data"]["word_count"];
         m_cache_bank->saveCache(m_app_cache);
+        return true;
     } else {
         nfdchar_t* savePath = NULL;
         nfdresult_t result = NFD_SaveDialog("spt", NULL, &savePath);
@@ -215,17 +227,18 @@ void Project::save() {
             buffer = json::to_cbor(m_project_cache->data["data"]);
             save_file.write(reinterpret_cast<char*>(buffer.data()), buffer.size());
             save_file.flush();
+            return true;
         } else if (result == NFD_CANCEL) {
             std::cout <<"User pressed cancel." << std::endl;
         } else {
             printf("Error: %s\n", NFD_GetError());
         }
     }
-
+    return false;
 }
 
 //Fuck docx
-void Project::exportToTXT() {
+b32 Project::exportToTXT() {
     const std::vector<json> &paragraphs = m_project_cache->data["data"]["paragraphs"];
     if (!paragraphs.empty()) {
         nfdchar_t* savePath = NULL;
@@ -242,7 +255,7 @@ void Project::exportToTXT() {
             std::ofstream export_file(tar_path);
             if (!export_file || !export_file.is_open() || !export_file.good()) {
                 std::cout << "Failed to open cache file" << std::endl;
-                return;
+                return false;
             } else {
                 for (const auto &p : paragraphs) {
                     std::string total = "";
@@ -259,6 +272,7 @@ void Project::exportToTXT() {
             }
         }
     }
+    return true;
 }
 
 std::string Project::getLastLine() {

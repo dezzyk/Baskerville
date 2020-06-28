@@ -18,7 +18,7 @@
 class Root : public Widget {
 public:
     Root(CacheBank& cache);
-    void update() override ;
+    void update(f32 delta) override ;
     void onCodepoint(const Event::Codepoint& codepoint) override ;
     void onTextInput(const Event::TextInput& text) override ;
     void onMacro(const Event::Macro& macro) override ;

@@ -25,9 +25,9 @@ public:
     ~Project();
     Project(const Project&) = delete;
     Project& operator=(const Project& data) = delete;
-    void open();
-    void save();
-    void exportToTXT();
+    b32 open();
+    b32 save();
+    b32 exportToTXT();
     std::string getLastLine();
     void pushLine(std::string line);
     void completeParagraph();

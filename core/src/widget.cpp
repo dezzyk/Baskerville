@@ -20,7 +20,7 @@ Widget::Widget(Widget&& other) noexcept :
         m_scale(other.m_scale),
         m_debug_draw(std::move(other.m_debug_draw)) {}
 
-void Widget::update() {}
+void Widget::update(f32 delta) {}
 void Widget::onCodepoint(const Event::Codepoint& codepoint) {}
 void Widget::onTextInput(const Event::TextInput& text) {}
 void Widget::onMacro(const Event::Macro& macro) {}
