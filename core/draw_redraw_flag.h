@@ -43,6 +43,9 @@ namespace Draw {
             }
             return *this;
         }
+        operator b32() const{
+            return val;
+        }
     private:
         b32 val = false;
     };

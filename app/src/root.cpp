@@ -24,21 +24,25 @@ Root::Root(CacheBank& cache) : m_editor(this, cache) {
     setScaleAndReportChange(1.0f);
 }
 
-void Root::update(f32 delta) {}
-
-void Root::onCodepoint(const Event::Codepoint& codepoint) {
-    m_editor.onCodepoint(codepoint);
+Draw::RedrawFlag Root::update(f64 delta) {
+    return false;
 }
 
-void Root::onTextInput(const Event::TextInput& text) {
-    m_editor.onTextInput(text);
+Draw::RedrawFlag Root::onCodepoint(const Event::Codepoint& codepoint) {
+    return m_editor.onCodepoint(codepoint);
 }
 
-void Root::onMacro(const Event::Macro& macro) {
-    m_editor.onMacro(macro);
+Draw::RedrawFlag Root::onTextInput(const Event::TextInput& text) {
+    return m_editor.onTextInput(text);
 }
 
-void Root::onMouseClick(Event::MouseClick mouse_click) {}
+Draw::RedrawFlag Root::onMacro(const Event::Macro& macro) {
+    return m_editor.onMacro(macro);
+}
+
+Draw::RedrawFlag Root::onMouseClick(Event::MouseClick mouse_click) {
+    return false;
+}
 
 void Root::draw(Draw::CallQueue& draw_buffer, f32 scale) {
 

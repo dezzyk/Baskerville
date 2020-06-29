@@ -26,11 +26,11 @@ public:
         f32 fade_offset = -1.0;
     };
     explicit Editor(Widget* parent, CacheBank& cache);
-    void update(f32 delta) override ;
-    void onCodepoint(const Event::Codepoint& codepoint) override ;
-    void onTextInput(const Event::TextInput& text) override ;
-    void onMacro(const Event::Macro& macro) override ;
-    void onMouseClick(Event::MouseClick mouse_click) override ;
+    Draw::RedrawFlag update(f64 delta) override ;
+    Draw::RedrawFlag onCodepoint(const Event::Codepoint& codepoint) override ;
+    Draw::RedrawFlag onTextInput(const Event::TextInput& text) override ;
+    Draw::RedrawFlag onMacro(const Event::Macro& macro) override ;
+    Draw::RedrawFlag onMouseClick(Event::MouseClick mouse_click) override ;
     void draw(Draw::CallQueue& draw_buffer, f32 scale) override ;
 private:
     Project m_project;

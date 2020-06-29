@@ -31,11 +31,11 @@ Editor::Editor(Widget* parent, CacheBank& cache) : Widget(parent) {
 
 }
 
-void Editor::update(f32 delta) {
-
+Draw::RedrawFlag Editor::update(f64 delta) {
+    return false;
 }
 
-void Editor::onCodepoint(const Event::Codepoint& codepoint) {
+Draw::RedrawFlag Editor::onCodepoint(const Event::Codepoint& codepoint) {
 
     cur_line = &m_lines[m_cur_line_index];
     cur_line->value += (char)codepoint.value;
@@ -80,9 +80,10 @@ void Editor::onCodepoint(const Event::Codepoint& codepoint) {
     } else {
         cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 1.0f});
     }
+    return true;
 }
 
-void Editor::onTextInput(const Event::TextInput& text) {
+Draw::RedrawFlag Editor::onTextInput(const Event::TextInput& text) {
 
     cur_line = &m_lines[m_cur_line_index];
     cur_line->value += text.value;
@@ -125,12 +126,14 @@ void Editor::onTextInput(const Event::TextInput& text) {
     } else {
         cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 1.0f});
     }
+    return true;
 }
 
-void Editor::onMacro(const Event::Macro& macro) {
+Draw::RedrawFlag Editor::onMacro(const Event::Macro& macro) {
     if(macro == Event::Macro::Backspace && !cur_line->value.empty()) {
         cur_line->value.pop_back();
         cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 1.0f});
+        return true;
     } else if(macro == Event::Macro::Enter) {
         if(!cur_line->value.empty()) {
             m_project.completeParagraph();
@@ -144,6 +147,7 @@ void Editor::onMacro(const Event::Macro& macro) {
             cur_line->value = "";
             cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 1.0f});
             cur_line->label.offset.y = 0.0;
+            return true;
         }
     } else if(macro == Event::Macro::Save) {
         m_project.save();
@@ -156,10 +160,11 @@ void Editor::onMacro(const Event::Macro& macro) {
     } else if(macro == Event::Macro::Export) {
         m_project.exportToTXT();
     }
+    return false;
 }
 
-void Editor::onMouseClick(Event::MouseClick mouse_click) {
-
+Draw::RedrawFlag Editor::onMouseClick(Event::MouseClick mouse_click) {
+    return false;
 }
 
 void Editor::draw(Draw::CallQueue& draw_buffer, f32 scale) {

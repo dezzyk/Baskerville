@@ -35,11 +35,11 @@ public:
         BottomRight,
         Center
     };
-    virtual void update(f32 delta);
-    virtual void onCodepoint(const Event::Codepoint& codepoint);
-    virtual void onTextInput(const Event::TextInput& text);
-    virtual void onMacro(const Event::Macro& macro);
-    virtual void onMouseClick(Event::MouseClick mouse_click);
+    virtual Draw::RedrawFlag update(f64 delta);
+    virtual Draw::RedrawFlag onCodepoint(const Event::Codepoint& codepoint);
+    virtual Draw::RedrawFlag onTextInput(const Event::TextInput& text);
+    virtual Draw::RedrawFlag onMacro(const Event::Macro& macro);
+    virtual Draw::RedrawFlag onMouseClick(Event::MouseClick mouse_click);
     virtual void draw(Draw::CallQueue& draw_buffer, f32 scale);
     b32 pointIntersect(glm::vec2 pos);
     const glm::vec2& getSize() const;

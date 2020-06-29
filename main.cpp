@@ -43,27 +43,44 @@ int main(int argc, char *argv[]) {
 
         timestamp cur_time = std::chrono::high_resolution_clock::now();
 
+        b32 first_frame = true;
+        glm::vec2  last_viewport = Platform::getViewportSize();
+
         while (!platform.shouldQuit()) {
             timestamp new_time = std::chrono::high_resolution_clock::now();
-            f32 frame_time = std::chrono::duration<f32, std::milli>(new_time - cur_time).count() / 1000;
+            f64 frame_time = std::chrono::duration<f64, std::milli>(new_time - cur_time).count() / 1000;
             cur_time = new_time;
 
-                Event::Container event;
-                while(platform.pollEvents(event)) {
-                    if(event.type == Meta::MakeType<Event::TextInput>()) {
-                        root->onTextInput(event.value.text);
-                    } else if(event.type == Meta::MakeType<Event::Macro>()) {
-                        root->onMacro(event.value.macro);
-                    } else if(event.type == Meta::MakeType<Event::MouseClick>()) {
-                        root->onMouseClick(event.value.mouseClick);
-                    }
+            Draw::RedrawFlag redraw;
+            if(first_frame) {
+                redraw = true;
+                first_frame = false;
+            }
+
+            Event::Container event;
+            while(platform.pollEvents(event)) {
+                if(event.type == Meta::MakeType<Event::TextInput>()) {
+                    redraw = root->onTextInput(event.value.text);
+                } else if(event.type == Meta::MakeType<Event::Macro>()) {
+                    redraw = root->onMacro(event.value.macro);
+                } else if(event.type == Meta::MakeType<Event::MouseClick>()) {
+                    redraw = root->onMouseClick(event.value.mouseClick);
                 }
+            }
 
-                root->update(frame_time);
+            glm::vec2 cur_viewport = Platform::getViewportSize();
+            if(cur_viewport != last_viewport) {
+                redraw = true;
+                last_viewport = cur_viewport;
+            }
 
+            redraw = root->update(frame_time);
+
+            if(redraw) {
                 root->draw(platform.getDrawCallQueue(), platform.getViewportScaler());
                 platform.executeDrawCalls();
                 platform.swap();
+            }
         }
 
         delete root;

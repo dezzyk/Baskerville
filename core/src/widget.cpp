@@ -20,11 +20,11 @@ Widget::Widget(Widget&& other) noexcept :
         m_scale(other.m_scale),
         m_debug_draw(std::move(other.m_debug_draw)) {}
 
-void Widget::update(f32 delta) {}
-void Widget::onCodepoint(const Event::Codepoint& codepoint) {}
-void Widget::onTextInput(const Event::TextInput& text) {}
-void Widget::onMacro(const Event::Macro& macro) {}
-void Widget::onMouseClick(Event::MouseClick mouse_click) {}
+Draw::RedrawFlag Widget::update(f64 delta) { return false; }
+Draw::RedrawFlag Widget::onCodepoint(const Event::Codepoint& codepoint) { return false; }
+Draw::RedrawFlag Widget::onTextInput(const Event::TextInput& text) { return false; }
+Draw::RedrawFlag Widget::onMacro(const Event::Macro& macro) { return false; }
+Draw::RedrawFlag Widget::onMouseClick(Event::MouseClick mouse_click) { return false; }
 void Widget::draw(Draw::CallQueue& draw_buffer, f32 scale) {}
 
 b32 Widget::pointIntersect(glm::vec2 pos) {
