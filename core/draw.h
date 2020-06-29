@@ -8,3 +8,4 @@
 #include "draw_box.h"
 #include "draw_context.h"
 #include "draw_call.h"
+#include "draw_redraw_flag.h"
