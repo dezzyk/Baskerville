@@ -26,6 +26,7 @@ public:
         void executeDrawCalls();
         Draw::CallQueue& getDrawCallQueue();
         f32 getViewportScaler();
+        void delay(u32 count);
     };
     static const glm::vec2 getViewportSize();
     static const glm::vec2 getMousePos();

@@ -180,4 +180,5 @@ void Editor::draw(Draw::CallQueue& draw_buffer, f32 scale) {
 
     debugViewUpdate();
     debugViewDraw(draw_buffer);
+
 }

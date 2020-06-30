@@ -134,6 +134,10 @@ f32 Platform::Manager::getViewportScaler() {
     //return viewport_scaler;
 }
 
+void Platform::Manager::delay(u32 count) {
+    SDL_Delay(count);
+}
+
 void Platform::Manager::executeDrawCalls() {
     glClear(GL_COLOR_BUFFER_BIT); CheckGLError();
     glm::vec2 viewport = getViewportSize();
