@@ -47,10 +47,23 @@ int main(int argc, char *argv[]) {
         glm::vec2  last_viewport = Platform::getViewportSize();
 
         while (!platform.shouldQuit()) {
-            platform.delay(1000/90);
             timestamp new_time = std::chrono::high_resolution_clock::now();
             f64 frame_time = std::chrono::duration<f64, std::milli>(new_time - cur_time).count() / 1000;
             cur_time = new_time;
+
+            u32 base_delay = (1000/90);
+            u32 frame_time_rounded = (u32)(frame_time * 1000.0);
+            u32 total_delay = 0;
+            if(frame_time_rounded > base_delay) {
+                // If frame time is over double delay time, then just dont delay. Can happen when moving/resizing
+                // the window or performing anything else that blocks.
+                if(frame_time_rounded <= base_delay * 2) {
+                    total_delay = base_delay - (frame_time_rounded - base_delay);
+                }
+            } else {
+                total_delay = base_delay;
+            }
+            platform.delay(total_delay);
 
             Draw::RedrawFlag redraw;
             if (first_frame) {
