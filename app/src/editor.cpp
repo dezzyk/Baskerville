@@ -170,10 +170,10 @@ Draw::RedrawFlag Editor::onMouseClick(Event::MouseClick mouse_click) {
 void Editor::draw(Draw::CallQueue& draw_buffer, f32 scale) {
 
     m_size.y = m_parent->getSize().y;
-    prev_line->label.offset.y = (m_font_pixel_height / getSize().y) * getScale();
     if(setScaleAndReportChange(scale)) {
         m_draw_size = {m_size.x * getScale(), m_size.y};
     }
+    prev_line->label.offset.y = (m_font_pixel_height / getSize().y) * getScale();
 
     cur_line->label.draw(draw_buffer, scale);
     prev_line->label.draw(draw_buffer, scale);
