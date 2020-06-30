@@ -78,51 +78,40 @@ b32 Platform::Manager::pollEvents(Event::Container& event) {
                 std::string_view str(e.text.text);
                 event.type = Meta::MakeType<Event::TextInput>();
                 strcpy(event.value.text.value, e.text.text);
-                return true;
             }
         } else if( e.type == SDL_KEYDOWN ) {
             if( e.key.keysym.sym == SDLK_BACKSPACE) {
                 event.type = Meta::MakeType<Event::Macro>();
                 event.value.macro = Event::Macro::Backspace;
-                return true;
             } else if( e.key.keysym.sym == SDLK_c && SDL_GetModState() & KMOD_CTRL ) {
                 event.type = Meta::MakeType<Event::Macro>();
                 event.value.macro = Event::Macro::Copy;
-                return true;
             } else if( e.key.keysym.sym == SDLK_v && SDL_GetModState() & KMOD_CTRL ) {
                 event.type = Meta::MakeType<Event::Macro>();
                 event.value.macro = Event::Macro::Paste;
-                return true;
             } else if( e.key.keysym.sym == SDLK_s && SDL_GetModState() & KMOD_CTRL ) {
                 event.type = Meta::MakeType<Event::Macro>();
                 event.value.macro = Event::Macro::Save;
-                return true;
             } else if( e.key.keysym.sym == SDLK_o && SDL_GetModState() & KMOD_CTRL ) {
                 event.type = Meta::MakeType<Event::Macro>();
                 event.value.macro = Event::Macro::Open;
-                return true;
             } else if( e.key.keysym.sym == SDLK_n && SDL_GetModState() & KMOD_CTRL ) {
                 event.type = Meta::MakeType<Event::Macro>();
                 event.value.macro = Event::Macro::New;
-                return true;
             } else if( e.key.keysym.sym == SDLK_e && SDL_GetModState() & KMOD_CTRL ) {
                 event.type = Meta::MakeType<Event::Macro>();
                 event.value.macro = Event::Macro::Export;
-                return true;
             } else if( e.key.keysym.sym == SDLK_RETURN) {
                 event.type = Meta::MakeType<Event::Macro>();
                 event.value.macro = Event::Macro::Enter;
-                return true;
             }
         } else if(e.type == SDL_MOUSEBUTTONDOWN) {
             // TODO mouse events
-            return true;
-        } else if(e.type == SDL_WINDOWEVENT && e.window.event == SDL_WINDOWEVENT_RESIZED) {
+        } /*else if(e.type == SDL_WINDOWEVENT && e.window.event == SDL_WINDOWEVENT_RESIZED) {
             glm::vec2 size = getViewportSize();
-            glViewport(0, 0, size.x, size.y);
             viewport_scaler = (size.y / target_height);
-            return true;
-        }
+        }*/
+        return true;
     }
     return false;
 }
@@ -140,13 +129,21 @@ Draw::CallQueue& Platform::Manager::getDrawCallQueue() {
 }
 
 f32 Platform::Manager::getViewportScaler() {
-    return viewport_scaler;
+    glm::vec2 size = getViewportSize();
+    return (size.y / target_height);
+    //return viewport_scaler;
 }
 
 void Platform::Manager::executeDrawCalls() {
     glClear(GL_COLOR_BUFFER_BIT); CheckGLError();
     glm::vec2 viewport = getViewportSize();
     glm::mat4 proj = glm::ortho(0.0f, viewport.x, 0.0f, viewport.y);
+    static glm::vec2 last_viewport = {0.0f, 0.0f};
+    glm::vec2  cur_viewport = getViewportSize();
+    if(viewport != last_viewport) {
+        glViewport(0, 0, viewport.x, viewport.y);
+        last_viewport = viewport;
+    }
     for(auto& draw : call_queue) {
         if(draw.shader != nullptr) {
             if(draw.shader->getHandle().has_value()) {
