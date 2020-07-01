@@ -27,7 +27,8 @@ Editor::Editor(Widget* parent, CacheBank& cache) : Widget(parent) {
     m_font = Font::Cache::fetch("editor");
 
     prev_line->value = m_project.getLastLine();
-    prev_line->label.setValue(prev_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 0.33f});
+    prev_line->label.setValue(prev_line->value, m_font, m_font_pixel_height);
+    prev_line->label.setAlpha(0.33f);
 
 }
 
@@ -52,7 +53,8 @@ Draw::RedrawFlag Editor::onCodepoint(const Event::Codepoint& codepoint) {
             buffer = cur_line->value.substr(cur_line->value.size() - index, index);
             cur_line->value.erase(cur_line->value.size() - index, index);
             m_project.pushLine(cur_line->value);
-            cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 0.33f});
+            cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height);
+            cur_line->label.setAlpha(0.33f);
             //cur_line->label.offset.y = (m_font_pixel_height / getSize().y) * getScale();
             prev_line = cur_line;
             ++m_cur_line_index;
@@ -61,10 +63,12 @@ Draw::RedrawFlag Editor::onCodepoint(const Event::Codepoint& codepoint) {
             }
             cur_line = &m_lines[m_cur_line_index];
             cur_line->value = buffer;
-            cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 1.0f});
+            cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height);
+            cur_line->label.setAlpha(1.0f);
             cur_line->label.offset.y = 0.0;
         } else {
-            cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 0.33f});
+            cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height);
+            cur_line->label.setAlpha(0.33f);
             m_project.pushLine(cur_line->value);
             //cur_line->label.offset.y = (m_font_pixel_height / getSize().y) * getScale();
             prev_line = cur_line;
@@ -74,11 +78,13 @@ Draw::RedrawFlag Editor::onCodepoint(const Event::Codepoint& codepoint) {
             }
             cur_line = &m_lines[m_cur_line_index];
             cur_line->value = "";
-            cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 1.0f});
+            cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height);
+            cur_line->label.setAlpha(1.0f);
             cur_line->label.offset.y = 0.0;
         }
     } else {
-        cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 1.0f});
+        cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height);
+        cur_line->label.setAlpha(0.33f);
     }
     return true;
 }
@@ -100,7 +106,8 @@ Draw::RedrawFlag Editor::onTextInput(const Event::TextInput& text) {
             buffer = cur_line->value.substr(cur_line->value.size() - index, index);
             cur_line->value.erase(cur_line->value.size() - index, index);
             m_project.pushLine(cur_line->value);
-            cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 0.33f});
+            cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height);
+            cur_line->label.setAlpha(0.33f);
             prev_line = cur_line;
             ++m_cur_line_index;
             if(m_cur_line_index > 4) {
@@ -108,10 +115,12 @@ Draw::RedrawFlag Editor::onTextInput(const Event::TextInput& text) {
             }
             cur_line = &m_lines[m_cur_line_index];
             cur_line->value = buffer;
-            cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 1.0f});
+            cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height);
+            cur_line->label.setAlpha(1.0f);
             cur_line->label.offset.y = 0.0;
         } else {
-            cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 0.33f});
+            cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height);
+            cur_line->label.setAlpha(0.33f);
             m_project.pushLine(cur_line->value);
             prev_line = cur_line;
             ++m_cur_line_index;
@@ -120,11 +129,13 @@ Draw::RedrawFlag Editor::onTextInput(const Event::TextInput& text) {
             }
             cur_line = &m_lines[m_cur_line_index];
             cur_line->value = "";
-            cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 1.0f});
+            cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height);
+            cur_line->label.setAlpha(1.0f);
             cur_line->label.offset.y = 0.0;
         }
     } else {
-        cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 1.0f});
+        cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height);
+        cur_line->label.setAlpha(1.0f);
     }
     return true;
 }
@@ -132,20 +143,23 @@ Draw::RedrawFlag Editor::onTextInput(const Event::TextInput& text) {
 Draw::RedrawFlag Editor::onMacro(const Event::Macro& macro) {
     if(macro == Event::Macro::Backspace && !cur_line->value.empty()) {
         cur_line->value.pop_back();
-        cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 1.0f});
+        cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height);
+        cur_line->label.setAlpha(1.0f);
         return true;
     } else if(macro == Event::Macro::Enter) {
         if(!cur_line->value.empty()) {
             m_project.completeParagraph();
             prev_line = cur_line;
-            prev_line->label.setValue(prev_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 0.33f});
+            prev_line->label.setValue(prev_line->value, m_font, m_font_pixel_height);
+            cur_line->label.setAlpha(0.33f);
             ++m_cur_line_index;
             if (m_cur_line_index > 4) {
                 m_cur_line_index = 0;
             }
             cur_line = &m_lines[m_cur_line_index];
             cur_line->value = "";
-            cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 1.0f});
+            cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height);
+            cur_line->label.setAlpha(1.0f);
             cur_line->label.offset.y = 0.0;
             return true;
         }
@@ -154,9 +168,11 @@ Draw::RedrawFlag Editor::onMacro(const Event::Macro& macro) {
     } else if(macro == Event::Macro::Open) {
         m_project.open();
         prev_line->value = m_project.getLastLine();
-        prev_line->label.setValue(prev_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 0.33f});
+        prev_line->label.setValue(prev_line->value, m_font, m_font_pixel_height);
+        prev_line->label.setAlpha(0.33f);
         cur_line->value = "";
-        cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height, {0.0f, 0.0f, 0.0f, 1.0f});
+        cur_line->label.setValue(cur_line->value, m_font, m_font_pixel_height);
+        cur_line->label.setAlpha(1.0f);
     } else if(macro == Event::Macro::Export) {
         m_project.exportToTXT();
     }

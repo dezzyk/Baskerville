@@ -2,11 +2,11 @@ R"(
 #version 430 core
 
 in vec3 f_tex_coords;
-in vec4 f_color;
 
 out vec4 draw_color;
 
 layout (location = 2) uniform sampler2DArray u_msdf;
+layout (location = 3) uniform vec4 u_color;
 
 float median(float r, float g, float b) {
     return max(min(r, g), min(max(r, g), b));
@@ -22,7 +22,7 @@ void main(){
     float toPixels = 8.0 * inversesqrt( dx * dx + dy * dy );
     float sigDist = median( samp.r, samp.g, samp.b ) - 0.5;
     float opacity = clamp( sigDist * toPixels + 0.5, 0.0, 1.0 );
-    draw_color = vec4(f_color.rgb, opacity * f_color.a);
+    draw_color = vec4(u_color.rgb, opacity * u_color.a);
 
 }
 )"

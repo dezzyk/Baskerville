@@ -16,12 +16,14 @@ public:
     Label() = delete;
     explicit Label(Widget* parent);
     // string value is not stored internally to prevent conflicts.
-    void setValue(const std::string& value, const Font* font, u32 pixel_height, glm::vec4 color);
+    void setValue(const std::string& value, const Font* font, u32 pixel_height);
+    void setColor(glm::vec3 color);
+    void setAlpha(f32 alpha);
     void draw(Draw::CallQueue& draw_buffer, f32 scale) override ;
     void setWidth(u32 width);
 private:
     Draw::Context m_draw_context;
-    glm::vec4 m_color;
+    glm::vec4 m_color = {0.0f, 0.0f, 0.0f, 1.0f};
     const Shader* m_shader = nullptr;
     const Font* m_font = nullptr;
     u32 m_pixel_height = 0;

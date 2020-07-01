@@ -10,7 +10,7 @@ Label::Label(Widget* parent) : Widget(parent) {
     m_size = {0.0f, 0.0f};
 }
 
-void Label::setValue(const std::string& value, const Font* font, u32 pixel_height, glm::vec4 color) {
+void Label::setValue(const std::string& value, const Font* font, u32 pixel_height) {
 
     //m_color = color;
     m_font = font;
@@ -40,7 +40,7 @@ void Label::setValue(const std::string& value, const Font* font, u32 pixel_heigh
                 if (value[i] != ' ') {
 
                     Draw::Box box;
-                    box.setColor(color);
+                    box.setColor({1.0f, 1.0f, 1.0f, 1.0f});
                     box.setUVDepth((int) value[i] - m_font->getStartCodepoint());
 
                     glm::mat4 model = glm::mat4(1.0f);
@@ -82,6 +82,14 @@ void Label::setValue(const std::string& value, const Font* font, u32 pixel_heigh
 
 }
 
+void Label::setColor(glm::vec3 color) {
+    m_color = {color.r,  color.g, color.b, m_color.a};
+}
+
+void Label::setAlpha(f32 alpha) {
+    m_color.a = alpha;
+}
+
 void Label::draw(Draw::CallQueue& draw_buffer, f32 scale) {
 
     if(setScaleAndReportChange(scale)) {
@@ -102,6 +110,7 @@ void Label::draw(Draw::CallQueue& draw_buffer, f32 scale) {
         new_draw.count = m_draw_context.size();
         new_draw.uniforms[0].setValue(model);
         new_draw.uniforms[1].setValue(Draw::Uniform::ArrayTexture(m_font->getHandle().value(), 0));
+        new_draw.uniforms[2].setValue(m_color);
         draw_buffer.push_back(new_draw);
 
     }
