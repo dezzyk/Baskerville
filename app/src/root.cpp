@@ -25,7 +25,7 @@ Root::Root(CacheBank& cache) : m_editor(this, cache) {
 }
 
 Draw::RedrawFlag Root::update(f64 delta) {
-    return false;
+    return m_editor.update(delta);
 }
 
 Draw::RedrawFlag Root::onCodepoint(const Event::Codepoint& codepoint) {

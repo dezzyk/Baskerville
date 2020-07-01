@@ -23,11 +23,11 @@ public:
     struct Line {
         Label label;
         std::string value;
-        f32 fade_offset = -1.0;
+        Line* prev = nullptr;
     };
     explicit Editor(Widget* parent, CacheBank& cache);
     Draw::RedrawFlag update(f64 delta) override ;
-    Draw::RedrawFlag onCodepoint(const Event::Codepoint& codepoint) override ;
+    //Draw::RedrawFlag onCodepoint(const Event::Codepoint& codepoint) override ;
     Draw::RedrawFlag onTextInput(const Event::TextInput& text) override ;
     Draw::RedrawFlag onMacro(const Event::Macro& macro) override ;
     Draw::RedrawFlag onMouseClick(Event::MouseClick mouse_click) override ;
@@ -35,9 +35,11 @@ public:
 private:
     Project m_project;
     const Font* m_font = nullptr;
-    std::vector<Line> m_lines;
-    Line* cur_line = nullptr;
-    Line* prev_line = nullptr;
-    u32 m_cur_line_index = 0;
+    std::array<Line, 3> m_lines;
+    Line* m_prev_line = nullptr;
+    Line* m_active_line = nullptr;
+    Line* m_next_line = nullptr;
     u32 m_font_pixel_height = 24;
+    f32 m_line_lerp_scaler = 1.0f;
+    f64 m_lint_lerp_time = 1.0;
 };
