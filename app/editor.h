@@ -18,7 +18,7 @@
 
 using json = nlohmann::json ;
 
-class Editor : public Widget {
+class Editor : public Widget, public Event::Handler {
 public:
     struct Line {
         Label label;
@@ -26,13 +26,13 @@ public:
         Line* prev = nullptr;
     };
     explicit Editor(Widget* parent, CacheBank& cache);
-    Draw::RedrawFlag update(f64 delta) override ;
-    //Draw::RedrawFlag onCodepoint(const Event::Codepoint& codepoint) override ;
     Draw::RedrawFlag onTextInput(const Event::TextInput& text) override ;
     Draw::RedrawFlag onMacro(const Event::Macro& macro) override ;
     Draw::RedrawFlag onMouseClick(Event::MouseClick mouse_click) override ;
-    void draw(Draw::CallQueue& draw_buffer, f32 scale) override ;
 private:
+    Draw::RedrawFlag derivedUpdate(f64 delta) override ;
+    void derivedDraw(Draw::CallQueue& draw_buffer, f32 scale) override ;
+
     Project m_project;
     const Font* m_font = nullptr;
     std::array<Line, 3> m_lines;

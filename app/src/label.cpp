@@ -7,7 +7,8 @@
 Label::Label(Widget* parent) : Widget(parent) {
     anchor = Widget::Anchor::Center;
     m_shader = Shader::Cache::fetch("msdf_draw");
-    m_size = {0.0f, 0.0f};
+    size = {0.0f, 0.0f};
+    unscaled_width = true;
 }
 
 void Label::setValue(const std::string& value, const Font* font, u32 pixel_height) {
@@ -17,7 +18,7 @@ void Label::setValue(const std::string& value, const Font* font, u32 pixel_heigh
     if(m_font != nullptr) {
 
         m_pixel_height = pixel_height;
-        m_size.y = m_font->getPixelHeight() * (m_pixel_height / m_font->getPixelHeight());
+        size.y = m_font->getPixelHeight() * (m_pixel_height / m_font->getPixelHeight());
 
         if (!value.empty()) {
 
@@ -60,7 +61,7 @@ void Label::setValue(const std::string& value, const Font* font, u32 pixel_heigh
                     xpos += m_font->getKernAdvance(32, value[i], value[i + 1]);
                 }
 
-                if(xpos * m_font->calcScale(m_pixel_height) > m_size.x) {
+                if(xpos * m_font->calcScale(m_pixel_height) > size.x) {
                     break;
                 }
 
@@ -76,8 +77,6 @@ void Label::setValue(const std::string& value, const Font* font, u32 pixel_heigh
             m_draw_context.clear();
         }
 
-        m_draw_size = m_size * getScale();
-
     }
 
 }
@@ -90,17 +89,15 @@ void Label::setAlpha(f32 alpha) {
     m_color.a = alpha;
 }
 
-void Label::draw(Draw::CallQueue& draw_buffer, f32 scale) {
+void Label::derivedDraw(Draw::CallQueue& draw_buffer, f32 scale) {
 
-    if(setScaleAndReportChange(scale)) {
-        m_draw_size = m_size * getScale();
-    }
+    glm::vec2 draw_size = calcDrawSize();
 
     if (m_draw_context.size() > 0) {
 
         glm::vec2 draw_pos = calcDrawPos();
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(draw_pos.x - m_draw_size.x / 2, draw_pos.y, 0.0f));
+        model = glm::translate(model, glm::vec3(draw_pos.x - draw_size.x / 2, draw_pos.y, 0.0f));
         model = glm::scale(model, glm::vec3(m_font->calcScale(m_pixel_height) * getScale(),
                                             m_font->calcScale(m_pixel_height) * getScale(), 0.0f));
 
@@ -115,12 +112,12 @@ void Label::draw(Draw::CallQueue& draw_buffer, f32 scale) {
 
     }
 
-    debugViewUpdate(); // Updating each draw to ensure the boxes follow regardless of if the label updates.
-    debugViewDraw(draw_buffer);
-
 }
 
 void Label::setWidth(u32 width) {
-    m_size.x = width;
-    m_draw_size = m_size * getScale();
+    size.x = width;
+}
+
+glm::vec2& Label::getOffsetRef() {
+    return offset;
 }

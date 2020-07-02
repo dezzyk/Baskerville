@@ -19,9 +19,12 @@ public:
     void setValue(const std::string& value, const Font* font, u32 pixel_height);
     void setColor(glm::vec3 color);
     void setAlpha(f32 alpha);
-    void draw(Draw::CallQueue& draw_buffer, f32 scale) override ;
     void setWidth(u32 width);
+    glm::vec2& getOffsetRef();
 private:
+    Draw::RedrawFlag derivedUpdate(f64 delta) override { return false; };
+    void derivedDraw(Draw::CallQueue& draw_buffer, f32 scale) override ;
+
     Draw::Context m_draw_context;
     glm::vec4 m_color = {0.0f, 0.0f, 0.0f, 1.0f};
     const Shader* m_shader = nullptr;

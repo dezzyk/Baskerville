@@ -17,7 +17,8 @@ Editor::Editor(Widget* parent, CacheBank& cache) : Widget(parent), m_lines
     m_project = Project(cache);
 
     anchor = Anchor::Center;
-    m_size.x = 700;
+    size.x = 700;
+    unscaled_width = true;
     m_font_pixel_height = 36;
     offset = {0.0f, 0.0f};
 
@@ -27,9 +28,9 @@ Editor::Editor(Widget* parent, CacheBank& cache) : Widget(parent), m_lines
     m_active_line = &m_lines[1];
     m_prev_line = &m_lines[2];
 
-    m_next_line->label.setWidth(m_size.x);
-    m_active_line->label.setWidth(m_size.x);
-    m_prev_line->label.setWidth(m_size.x);
+    m_next_line->label.setWidth(size.x);
+    m_active_line->label.setWidth(size.x);
+    m_prev_line->label.setWidth(size.x);
 
     m_prev_line->prev = m_active_line;
     m_active_line->prev = m_next_line;
@@ -41,7 +42,7 @@ Editor::Editor(Widget* parent, CacheBank& cache) : Widget(parent), m_lines
 
 }
 
-Draw::RedrawFlag Editor::update(f64 delta) {
+Draw::RedrawFlag Editor::derivedUpdate(f64 delta) {
     static f64 accumulator = 0.0;
     if(m_line_lerp_scaler != 1.0f) {
         accumulator += delta;
@@ -57,16 +58,16 @@ Draw::RedrawFlag Editor::update(f64 delta) {
             accumulator += delta;
         }
 
-        m_active_line->label.offset.y = ((m_font_pixel_height / getSize().y) * getScale() * -1) +
+        m_active_line->label.getOffsetRef().y = ((m_font_pixel_height / getSize().y) * getScale() * -1) +
                 ((m_font_pixel_height / getSize().y) * getScale() *  m_line_lerp_scaler);
         m_active_line->label.setAlpha(m_line_lerp_scaler);
-        m_prev_line->label.offset.y = ((m_font_pixel_height / getSize().y) * getScale() *  m_line_lerp_scaler);
+        m_prev_line->label.getOffsetRef().y = ((m_font_pixel_height / getSize().y) * getScale() *  m_line_lerp_scaler);
         m_prev_line->label.setAlpha(1.0f - (0.5f * m_line_lerp_scaler));
         if(m_line_lerp_scaler == 1.0f) {
-            m_next_line->label.offset.y = ((m_font_pixel_height / getSize().y) * getScale() * -1);
+            m_next_line->label.getOffsetRef().y = ((m_font_pixel_height / getSize().y) * getScale() * -1);
             m_next_line->label.setAlpha(0.0f);
         } else {
-            m_next_line->label.offset.y = ((m_font_pixel_height / getSize().y) * getScale()) + ((m_font_pixel_height / getSize().y) * getScale() * m_line_lerp_scaler);
+            m_next_line->label.getOffsetRef().y = ((m_font_pixel_height / getSize().y) * getScale()) + ((m_font_pixel_height / getSize().y) * getScale() * m_line_lerp_scaler);
             m_next_line->label.setAlpha(0.5f * 1.0f - m_line_lerp_scaler);
         }
         return true;
@@ -99,7 +100,7 @@ Draw::RedrawFlag Editor::onTextInput(const Event::TextInput& text) {
 
             m_active_line->value = buffer;
             m_active_line->label.setValue(m_active_line->value, m_font, m_font_pixel_height);
-            m_active_line->label.offset.y = 0.0;
+            m_active_line->label.getOffsetRef().y = 0.0;
         } else {
             m_active_line->label.setValue(m_active_line->value, m_font, m_font_pixel_height);
             m_project.pushLine(m_active_line->value);
@@ -111,7 +112,7 @@ Draw::RedrawFlag Editor::onTextInput(const Event::TextInput& text) {
 
             m_active_line->value = "";
             m_active_line->label.setValue(m_active_line->value, m_font, m_font_pixel_height);
-            m_active_line->label.offset.y = 0.0;
+            m_active_line->label.getOffsetRef().y = 0.0;
         }
     } else {
         m_active_line->label.setValue(m_active_line->value, m_font, m_font_pixel_height);
@@ -138,7 +139,7 @@ Draw::RedrawFlag Editor::onMacro(const Event::Macro& macro) {
             m_active_line->value = "";
             m_active_line->label.setValue(m_active_line->value, m_font, m_font_pixel_height);
             m_active_line->label.setAlpha(1.0f);
-            m_active_line->label.offset.y = 0.0;
+            m_active_line->label.getOffsetRef().y = 0.0;
             return true;
         }
     } else if(macro == Event::Macro::Save) {
@@ -161,18 +162,12 @@ Draw::RedrawFlag Editor::onMouseClick(Event::MouseClick mouse_click) {
     return false;
 }
 
-void Editor::draw(Draw::CallQueue& draw_buffer, f32 scale) {
+void Editor::derivedDraw(Draw::CallQueue& draw_buffer, f32 scale) {
 
-    m_size.y = m_parent->getSize().y;
-    if(setScaleAndReportChange(scale)) {
-        m_draw_size = {m_size.x * getScale(), m_size.y};
-    }
+    size.y = getParent()->getSize().y;
 
     m_next_line->label.draw(draw_buffer, scale);
     m_active_line->label.draw(draw_buffer, scale);
     m_prev_line->label.draw(draw_buffer, scale);
-
-    debugViewUpdate();
-    debugViewDraw(draw_buffer);
 
 }

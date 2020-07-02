@@ -6,6 +6,7 @@
 
 #include "common.h"
 #include "meta.h"
+#include "draw.h"
 
 #include "glm/glm.hpp"
 
@@ -88,6 +89,13 @@ namespace Event {
             MouseClick mouseClick;
         };
         Value value;
+    };
+
+    class Handler {
+    public:
+        virtual Draw::RedrawFlag onTextInput(const Event::TextInput& text) = 0;
+        virtual Draw::RedrawFlag onMacro(const Event::Macro& macro) = 0;
+        virtual Draw::RedrawFlag onMouseClick(Event::MouseClick mouse_click) = 0;
     };
 
 }
