@@ -7,7 +7,8 @@
 #include "gl_err.h"
 
 // NOTE: ALL child widget's must be instantiated shorthand like this
-Root::Root(CacheBank& cache) : Widget(nullptr), m_editor(this, cache) {
+Root::Root(CacheBank& cache) : Widget(nullptr) {
+    size = Platform::getViewportSize();
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     m_shader = Shader::Cache::fetch("box_draw");
     if(m_shader == nullptr) {
@@ -19,25 +20,26 @@ Root::Root(CacheBank& cache) : Widget(nullptr), m_editor(this, cache) {
         ;
         m_shader = Shader::Cache::load("box_draw", vert, frag);
     }
+    m_editor = std::make_unique<Editor>(this, cache);
 }
 
 Draw::RedrawFlag Root::derivedUpdate(f64 delta) {
-    return m_editor.update(delta);
+    return m_editor->update(delta);
 }
 
 Draw::RedrawFlag Root::onTextInput(const Event::TextInput& text) {
-    return m_editor.onTextInput(text);
+    return m_editor->onTextInput(text);
 }
 
 Draw::RedrawFlag Root::onMacro(const Event::Macro& macro) {
-    return m_editor.onMacro(macro);
+    return m_editor->onMacro(macro);
 }
 
 Draw::RedrawFlag Root::onMouseClick(Event::MouseClick mouse_click) {
     return false;
 }
 
-void Root::derivedDraw(Draw::CallQueue &draw_buffer, f32 scale) {
+void Root::derivedDraw(Draw::CallQueue &draw_buffer) {
 
     // Remember Root always needs to have its size set to the viewport size.
     if(Platform::getViewportSize() != size) {
@@ -61,6 +63,6 @@ void Root::derivedDraw(Draw::CallQueue &draw_buffer, f32 scale) {
 
     draw_buffer.push_back(call);
 
-    m_editor.draw(draw_buffer, scale);
+    m_editor->draw(draw_buffer);
 
 }

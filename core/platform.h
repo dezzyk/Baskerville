@@ -25,12 +25,12 @@ public:
         b32 shouldQuit();
         void executeDrawCalls();
         Draw::CallQueue& getDrawCallQueue();
-        f32 getViewportScaler();
         void delay(u32 count);
     };
     static const glm::vec2 getViewportSize();
     static const glm::vec2 getMousePos();
     static const std::filesystem::path& getPrefPath();
+    static const f32 getViewportScaler();
     static void errorMessageBox(const char* title, const char* msg);
     static void cautionMessageBox(const char* title, const char* msg);
     static void infoMessageBox(const char* title, const char* msg);

@@ -128,12 +128,6 @@ Draw::CallQueue& Platform::Manager::getDrawCallQueue() {
     return call_queue;
 }
 
-f32 Platform::Manager::getViewportScaler() {
-    glm::vec2 size = getViewportSize();
-    return (size.y / target_height);
-    //return viewport_scaler;
-}
-
 void Platform::Manager::delay(u32 count) {
     SDL_Delay(count);
 }
@@ -222,6 +216,11 @@ const glm::vec2 Platform::getMousePos() {
 
 const std::filesystem::path& Platform::getPrefPath() {
     return pref_path;
+}
+
+const f32 Platform::getViewportScaler() {
+    glm::vec2 size = getViewportSize();
+    return (size.y / target_height);
 }
 
 void Platform::errorMessageBox(const char* title, const char* msg) {

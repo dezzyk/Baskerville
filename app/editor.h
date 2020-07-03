@@ -31,7 +31,7 @@ public:
     Draw::RedrawFlag onMouseClick(Event::MouseClick mouse_click) override ;
 private:
     Draw::RedrawFlag derivedUpdate(f64 delta) override ;
-    void derivedDraw(Draw::CallQueue& draw_buffer, f32 scale) override ;
+    void derivedDraw(Draw::CallQueue& draw_buffer) override ;
 
     Project m_project;
     const Font* m_font = nullptr;

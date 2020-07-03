@@ -37,9 +37,8 @@ public:
     Draw::RedrawFlag update(f64 delta) {
         return derivedUpdate(delta);
     }
-    void draw(Draw::CallQueue& draw_buffer, f32 scale) {
-        m_scale = scale;
-        derivedDraw(draw_buffer, scale);
+    void draw(Draw::CallQueue& draw_buffer) {
+        derivedDraw(draw_buffer);
         debugViewUpdate();
         debugViewDraw(draw_buffer);
     }
@@ -48,7 +47,6 @@ public:
     const Widget* getParent() const;
 
 protected:
-    const f32& getScale();
     glm::vec2 calcDrawPos();
     glm::vec2 calcDrawSize();
 
@@ -60,12 +58,11 @@ protected:
 
 private:
     virtual Draw::RedrawFlag derivedUpdate(f64 delta) = 0;
-    virtual void derivedDraw(Draw::CallQueue& draw_buffer, f32 scale) = 0;
+    virtual void derivedDraw(Draw::CallQueue& draw_buffer) = 0;
+
     void debugViewUpdate();
     void debugViewDraw(Draw::CallQueue& draw_buffer);
 
-    f32 m_scale = 1.0f;
-    //glm::vec2 m_draw_size = m_size;
     Widget* m_parent = nullptr;
     struct {
         Draw::Context context;

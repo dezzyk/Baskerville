@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
             }
 
             if(redraw) {
-                root->draw(platform.getDrawCallQueue(), platform.getViewportScaler());
+                root->draw(platform.getDrawCallQueue());
                 platform.executeDrawCalls();
                 platform.swap();
             }

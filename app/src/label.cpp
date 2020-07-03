@@ -89,17 +89,19 @@ void Label::setAlpha(f32 alpha) {
     m_color.a = alpha;
 }
 
-void Label::derivedDraw(Draw::CallQueue& draw_buffer, f32 scale) {
+void Label::derivedDraw(Draw::CallQueue& draw_buffer) {
 
     glm::vec2 draw_size = calcDrawSize();
 
     if (m_draw_context.size() > 0) {
 
+        f32 scale = Platform::getViewportScaler();
+
         glm::vec2 draw_pos = calcDrawPos();
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(draw_pos.x - draw_size.x / 2, draw_pos.y, 0.0f));
-        model = glm::scale(model, glm::vec3(m_font->calcScale(m_pixel_height) * getScale(),
-                                            m_font->calcScale(m_pixel_height) * getScale(), 0.0f));
+        model = glm::scale(model, glm::vec3(m_font->calcScale(m_pixel_height) * scale,
+                                            m_font->calcScale(m_pixel_height) * scale, 0.0f));
 
         Draw::Call new_draw;
         new_draw.context = &m_draw_context;

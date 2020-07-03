@@ -18,6 +18,7 @@ Editor::Editor(Widget* parent, CacheBank& cache) : Widget(parent), m_lines
 
     anchor = Anchor::Center;
     size.x = 700;
+    size.y = getParent()->getSize().y;
     unscaled_width = true;
     m_font_pixel_height = 36;
     offset = {0.0f, 0.0f};
@@ -32,13 +33,23 @@ Editor::Editor(Widget* parent, CacheBank& cache) : Widget(parent), m_lines
     m_active_line->label.setWidth(size.x);
     m_prev_line->label.setWidth(size.x);
 
+    m_active_line->label.setValue(m_active_line->value, m_font, m_font_pixel_height);
+    m_active_line->label.setValue(m_active_line->value, m_font, m_font_pixel_height);
+    m_active_line->label.setValue(m_active_line->value, m_font, m_font_pixel_height);
+    m_active_line->label.getOffsetRef().y = 0.0;
+
     m_prev_line->prev = m_active_line;
     m_active_line->prev = m_next_line;
     m_next_line->prev = m_prev_line;
 
     m_prev_line->value = m_project.getLastLine();
     m_prev_line->label.setValue(m_prev_line->value, m_font, m_font_pixel_height);
+    m_active_line->label.setValue(m_active_line->value, m_font, m_font_pixel_height);
+    m_next_line->label.setValue(m_active_line->value, m_font, m_font_pixel_height);
     m_prev_line->label.setAlpha(0.50f);
+
+    m_next_line->label.getOffsetRef().y = ((m_font_pixel_height / getSize().y) * Platform::getViewportScaler() * -1);
+    m_prev_line->label.getOffsetRef().y = ((m_font_pixel_height / getSize().y) * Platform::getViewportScaler());
 
 }
 
@@ -58,16 +69,17 @@ Draw::RedrawFlag Editor::derivedUpdate(f64 delta) {
             accumulator += delta;
         }
 
-        m_active_line->label.getOffsetRef().y = ((m_font_pixel_height / getSize().y) * getScale() * -1) +
-                ((m_font_pixel_height / getSize().y) * getScale() *  m_line_lerp_scaler);
+        auto scale = Platform::getViewportScaler();
+        m_active_line->label.getOffsetRef().y = ((m_font_pixel_height / getSize().y) * scale * -1) +
+                ((m_font_pixel_height / getSize().y) * scale *  m_line_lerp_scaler);
         m_active_line->label.setAlpha(m_line_lerp_scaler);
-        m_prev_line->label.getOffsetRef().y = ((m_font_pixel_height / getSize().y) * getScale() *  m_line_lerp_scaler);
+        m_prev_line->label.getOffsetRef().y = ((m_font_pixel_height / getSize().y) * scale *  m_line_lerp_scaler);
         m_prev_line->label.setAlpha(1.0f - (0.5f * m_line_lerp_scaler));
         if(m_line_lerp_scaler == 1.0f) {
-            m_next_line->label.getOffsetRef().y = ((m_font_pixel_height / getSize().y) * getScale() * -1);
+            m_next_line->label.getOffsetRef().y = ((m_font_pixel_height / getSize().y) * scale * -1);
             m_next_line->label.setAlpha(0.0f);
         } else {
-            m_next_line->label.getOffsetRef().y = ((m_font_pixel_height / getSize().y) * getScale()) + ((m_font_pixel_height / getSize().y) * getScale() * m_line_lerp_scaler);
+            m_next_line->label.getOffsetRef().y = ((m_font_pixel_height / getSize().y) * scale) + ((m_font_pixel_height / getSize().y) * scale * m_line_lerp_scaler);
             m_next_line->label.setAlpha(0.5f * 1.0f - m_line_lerp_scaler);
         }
         return true;
@@ -162,12 +174,12 @@ Draw::RedrawFlag Editor::onMouseClick(Event::MouseClick mouse_click) {
     return false;
 }
 
-void Editor::derivedDraw(Draw::CallQueue& draw_buffer, f32 scale) {
+void Editor::derivedDraw(Draw::CallQueue& draw_buffer) {
 
     size.y = getParent()->getSize().y;
 
-    m_next_line->label.draw(draw_buffer, scale);
-    m_active_line->label.draw(draw_buffer, scale);
-    m_prev_line->label.draw(draw_buffer, scale);
+    m_next_line->label.draw(draw_buffer);
+    m_active_line->label.draw(draw_buffer);
+    m_prev_line->label.draw(draw_buffer);
 
 }

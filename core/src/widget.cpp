@@ -16,7 +16,6 @@ Widget::Widget(Widget&& other) noexcept :
         offset(other.offset),
         m_parent(other.m_parent),
         anchor(other.anchor),
-        m_scale(other.m_scale),
         m_debug_draw(std::move(other.m_debug_draw)) {}
 
 b32 Widget::pointIntersect(glm::vec2 pos) {
@@ -140,10 +139,6 @@ void Widget::debugViewDraw(Draw::CallQueue& draw_buffer) {
     }
 }
 
-const f32& Widget::getScale() {
-    return m_scale;
-}
-
 glm::vec2 Widget::calcDrawPos() {
 
     // If there isnt a parent, the widget is treated as a root. Its anchor is hardset to 0,0 and its offset is ignored.
@@ -208,8 +203,9 @@ glm::vec2 Widget::calcDrawPos() {
 glm::vec2 Widget::calcDrawSize() {
     if(m_parent != nullptr) {
         glm::vec2 final_size = size;
-        if(!unscaled_width) { final_size.x *= getScale(); }
-        if(!unscaled_height) { final_size.x *= getScale(); }
+        f32 scale = Platform::getViewportScaler();
+        if(!unscaled_width) { final_size.x *= scale; }
+        if(!unscaled_height) { final_size.x *= scale; }
         return final_size;
     }
     return size;

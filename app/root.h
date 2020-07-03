@@ -14,6 +14,7 @@
 #include "glm/glm.hpp"
 
 #include <string>
+#include <memory>
 
 class Root : public Widget, public Event::Handler {
 public:
@@ -24,10 +25,10 @@ public:
 
 private:
     Draw::RedrawFlag derivedUpdate(f64 delta) override ;
-    void derivedDraw(Draw::CallQueue& draw_buffer, f32 scale) override ;
+    void derivedDraw(Draw::CallQueue& draw_buffer) override ;
 
     Draw::Context m_draw_context;
     const Shader* m_shader = nullptr;
-    Editor m_editor;
+    std::unique_ptr<Editor> m_editor;
 
 };
