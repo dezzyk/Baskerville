@@ -28,7 +28,8 @@ int main(int argc, char *argv[]) {
 
     if(platform.startup("Baskerville", "Saltpowered", 1080)) {
 
-        Font::Cache::load("editor", "LibreBaskerville-Regular.ttf", 33, 126, 24);
+        Font::Cache::load("editor", "editor.ttf", 33, 126, 24);
+        Font::Cache::load("icons", "icons.ttf", 33, 126, 24);
 
         // Preload shaders
         std::string vert =
