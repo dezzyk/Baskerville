@@ -41,5 +41,6 @@ private:
     Line* m_next_line = nullptr;
     u32 m_font_pixel_height = 24;
     f32 m_line_lerp_scaler = 1.0f;
-    f64 m_lint_lerp_time = 1.0;
+    f64 m_line_lerp_time = 1.0;
+    f64 m_line_lerp_accumulator = 0.0;
 };

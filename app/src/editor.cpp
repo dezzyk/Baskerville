@@ -54,19 +54,18 @@ Editor::Editor(Widget* parent, CacheBank& cache) : Widget(parent), m_lines
 }
 
 Draw::RedrawFlag Editor::derivedUpdate(f64 delta) {
-    static f64 accumulator = 0.0;
     if(m_line_lerp_scaler != 1.0f) {
-        accumulator += delta;
-        if(accumulator >= m_lint_lerp_time) {
+        m_line_lerp_accumulator += delta;
+        if(m_line_lerp_accumulator >= m_line_lerp_time) {
             m_line_lerp_scaler = 1.0f;
-            accumulator = 0.0;
+            m_line_lerp_accumulator = 0.0;
         } else {
             // Should be in a header eventually
-            f32 t = (accumulator/m_lint_lerp_time);
+            f32 t = (m_line_lerp_accumulator / m_line_lerp_time);
             f32 m = t-1.0f;
             f32 k = 1.70158;
             m_line_lerp_scaler = 1.0f + m*m*(  m*(k+1) + k);
-            accumulator += delta;
+            m_line_lerp_accumulator += delta;
         }
 
         auto scale = Platform::getViewportScaler();
@@ -109,6 +108,7 @@ Draw::RedrawFlag Editor::onTextInput(const Event::TextInput& text) {
             m_active_line = m_active_line->prev;
             m_next_line = m_next_line->prev;
             m_line_lerp_scaler = 0.0f;
+            m_line_lerp_accumulator = 0.0;
 
             m_active_line->value = buffer;
             m_active_line->label.setValue(m_active_line->value, m_font, m_font_pixel_height);
@@ -121,6 +121,7 @@ Draw::RedrawFlag Editor::onTextInput(const Event::TextInput& text) {
             m_active_line = m_active_line->prev;
             m_next_line = m_next_line->prev;
             m_line_lerp_scaler = 0.0f;
+            m_line_lerp_accumulator = 0.0;
 
             m_active_line->value = "";
             m_active_line->label.setValue(m_active_line->value, m_font, m_font_pixel_height);
@@ -147,6 +148,7 @@ Draw::RedrawFlag Editor::onMacro(const Event::Macro& macro) {
             m_active_line = m_active_line->prev;
             m_next_line = m_next_line->prev;
             m_line_lerp_scaler = 0.0f;
+            m_line_lerp_accumulator = 0.0;
 
             m_active_line->value = "";
             m_active_line->label.setValue(m_active_line->value, m_font, m_font_pixel_height);
