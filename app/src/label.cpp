@@ -30,7 +30,7 @@ void Label::setValue(const std::string& value, const Font* font, u32 pixel_heigh
 
                 i32 advance;
                 i32 lsb = 0;
-                m_font->getGlyphAdvance(32, value[i], advance, lsb);
+                m_font->getCodepointAdvance(32, value[i], advance, lsb);
 
                 // Calc an offset for the glyph to orient it in accordence to the font metrics since they always render from the center.
                 int xoffset = advance / 2;
@@ -38,11 +38,11 @@ void Label::setValue(const std::string& value, const Font* font, u32 pixel_heigh
                     xoffset -= lsb; // lsb is always negative
                 }
 
-                if (value[i] != ' ') {
+                if (value[i] != ' ' && m_font->getCodepointLayer((u32)value[i]) != -1) {
 
                     Draw::Box box;
                     box.setColor({1.0f, 1.0f, 1.0f, 1.0f});
-                    box.setUVDepth((int) value[i] - m_font->getStartCodepoint());
+                    box.setUVDepth(m_font->getCodepointLayer((u32)value[i]));
 
                     glm::mat4 model = glm::mat4(1.0f);
                     glm::vec2 bounding_box_size = m_font->getBoundingBoxSize();
