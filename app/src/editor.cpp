@@ -175,12 +175,12 @@ Draw::RedrawFlag Editor::onMouseClick(Event::MouseClick mouse_click) {
     return false;
 }
 
-void Editor::derivedDraw(Draw::CallQueue& draw_buffer) {
+void Editor::derivedDraw(Draw::Queue& queue) {
 
     size.y = getParent()->getSize().y;
 
-    m_next_line->label.draw(draw_buffer);
-    m_active_line->label.draw(draw_buffer);
-    m_prev_line->label.draw(draw_buffer);
+    m_next_line->label.draw(queue);
+    m_active_line->label.draw(queue);
+    m_prev_line->label.draw(queue);
 
 }

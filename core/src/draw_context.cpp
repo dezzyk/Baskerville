@@ -6,27 +6,33 @@
 
 #include <iostream>
 
-Draw::Context::Context() {
-    u32 vbo_handle, vao_handle;
-    glGenBuffers(1, &vbo_handle);
-    glGenVertexArrays(1, &vao_handle);
-    if(vbo_handle != 0) {
-        if(vao_handle != 0) {
-            m_capacity = sizeof(Draw::Box) * 8;  // Preallocate for 8 boxes
-            m_vbo = vbo_handle;
-            m_vao = vao_handle;
-            glBindVertexArray(m_vao.value());
-            glBindBuffer(GL_ARRAY_BUFFER, m_vbo.value());
-            glBufferData(GL_ARRAY_BUFFER, m_capacity, nullptr, GL_DYNAMIC_DRAW);
-            glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)0);
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(4* sizeof(float)));
-            glEnableVertexAttribArray(1);
-            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(7* sizeof(float)));
-            glEnableVertexAttribArray(2);
-            glBindVertexArray(0);
-        } else {
-            glDeleteBuffers(1, &vbo_handle);
+Draw::Context::Context() {}
+
+Draw::Context::Context(const char* shader_name) {
+    m_shader = Shader::Cache::fetch(shader_name);
+    if(m_shader) {
+        u32 vbo_handle, vao_handle;
+        glGenBuffers(1, &vbo_handle);
+        glGenVertexArrays(1, &vao_handle);
+        if (vbo_handle != 0) {
+            if (vao_handle != 0) {
+                m_capacity = sizeof(Draw::Quad) * 8;  // Preallocate for 8 boxes
+                m_vbo = vbo_handle;
+                m_vao = vao_handle;
+                glBindVertexArray(m_vao.value());
+                glBindBuffer(GL_ARRAY_BUFFER, m_vbo.value());
+                glBufferData(GL_ARRAY_BUFFER, m_capacity, nullptr, GL_DYNAMIC_DRAW);
+                glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void *) 0);
+                glEnableVertexAttribArray(0);
+                glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void *) (4 * sizeof(float)));
+                glEnableVertexAttribArray(1);
+                glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void *) (7 * sizeof(float)));
+                glEnableVertexAttribArray(2);
+                glBindVertexArray(0);
+            } else {
+                glDeleteBuffers(1, &vbo_handle);
+                m_shader = nullptr;
+            }
         }
     }
     if(!valid()) {
@@ -34,11 +40,23 @@ Draw::Context::Context() {
     }
 }
 
-Draw::Context::Context(Context&& other) noexcept :
-    m_vbo(other.m_vbo),
-    m_vao(other.m_vao) {
+Draw::Context& Draw::Context::operator=(Context&& other) {
+    m_vbo = other.m_vbo;
+    m_vao = other.m_vao;
+    m_shader = other.m_shader;
     other.m_vbo = std::nullopt;
     other.m_vao = std::nullopt;
+    other.m_shader = nullptr;
+    return *this;
+}
+
+Draw::Context::Context(Context&& other) noexcept :
+    m_vbo(other.m_vbo),
+    m_vao(other.m_vao),
+    m_shader(other.m_shader){
+    other.m_vbo = std::nullopt;
+    other.m_vao = std::nullopt;
+    other.m_shader = nullptr;
 }
 
 Draw::Context::~Context() {
@@ -58,13 +76,17 @@ const std::optional<u32>& Draw::Context::getVAO() const {
     return m_vao;
 }
 
-void Draw::Context::boxUpload(Draw::Box& data) {
+const Shader* Draw::Context::getShader() const {
+    return m_shader;
+}
+
+void Draw::Context::quadUpload(Draw::Quad& data) {
     if(valid()) {
         m_size = 1;
-        u32 byte_size = sizeof(Draw::Box);
+        u32 byte_size = sizeof(Draw::Quad);
         glBindBuffer(GL_ARRAY_BUFFER, m_vbo.value());
         if(byte_size > m_capacity) { // Should never happen
-            m_capacity = byte_size + (byte_size % sizeof(Draw::Box)) + (sizeof(Draw::Box) * 8);
+            m_capacity = byte_size + (byte_size % sizeof(Draw::Quad)) + (sizeof(Draw::Quad) * 8);
             glBufferData(GL_ARRAY_BUFFER, m_capacity, nullptr, GL_DYNAMIC_DRAW);
         }
         glBufferSubData(GL_ARRAY_BUFFER, 0, byte_size, &data);
@@ -72,13 +94,13 @@ void Draw::Context::boxUpload(Draw::Box& data) {
     }
 }
 
-void Draw::Context::boxUpload(std::vector<Draw::Box>& data) {
+void Draw::Context::quadUpload(std::vector<Draw::Quad>& data) {
     if(valid()) {
         m_size = data.size();
-        u32 byte_size = m_size * sizeof(Draw::Box);
+        u32 byte_size = m_size * sizeof(Draw::Quad);
         glBindBuffer(GL_ARRAY_BUFFER, m_vbo.value());
         if(byte_size > m_capacity) {
-            m_capacity = byte_size + (byte_size % sizeof(Draw::Box)) + (sizeof(Draw::Box) * 8);
+            m_capacity = byte_size + (byte_size % sizeof(Draw::Quad)) + (sizeof(Draw::Quad) * 8);
             glBufferData(GL_ARRAY_BUFFER, m_capacity, nullptr, GL_DYNAMIC_DRAW);
         }
         glBufferSubData(GL_ARRAY_BUFFER, 0, byte_size, data.data());
@@ -86,7 +108,7 @@ void Draw::Context::boxUpload(std::vector<Draw::Box>& data) {
     }
 }
 
-u32 Draw::Context::size() {
+u32 Draw::Context::size() const {
     return m_size;
 }
 
@@ -95,5 +117,5 @@ void Draw::Context::clear() {
 }
 
 b32 Draw::Context::valid() const {
-    return (m_vao.has_value() && m_vbo.has_value());
+    return (m_vao.has_value() && m_vbo.has_value() && m_shader);
 }

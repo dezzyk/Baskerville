@@ -25,10 +25,9 @@ public:
 
 private:
     Draw::RedrawFlag derivedUpdate(f64 delta) override ;
-    void derivedDraw(Draw::CallQueue& draw_buffer) override ;
+    void derivedDraw(Draw::Queue& queue) override ;
 
     Draw::Context m_draw_context;
-    const Shader* m_shader = nullptr;
     std::unique_ptr<Editor> m_editor;
 
 };

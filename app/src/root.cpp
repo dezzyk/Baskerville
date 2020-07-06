@@ -10,16 +10,7 @@
 Root::Root(CacheBank& cache) : Widget(nullptr) {
     size = Platform::getViewportSize();
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    m_shader = Shader::Cache::fetch("box_draw");
-    if(m_shader == nullptr) {
-        std::string vert =
-#include "shader/box_draw.vert"
-        ;
-        std::string frag =
-#include "shader/box_draw.frag"
-        ;
-        m_shader = Shader::Cache::load("box_draw", vert, frag);
-    }
+    m_draw_context = Draw::Context("pane");
     m_editor = std::make_unique<Editor>(this, cache);
 }
 
@@ -39,30 +30,23 @@ Draw::RedrawFlag Root::onMouseClick(Event::MouseClick mouse_click) {
     return false;
 }
 
-void Root::derivedDraw(Draw::CallQueue &draw_buffer) {
+void Root::derivedDraw(Draw::Queue &queue) {
 
     // Remember Root always needs to have its size set to the viewport size.
     if(Platform::getViewportSize() != size) {
         size = Platform::getViewportSize();
 
-        Draw::Box box;
+        Draw::Quad box;
         auto draw_size = calcDrawSize();
         auto draw_pos = calcDrawPos();
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(draw_pos.x, draw_pos.y, 0.0f));
-        model = glm::scale(model, glm::vec3(draw_size.x, draw_size.y, 0.0f));
-        box *= model;
+        m_draw_context.model = glm::mat4(1.0f);
+        m_draw_context.model = glm::translate(m_draw_context.model, glm::vec3(draw_pos.x, draw_pos.y, 0.0f));
+        m_draw_context.model = glm::scale(m_draw_context.model, glm::vec3(draw_size.x, draw_size.y, 0.0f));
         box.setColor({0.97f, 0.98f, 0.99f, 1.0f});
-        m_draw_context.boxUpload(box);
+        m_draw_context.quadUpload(box);
     }
 
-    Draw::Call call;
-    call.context = &m_draw_context;
-    call.shader = m_shader;
-    call.count = 6;
-
-    draw_buffer.push_back(call);
-
-    m_editor->draw(draw_buffer);
+    queue.push_back(&m_draw_context);
+    m_editor->draw(queue);
 
 }

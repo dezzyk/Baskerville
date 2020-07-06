@@ -23,7 +23,7 @@ public:
     glm::vec2& getOffsetRef();
 private:
     Draw::RedrawFlag derivedUpdate(f64 delta) override { return false; };
-    void derivedDraw(Draw::CallQueue& draw_buffer) override ;
+    void derivedDraw(Draw::Queue& draw_buffer) override ;
 
     Draw::Context m_draw_context;
     glm::vec4 m_color = {0.0f, 0.0f, 0.0f, 1.0f};

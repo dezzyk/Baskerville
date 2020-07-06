@@ -11,7 +11,7 @@
 
 namespace Draw {
 
-    struct Box {
+    struct Quad {
         void setColor(glm::vec4 color) {
             for(auto& vert : vertices) {
                 vert.color = color;
@@ -33,12 +33,12 @@ namespace Draw {
             vertices[5].pos = model * glm::vec4(vertices[5].pos.x, vertices[5].pos.y, 0.0f, 1.0f);
         }
 
-        Box &operator=(const Box &other) {
+        Quad &operator=(const Quad &other) {
             vertices = other.vertices;
             return *this;
         }
 
-        Box &operator*=(glm::mat4 model) {
+        Quad &operator*=(glm::mat4 model) {
             operator*(model);
             return *this;
         }

@@ -5,6 +5,7 @@
 #pragma once
 
 #include "common.h"
+#include "shader_src.h"
 
 //#include "glad/glad.h"
 

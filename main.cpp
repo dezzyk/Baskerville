@@ -29,16 +29,10 @@ int main(int argc, char *argv[]) {
     if(platform.startup("Baskerville", "Saltpowered", 1080)) {
 
         Font::Cache::load("editor", "editor.ttf", 33, 126, 24);
-        Font::Cache::load("icons", "icons.ttf", 33, 126, 24);
+        //Font::Cache::load("icons", "icons.ttf", 33, 126, 24);
 
-        // Preload shaders
-        std::string vert =
-#include "shader/msdf_draw.vert"
-        ;
-        std::string frag =
-#include "shader/msdf_draw.frag"
-        ;
-        Shader::Cache::load("msdf_draw", vert, frag);
+        Shader::Cache::load("pane", ShaderSrc::pane_vert, ShaderSrc::pane_frag);
+        Shader::Cache::load("msdf", ShaderSrc::msdf_vert, ShaderSrc::msdf_frag);
 
         root = new Root(cache);
 
@@ -92,7 +86,7 @@ int main(int argc, char *argv[]) {
             }
 
             if(redraw) {
-                root->draw(platform.getDrawCallQueue());
+                root->draw(platform.getDrawQueue());
                 platform.executeDrawCalls();
                 platform.swap();
             }

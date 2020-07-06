@@ -6,7 +6,7 @@
 
 Label::Label(Widget* parent) : Widget(parent) {
     anchor = Widget::Anchor::Center;
-    m_shader = Shader::Cache::fetch("msdf_draw");
+    m_draw_context = Draw::Context("msdf");
     size = {0.0f, 0.0f};
     unscaled_width = true;
 }
@@ -22,7 +22,7 @@ void Label::setValue(const std::string& value, const Font* font, u32 pixel_heigh
 
         if (!value.empty()) {
 
-            static std::vector<Draw::Box> boxes;
+            static std::vector<Draw::Quad> boxes;
             boxes.resize(0);
 
             i32 xpos = 0;
@@ -40,7 +40,7 @@ void Label::setValue(const std::string& value, const Font* font, u32 pixel_heigh
 
                 if (value[i] != ' ' && m_font->getCodepointLayer((u32)value[i]) != -1) {
 
-                    Draw::Box box;
+                    Draw::Quad box;
                     box.setColor({1.0f, 1.0f, 1.0f, 1.0f});
                     box.setUVDepth(m_font->getCodepointLayer((u32)value[i]));
 
@@ -68,7 +68,7 @@ void Label::setValue(const std::string& value, const Font* font, u32 pixel_heigh
             }
 
             if (!boxes.empty()) {
-                m_draw_context.boxUpload(boxes);
+                m_draw_context.quadUpload(boxes);
             }
 
             //m_size.x = xpos * m_font->calcScale(m_pixel_height);
@@ -89,7 +89,7 @@ void Label::setAlpha(f32 alpha) {
     m_color.a = alpha;
 }
 
-void Label::derivedDraw(Draw::CallQueue& draw_buffer) {
+void Label::derivedDraw(Draw::Queue& queue) {
 
     glm::vec2 draw_size = calcDrawSize();
 
@@ -98,19 +98,15 @@ void Label::derivedDraw(Draw::CallQueue& draw_buffer) {
         f32 scale = Platform::getViewportScaler();
 
         glm::vec2 draw_pos = calcDrawPos();
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(draw_pos.x - draw_size.x / 2, draw_pos.y, 0.0f));
-        model = glm::scale(model, glm::vec3(m_font->calcScale(m_pixel_height) * scale,
+        m_draw_context.model = glm::mat4(1.0f);
+        m_draw_context.model = glm::translate(m_draw_context.model, glm::vec3(draw_pos.x - draw_size.x / 2, draw_pos.y, 0.0f));
+        m_draw_context.model = glm::scale(m_draw_context.model, glm::vec3(m_font->calcScale(m_pixel_height) * scale,
                                             m_font->calcScale(m_pixel_height) * scale, 0.0f));
 
-        Draw::Call new_draw;
-        new_draw.context = &m_draw_context;
-        new_draw.shader = m_shader;
-        new_draw.count = m_draw_context.size();
-        new_draw.uniforms[0].setValue(model);
-        new_draw.uniforms[1].setValue(Draw::Uniform::ArrayTexture(m_font->getHandle().value(), 0));
-        new_draw.uniforms[2].setValue(m_color);
-        draw_buffer.push_back(new_draw);
+        m_draw_context.uniforms[0].setValue(Draw::Uniform::ArrayTexture(m_font->getHandle().value(), 0));
+        m_draw_context.uniforms[1].setValue(m_color);
+
+        queue.push_back(&m_draw_context);
 
     }
 

@@ -7,7 +7,9 @@
 
 #include <array>
 
-Widget::Widget(Widget* parent) : m_parent(parent) {}
+Widget::Widget(Widget* parent) : m_parent(parent) {
+    m_debug_context = Draw::Context("pane");
+}
 
 Widget::~Widget() {}
 
@@ -16,7 +18,7 @@ Widget::Widget(Widget&& other) noexcept :
         offset(other.offset),
         m_parent(other.m_parent),
         anchor(other.anchor),
-        m_debug_draw(std::move(other.m_debug_draw)) {}
+        m_debug_context(std::move(other.m_debug_context)) {}
 
 b32 Widget::pointIntersect(glm::vec2 pos) {
     glm::vec2 draw_size = calcDrawSize();
@@ -34,26 +36,9 @@ const Widget* Widget::getParent() const {
 }
 
 void Widget::debugViewUpdate() {
-    if(!m_debug_draw.draw_attempted) {
-        if (m_debug_draw.shader == nullptr) {
 
-            m_debug_draw.shader = Shader::Cache::fetch("box_draw");
-            if(m_debug_draw.shader == nullptr) {
-                std::string vert =
-#include "shader/box_draw.vert"
-                ;
-                std::string frag =
-#include "shader/box_draw.frag"
-                ;
-                m_debug_draw.shader = Shader::Cache::load("box_draw", vert, frag);
-            }
-
-        }
-        m_debug_draw.draw_attempted = true;
-    }
-    if((m_debug_draw.shader != nullptr && m_debug_draw.shader->getHandle().has_value()) && m_debug_draw.context.valid()) {
-
-        static std::array<Draw::Box, 8> boxes;
+    if(m_debug_context.valid()) {
+        static std::array<Draw::Quad, 8> boxes;
         boxes = {};
 
         glm::vec2 draw_size = calcDrawSize();
@@ -105,37 +90,15 @@ void Widget::debugViewUpdate() {
             }
         }
 
-        m_debug_draw.context.boxUpload<8>(boxes);
+        m_debug_context.model = glm::mat4(1.0f);
+        m_debug_context.quadUpload<8>(boxes);
 
     }
 }
 
-void Widget::debugViewDraw(Draw::CallQueue& draw_buffer) {
-    if(!m_debug_draw.draw_attempted) {
-        if (m_debug_draw.shader == nullptr) {
-
-            m_debug_draw.shader = Shader::Cache::fetch("box_draw");
-            if(m_debug_draw.shader == nullptr) {
-                std::string vert =
-                #include "shader/box_draw.vert"
-                        ;
-                std::string frag =
-                #include "shader/box_draw.frag"
-                        ;
-                m_debug_draw.shader = Shader::Cache::load("box_draw", vert, frag);
-            }
-
-        }
-        m_debug_draw.draw_attempted = true;
-    }
-    if((m_debug_draw.shader != nullptr && m_debug_draw.shader->getHandle().has_value()) && m_debug_draw.context.valid()) {
-
-        Draw::Call draw;
-        draw.context = &m_debug_draw.context;
-        draw.shader = m_debug_draw.shader;
-        draw.count = 8; // Magic number will come back to haunt me I just know it
-        draw_buffer.push_back(draw);
-
+void Widget::debugViewDraw(Draw::Queue& queue) {
+    if(m_debug_context.valid()) {
+        queue.push_back(&m_debug_context);
     }
 }
 

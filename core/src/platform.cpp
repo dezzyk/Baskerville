@@ -10,7 +10,7 @@
 
 #include <iostream>
 
-Draw::CallQueue Platform::call_queue;
+std::vector<const Draw::Context*> Platform::draw_queue;
 SDL_Window* Platform::window = nullptr;
 SDL_GLContext  Platform::context;
 f32 Platform::viewport_scaler = 1.0f;
@@ -124,8 +124,8 @@ b32 Platform::Manager::shouldQuit() {
     return should_close;
 }
 
-Draw::CallQueue& Platform::Manager::getDrawCallQueue() {
-    return call_queue;
+std::vector<const Draw::Context*>& Platform::Manager::getDrawQueue() {
+    return draw_queue;
 }
 
 void Platform::Manager::delay(u32 count) {
@@ -142,64 +142,56 @@ void Platform::Manager::executeDrawCalls() {
         glViewport(0, 0, viewport.x, viewport.y);
         last_viewport = viewport;
     }
-    for(auto& draw : call_queue) {
-        if(draw.shader != nullptr) {
-            if(draw.shader->getHandle().has_value()) {
-                if(draw.context->valid()) {
-                    glUseProgram(draw.shader->getHandle().value());
-                    glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(proj));
-                    for (int i = 0; i < draw.uniforms.size(); ++i) {
-                        if (draw.uniforms[i].type != Meta::MakeType<Meta::Empty>()) {
-                            Meta::Type type = draw.uniforms[i].type;
-                            if (type == Meta::MakeType<glm::mat4>()) {
-                                glUniformMatrix4fv(i + 1, 1, GL_FALSE, glm::value_ptr(draw.uniforms[i].value.mat4));
-                            } else if (type == Meta::MakeType<glm::vec4>()) {
-                                glUniform4f(i + 1, draw.uniforms[i].value.vec4.x, draw.uniforms[i].value.vec4.y,
-                                            draw.uniforms[i].value.vec4.z, draw.uniforms[i].value.vec4.w);
-                            } else if (type == Meta::MakeType<glm::vec3>()) {
-                                glUniform3f(i + 1, draw.uniforms[i].value.vec3.x, draw.uniforms[i].value.vec3.y,
-                                            draw.uniforms[i].value.vec3.z);
-                            } else if (type == Meta::MakeType<glm::vec2>()) {
-                                glUniform2f(i + 1, draw.uniforms[i].value.vec2.x, draw.uniforms[i].value.vec2.y);
-                            } else if (type == Meta::MakeType<f32>()) {
-                                glUniform1f(i + 1, draw.uniforms[i].value.u_f32);
-                            } else if (type == Meta::MakeType<u32>()) {
-                                glUniform1ui(i + 1, draw.uniforms[i].value.u_u32);
-                            } else if (type == Meta::MakeType<i32>()) {
-                                glUniform1i(i + 1, draw.uniforms[i].value.u_i32);
-                            } else if (type == Meta::MakeType<Draw::Uniform::Texture>()) {
-                                glUniform1i(i + 1, draw.uniforms[i].value.texture.index);
-                                glActiveTexture(GL_TEXTURE0 + draw.uniforms[i].value.texture.index);
-                                glBindTexture(GL_TEXTURE_2D, draw.uniforms[i].value.texture.handle);
-                            } else if (type == Meta::MakeType<Draw::Uniform::ArrayTexture>()) {
-                                glUniform1i(i + 1, draw.uniforms[i].value.texture.index);
-                                glActiveTexture(GL_TEXTURE0 + draw.uniforms[i].value.array_texture.index);
-                                glBindTexture(GL_TEXTURE_2D_ARRAY, draw.uniforms[i].value.array_texture.handle);
-                            }
+    for(auto draw : draw_queue) {
+        if(draw->valid()) {
+            if(draw->size() > 0) {
+                glBindVertexArray(draw->getVAO().value());
+                glUseProgram(draw->getShader()->getHandle().value());
+                glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(proj));
+                glUniformMatrix4fv(1, 1, GL_FALSE, glm::value_ptr(draw->model));
+                for (int i = 0; i < draw->uniforms.size(); ++i) {
+                    if (draw->uniforms[i].type != Meta::MakeType<Meta::Empty>()) {
+                        Meta::Type type = draw->uniforms[i].type;
+                        if (type == Meta::MakeType<glm::mat4>()) {
+                            glUniformMatrix4fv(i + 2, 1, GL_FALSE, glm::value_ptr(draw->uniforms[i].value.mat4));
+                        } else if (type == Meta::MakeType<glm::vec4>()) {
+                            glUniform4f(i + 2, draw->uniforms[i].value.vec4.x, draw->uniforms[i].value.vec4.y,
+                                        draw->uniforms[i].value.vec4.z, draw->uniforms[i].value.vec4.w);
+                        } else if (type == Meta::MakeType<glm::vec3>()) {
+                            glUniform3f(i + 2, draw->uniforms[i].value.vec3.x, draw->uniforms[i].value.vec3.y,
+                                        draw->uniforms[i].value.vec3.z);
+                        } else if (type == Meta::MakeType<glm::vec2>()) {
+                            glUniform2f(i + 2, draw->uniforms[i].value.vec2.x, draw->uniforms[i].value.vec2.y);
+                        } else if (type == Meta::MakeType<f32>()) {
+                            glUniform1f(i + 2, draw->uniforms[i].value.u_f32);
+                        } else if (type == Meta::MakeType<u32>()) {
+                            glUniform1ui(i + 2, draw->uniforms[i].value.u_u32);
+                        } else if (type == Meta::MakeType<i32>()) {
+                            glUniform1i(i + 2, draw->uniforms[i].value.u_i32);
+                        } else if (type == Meta::MakeType<Draw::Uniform::Texture>()) {
+                            glUniform1i(i + 2, draw->uniforms[i].value.texture.index);
+                            glActiveTexture(GL_TEXTURE0 + draw->uniforms[i].value.texture.index);
+                            glBindTexture(GL_TEXTURE_2D, draw->uniforms[i].value.texture.handle);
+                        } else if (type == Meta::MakeType<Draw::Uniform::ArrayTexture>()) {
+                            glUniform1i(i + 2, draw->uniforms[i].value.texture.index);
+                            glActiveTexture(GL_TEXTURE0 + draw->uniforms[i].value.array_texture.index);
+                            glBindTexture(GL_TEXTURE_2D_ARRAY, draw->uniforms[i].value.array_texture.handle);
                         }
                     }
-                    for (int i = 0; i < draw.buffers.size(); ++i) {
-                        if (draw.buffers[i].handle != 0) {
-                            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, i, draw.buffers[i].handle);
-                        }
-                    }
-                    glBindVertexArray(draw.context->getVAO().value());
-                    CheckGLError();
-                    Draw::Box size_box;
-                    glDrawArrays(GL_TRIANGLES, 0, draw.count * size_box.vertices.size());
-                    CheckGLError();
-                    glBindVertexArray(0);
-                } else {
-                    std::cout << "Call handles is equal to nullopt, skipping." << std::endl;
                 }
-            } else {
-                std::cout << "Call shader valid but handle is equal to nullopt, skipping." << std::endl;
+                for (int i = 0; i < draw->buffers.size(); ++i) {
+                    if (draw->buffers[i].handle != 0) {
+                        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, i, draw->buffers[i].handle);
+                    }
+                }
+                Draw::Quad size_quad; // I hate this
+                glDrawArrays(GL_TRIANGLES, 0, draw->size() * size_quad.vertices.size());
+                CheckGLError();
             }
-        } else {
-            std::cout << "Call shader equal to nullptr, skipping." << std::endl;
         }
     }
-    call_queue.resize(0);
+    glBindVertexArray(0);
+    draw_queue.resize(0);
 }
 
 const glm::vec2 Platform::getViewportSize() {

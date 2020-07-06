@@ -21,7 +21,7 @@ file(GLOB_RECURSE dep_srcs
         "dep/*.hpp"
         )
 
-add_executable(Baskerville main.cpp ${core_srcs} ${widget_srcs} ${dep_srcs})
+add_executable(Baskerville main.cpp ${core_srcs} ${widget_srcs} ${dep_srcs} core/shader_src.h)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_definitions(Baskerville PUBLIC MSDFGEN_USE_CPP11 BASKERVILLE_DEBUG_DRAW BASKERVILLE_IN_DEV)

@@ -37,10 +37,10 @@ public:
     Draw::RedrawFlag update(f64 delta) {
         return derivedUpdate(delta);
     }
-    void draw(Draw::CallQueue& draw_buffer) {
-        derivedDraw(draw_buffer);
+    void draw(Draw::Queue& queue) {
+        derivedDraw(queue);
         debugViewUpdate();
-        debugViewDraw(draw_buffer);
+        debugViewDraw(queue);
     }
     b32 pointIntersect(glm::vec2 pos);
     const glm::vec2& getSize() const;
@@ -58,16 +58,12 @@ protected:
 
 private:
     virtual Draw::RedrawFlag derivedUpdate(f64 delta) = 0;
-    virtual void derivedDraw(Draw::CallQueue& draw_buffer) = 0;
+    virtual void derivedDraw(Draw::Queue& queue) = 0;
 
     void debugViewUpdate();
-    void debugViewDraw(Draw::CallQueue& draw_buffer);
+    void debugViewDraw(Draw::Queue& queue);
 
     Widget* m_parent = nullptr;
-    struct {
-        Draw::Context context;
-        const Shader* shader = nullptr;
-        b32 draw_attempted = false;
-    } m_debug_draw;
+    Draw::Context m_debug_context;
 
 };
