@@ -223,6 +223,15 @@ const f32 Platform::getViewportScaler() {
     return (size.y / target_height);
 }
 
+const std::string& Platform::getDatPath() {
+#ifdef BASKERVILLE_IN_DEV
+    static const std::string data_path = "../data/";
+#else
+    static const std::string data_path = "data/";
+#endif
+    return data_path;
+}
+
 void Platform::errorMessageBox(const char* title, const char* msg) {
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
                              title,

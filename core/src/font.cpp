@@ -3,7 +3,7 @@
 //
 
 #include "font.h"
-#include "data_path.h"
+#include "platform.h"
 
 #define STB_RECT_PACK_IMPLEMENTATION
 #define STB_TRUETYPE_IMPLEMENTATION
@@ -65,7 +65,7 @@ Font::Font(Font&& other) noexcept :
 
 Font::Font(std::string font_name, u32 start_codepoint, u32 end_codepoint, u32 pixel_height) :
         m_pixel_height(pixel_height){
-    std::string full_path = global_data_path + "font/" + font_name;
+    std::string full_path = Platform::getDatPath() + "font/" + font_name;
     if(std::filesystem::exists(full_path)) {
 
         //std::vector<char> buffer;

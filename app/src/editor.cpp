@@ -48,8 +48,8 @@ Editor::Editor(Widget* parent, CacheBank& cache) : Widget(parent), m_lines
     m_next_line->label.setValue(m_active_line->value, m_font, m_font_pixel_height);
     m_prev_line->label.setAlpha(0.50f);
 
-    m_next_line->label.getOffsetRef().y = ((m_font_pixel_height / getSize().y) * Platform::getViewportScaler() * -1);
-    m_prev_line->label.getOffsetRef().y = ((m_font_pixel_height / getSize().y) * Platform::getViewportScaler());
+    m_next_line->label.getOffsetRef().y = m_font_pixel_height * -1;
+    m_prev_line->label.getOffsetRef().y = m_font_pixel_height;
 
 }
 
@@ -68,17 +68,16 @@ Draw::RedrawFlag Editor::derivedUpdate(f64 delta) {
             m_line_lerp_accumulator += delta;
         }
 
-        auto scale = Platform::getViewportScaler();
-        m_active_line->label.getOffsetRef().y = ((m_font_pixel_height / getSize().y) * scale * -1) +
-                ((m_font_pixel_height / getSize().y) * scale *  m_line_lerp_scaler);
+        m_active_line->label.getOffsetRef().y = (m_font_pixel_height * -1) +
+                                                (m_font_pixel_height * m_line_lerp_scaler);
         m_active_line->label.setAlpha(m_line_lerp_scaler);
-        m_prev_line->label.getOffsetRef().y = ((m_font_pixel_height / getSize().y) * scale *  m_line_lerp_scaler);
+        m_prev_line->label.getOffsetRef().y = (m_font_pixel_height * m_line_lerp_scaler);
         m_prev_line->label.setAlpha(1.0f - (0.5f * m_line_lerp_scaler));
         if(m_line_lerp_scaler == 1.0f) {
-            m_next_line->label.getOffsetRef().y = ((m_font_pixel_height / getSize().y) * scale * -1);
+            m_next_line->label.getOffsetRef().y = (m_font_pixel_height * -1);
             m_next_line->label.setAlpha(0.0f);
         } else {
-            m_next_line->label.getOffsetRef().y = ((m_font_pixel_height / getSize().y) * scale) + ((m_font_pixel_height / getSize().y) * scale * m_line_lerp_scaler);
+            m_next_line->label.getOffsetRef().y = m_font_pixel_height + (m_font_pixel_height * m_line_lerp_scaler);
             m_next_line->label.setAlpha(0.5f * 1.0f - m_line_lerp_scaler);
         }
         return true;

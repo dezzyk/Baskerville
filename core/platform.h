@@ -31,6 +31,7 @@ public:
     static const glm::vec2 getMousePos();
     static const std::filesystem::path& getPrefPath();
     static const f32 getViewportScaler();
+    static const std::string& getDatPath();
     static void errorMessageBox(const char* title, const char* msg);
     static void cautionMessageBox(const char* title, const char* msg);
     static void infoMessageBox(const char* title, const char* msg);

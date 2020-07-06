@@ -4,10 +4,8 @@
 
 #include "project.h"
 #include "platform.h"
-#include "data_path.h"
 
 #include "nfd/nfd.h"
-#include "SDL2/SDL.h"
 
 #include <iostream>
 
