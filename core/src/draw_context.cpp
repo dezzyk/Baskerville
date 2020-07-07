@@ -29,6 +29,16 @@ Draw::Context::Context(const char* shader_name) {
                 glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void *) (7 * sizeof(float)));
                 glEnableVertexAttribArray(2);
                 glBindVertexArray(0);
+
+                m_ubo_index = glGetUniformBlockIndex(m_shader->getHandle().value(), "matrices");
+                if(m_ubo_index == GL_INVALID_INDEX) {
+                    m_ubo_index = 0;
+                    glDeleteVertexArrays(1, &m_vao.value());
+                    glDeleteBuffers(1, &m_vbo.value());
+                    m_vbo = std::nullopt;
+                    m_vao = std::nullopt;
+                    m_shader = nullptr;
+                }
             } else {
                 glDeleteBuffers(1, &vbo_handle);
                 m_shader = nullptr;

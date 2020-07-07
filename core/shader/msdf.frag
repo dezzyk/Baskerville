@@ -5,8 +5,8 @@ in vec3 f_tex_coords;
 
 out vec4 draw_color;
 
-layout (location = 2) uniform sampler2DArray u_msdf;
-layout (location = 3) uniform vec4 u_color;
+layout (location = 0) uniform sampler2DArray u_msdf;
+layout (location = 1) uniform vec4 u_color;
 
 float median(float r, float g, float b) {
     return max(min(r, g), min(max(r, g), b));

@@ -11,7 +11,7 @@ const Shader* Shader::Cache::load(std::string shader_name, std::string vert, std
     if(m_shader_cache.find(shader_name) == m_shader_cache.end()) {
         m_shader_cache.emplace(shader_name, Shader(vert, frag));
     }
-    return &m_shader_cache[shader_name];
+    return fetch(shader_name);
 }
 
 const Shader* Shader::Cache::fetch(std::string shader_name) {

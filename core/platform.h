@@ -46,4 +46,5 @@ private:
     static u32 target_height;
     static b32 should_close;
     static std::filesystem::path pref_path;
+    static u32 mat_ubo;
 };

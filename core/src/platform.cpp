@@ -17,6 +17,7 @@ f32 Platform::viewport_scaler = 1.0f;
 u32 Platform::target_height = 0;
 b32 Platform::should_close = false;
 std::filesystem::path Platform::pref_path;
+u32 Platform::mat_ubo = 0;
 
 b32 Platform::Manager::startup(const char* app_name, const char* org_name, u32 height) {
     if(!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
@@ -41,6 +42,11 @@ b32 Platform::Manager::startup(const char* app_name, const char* org_name, u32 h
         glEnable(GL_BLEND); CheckGLError();
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); CheckGLError();
         glClearColor(0.0, 0.0, 0.0, 1.0); CheckGLError();
+
+        glGenBuffers(1, &mat_ubo);
+        glBindBuffer(GL_UNIFORM_BUFFER, mat_ubo);
+        glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 2, nullptr, GL_DYNAMIC_DRAW);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
         SDL_StartTextInput();
         return true;
@@ -142,38 +148,43 @@ void Platform::Manager::executeDrawCalls() {
         glViewport(0, 0, viewport.x, viewport.y);
         last_viewport = viewport;
     }
+    glBindBuffer(GL_UNIFORM_BUFFER, mat_ubo);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(proj));
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
     for(auto draw : draw_queue) {
         if(draw->valid()) {
             if(draw->size() > 0) {
+                glBindBuffer(GL_UNIFORM_BUFFER, mat_ubo);
+                glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(draw->model));
+                glBindBuffer(GL_UNIFORM_BUFFER, 0);
                 glBindVertexArray(draw->getVAO().value());
                 glUseProgram(draw->getShader()->getHandle().value());
-                glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(proj));
-                glUniformMatrix4fv(1, 1, GL_FALSE, glm::value_ptr(draw->model));
+                glBindBufferRange(GL_UNIFORM_BUFFER, 0, mat_ubo, 0, 2 * sizeof(glm::mat4));
                 for (int i = 0; i < draw->uniforms.size(); ++i) {
                     if (draw->uniforms[i].type != Meta::MakeType<Meta::Empty>()) {
                         Meta::Type type = draw->uniforms[i].type;
                         if (type == Meta::MakeType<glm::mat4>()) {
-                            glUniformMatrix4fv(i + 2, 1, GL_FALSE, glm::value_ptr(draw->uniforms[i].value.mat4));
+                            glUniformMatrix4fv(i, 1, GL_FALSE, glm::value_ptr(draw->uniforms[i].value.mat4));
                         } else if (type == Meta::MakeType<glm::vec4>()) {
-                            glUniform4f(i + 2, draw->uniforms[i].value.vec4.x, draw->uniforms[i].value.vec4.y,
+                            glUniform4f(i, draw->uniforms[i].value.vec4.x, draw->uniforms[i].value.vec4.y,
                                         draw->uniforms[i].value.vec4.z, draw->uniforms[i].value.vec4.w);
                         } else if (type == Meta::MakeType<glm::vec3>()) {
-                            glUniform3f(i + 2, draw->uniforms[i].value.vec3.x, draw->uniforms[i].value.vec3.y,
+                            glUniform3f(i, draw->uniforms[i].value.vec3.x, draw->uniforms[i].value.vec3.y,
                                         draw->uniforms[i].value.vec3.z);
                         } else if (type == Meta::MakeType<glm::vec2>()) {
-                            glUniform2f(i + 2, draw->uniforms[i].value.vec2.x, draw->uniforms[i].value.vec2.y);
+                            glUniform2f(i, draw->uniforms[i].value.vec2.x, draw->uniforms[i].value.vec2.y);
                         } else if (type == Meta::MakeType<f32>()) {
-                            glUniform1f(i + 2, draw->uniforms[i].value.u_f32);
+                            glUniform1f(i, draw->uniforms[i].value.u_f32);
                         } else if (type == Meta::MakeType<u32>()) {
-                            glUniform1ui(i + 2, draw->uniforms[i].value.u_u32);
+                            glUniform1ui(i, draw->uniforms[i].value.u_u32);
                         } else if (type == Meta::MakeType<i32>()) {
-                            glUniform1i(i + 2, draw->uniforms[i].value.u_i32);
+                            glUniform1i(i, draw->uniforms[i].value.u_i32);
                         } else if (type == Meta::MakeType<Draw::Uniform::Texture>()) {
-                            glUniform1i(i + 2, draw->uniforms[i].value.texture.index);
+                            glUniform1i(i, draw->uniforms[i].value.texture.index);
                             glActiveTexture(GL_TEXTURE0 + draw->uniforms[i].value.texture.index);
                             glBindTexture(GL_TEXTURE_2D, draw->uniforms[i].value.texture.handle);
                         } else if (type == Meta::MakeType<Draw::Uniform::ArrayTexture>()) {
-                            glUniform1i(i + 2, draw->uniforms[i].value.texture.index);
+                            glUniform1i(i, draw->uniforms[i].value.texture.index);
                             glActiveTexture(GL_TEXTURE0 + draw->uniforms[i].value.array_texture.index);
                             glBindTexture(GL_TEXTURE_2D_ARRAY, draw->uniforms[i].value.array_texture.handle);
                         }

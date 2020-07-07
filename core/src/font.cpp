@@ -29,7 +29,7 @@ const Font* Font::Cache::load(std::string font_name,
     if(m_font_cache.find(font_name) == m_font_cache.end()) {
         m_font_cache.emplace(font_name, Font(filename, start_codepoint, end_codepoint, pixel_height));
     }
-    return &m_font_cache[font_name];
+    return fetch(font_name);
 }
 
 const Font* Font::Cache::fetch(std::string font_name) {

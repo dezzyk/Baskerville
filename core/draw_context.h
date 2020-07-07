@@ -160,6 +160,7 @@ namespace Draw {
         std::optional<u32> m_vao;
         u32 m_capacity = 0;
         u32 m_size = 0;
+        u32 m_ubo_index = 0;
     };
 
     using Queue = std::vector<const Draw::Context*>;
