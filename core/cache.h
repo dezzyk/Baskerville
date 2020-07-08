@@ -16,7 +16,7 @@
 #include <fstream>
 #include <list>
 
-using json = nlohmann::json ;
+using json = nlohmann::json;
 
 class CacheBank {
 public:
@@ -34,6 +34,5 @@ public:
     void destroyCache(Cache* cache);
     b32 saveCache(Cache* cache);
 private:
-    //std::vector<Cache> m_caches;
     std::list<Cache> m_caches;
 };

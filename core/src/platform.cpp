@@ -226,7 +226,7 @@ const f32 Platform::getViewportScaler() {
     return (size.y / target_height);
 }
 
-const std::string& Platform::getDatPath() {
+const std::string& Platform::getDataPath() {
 #ifdef BASKERVILLE_IN_DEV
     static const std::string data_path = "../data/";
 #else

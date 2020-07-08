@@ -12,6 +12,7 @@ Root::Root(CacheBank& cache) : Widget(nullptr) {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     m_draw_context = Draw::Context("pane");
     m_editor = std::make_unique<Editor>(this, cache);
+    m_menu = std::make_unique<Menu>(this);
 }
 
 Draw::RedrawFlag Root::derivedUpdate(f64 delta) {
@@ -48,5 +49,6 @@ void Root::derivedDraw(Draw::Queue &queue) {
 
     queue.push_back(&m_draw_context);
     m_editor->draw(queue);
+    m_menu->draw(queue);
 
 }

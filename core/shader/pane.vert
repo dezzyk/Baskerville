@@ -10,9 +10,6 @@ layout (std140) uniform matrices {
     mat4 model;
 };
 
-layout (location = 0) uniform mat4 u_proj;
-layout (location = 1) uniform mat4 u_model;
-
 out vec4 f_color;
 
 void main() {

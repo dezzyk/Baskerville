@@ -14,7 +14,7 @@ Editor::Editor(Widget* parent, CacheBank& cache) : Widget(parent), m_lines
         }
         {
 
-    m_project = Project(cache);
+    m_project;
 
     anchor = Anchor::Center;
     size.x = 700;
@@ -165,6 +165,7 @@ Draw::RedrawFlag Editor::onMacro(const Event::Macro& macro) {
         m_active_line->value = "";
         m_active_line->label.setValue(m_active_line->value, m_font, m_font_pixel_height);
         m_active_line->label.setAlpha(1.0f);
+        return true;
     } else if(macro == Event::Macro::Export) {
         m_project.exportToTXT();
     }
