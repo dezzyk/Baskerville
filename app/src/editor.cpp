@@ -48,12 +48,12 @@ Editor::Editor(Widget* parent, CacheBank& cache) : Widget(parent), m_lines
     m_active_line->prev = m_next_line;
     m_next_line->prev = m_prev_line_4;
 
-    m_prev_line_4->label.getOffsetRef().y = m_font_pixel_height * 4;
-    m_prev_line_3->label.getOffsetRef().y = m_font_pixel_height * 3;
-    m_prev_line_2->label.getOffsetRef().y = m_font_pixel_height * 2;
-    m_prev_line_1->label.getOffsetRef().y = m_font_pixel_height;
-    m_active_line->label.getOffsetRef().y =0.0f;
-    m_next_line->label.getOffsetRef().y = m_font_pixel_height * -1;
+    m_prev_line_4->label.getOffsetRef().y = m_font_pixel_height * 4 + m_line_base_offset;
+    m_prev_line_3->label.getOffsetRef().y = m_font_pixel_height * 3 + m_line_base_offset;
+    m_prev_line_2->label.getOffsetRef().y = m_font_pixel_height * 2 + m_line_base_offset;
+    m_prev_line_1->label.getOffsetRef().y = m_font_pixel_height + m_line_base_offset;
+    m_active_line->label.getOffsetRef().y =0.0f + m_line_base_offset;
+    m_next_line->label.getOffsetRef().y = m_font_pixel_height * -1 + m_line_base_offset;
 
 }
 
@@ -65,28 +65,33 @@ Draw::RedrawFlag Editor::derivedUpdate(f64 delta) {
             m_line_lerp_accumulator = 0.0;
         } else {
             // Should be in a header eventually
+            //f32 t = (m_line_lerp_accumulator / m_line_lerp_time);
+            //f32 m = t-1.0f;
+            //f32 k = 1.70158;
+            //m_line_lerp_scaler = 1.0f + m*m*(  m*(k+1) + k);
+            //m_line_lerp_accumulator += delta;
+
             f32 t = (m_line_lerp_accumulator / m_line_lerp_time);
             f32 m = t-1.0f;
-            f32 k = 1.70158;
-            m_line_lerp_scaler = 1.0f + m*m*(  m*(k+1) + k);
+            m_line_lerp_scaler = glm::sqrt( 1.0f-m*m);
             m_line_lerp_accumulator += delta;
         }
 
-        m_active_line->label.getOffsetRef().y = (m_font_pixel_height * -1) + (m_font_pixel_height * m_line_lerp_scaler);
-        m_prev_line_1->label.getOffsetRef().y = (m_font_pixel_height * m_line_lerp_scaler);
-        m_prev_line_2->label.getOffsetRef().y = (m_font_pixel_height) + (m_font_pixel_height * m_line_lerp_scaler);
-        m_prev_line_3->label.getOffsetRef().y = (m_font_pixel_height * 2) + (m_font_pixel_height * m_line_lerp_scaler);
-        m_prev_line_4->label.getOffsetRef().y = (m_font_pixel_height * 3) + (m_font_pixel_height * m_line_lerp_scaler);
+        m_active_line->label.getOffsetRef().y = (m_font_pixel_height * -1) + (m_font_pixel_height * m_line_lerp_scaler) + m_line_base_offset;
+        m_prev_line_1->label.getOffsetRef().y = (m_font_pixel_height * m_line_lerp_scaler) + m_line_base_offset;
+        m_prev_line_2->label.getOffsetRef().y = (m_font_pixel_height) + (m_font_pixel_height * m_line_lerp_scaler) + m_line_base_offset;
+        m_prev_line_3->label.getOffsetRef().y = (m_font_pixel_height * 2) + (m_font_pixel_height * m_line_lerp_scaler) + m_line_base_offset;
+        m_prev_line_4->label.getOffsetRef().y = (m_font_pixel_height * 3) + (m_font_pixel_height * m_line_lerp_scaler) + m_line_base_offset;
         m_active_line->label.setAlpha(m_line_lerp_scaler);
         m_prev_line_1->label.setAlpha(1.0f - (0.2f * m_line_lerp_scaler));
         m_prev_line_2->label.setAlpha(0.8f - (0.2f * m_line_lerp_scaler));
         m_prev_line_3->label.setAlpha(0.6f - (0.2f * m_line_lerp_scaler));
         m_prev_line_4->label.setAlpha(0.4f - (0.2f * m_line_lerp_scaler));
         if(m_line_lerp_scaler == 1.0f) {
-            m_next_line->label.getOffsetRef().y = (m_font_pixel_height * -1);
+            m_next_line->label.getOffsetRef().y = (m_font_pixel_height * -1) + m_line_base_offset;
             m_next_line->label.setAlpha(0.0f);
         } else {
-            m_next_line->label.getOffsetRef().y = (m_font_pixel_height * 4) + (m_font_pixel_height * m_line_lerp_scaler);
+            m_next_line->label.getOffsetRef().y = (m_font_pixel_height * 4) + (m_font_pixel_height * m_line_lerp_scaler) + m_line_base_offset;
             m_next_line->label.setAlpha(0.2f - (0.2f * m_line_lerp_scaler));
         }
         return true;
@@ -96,7 +101,43 @@ Draw::RedrawFlag Editor::derivedUpdate(f64 delta) {
 
 Draw::RedrawFlag Editor::onTextInput(const Event::TextInput& text) {
 
-    m_active_line->value += text.value;
+    // Brute-force af impl for capitalizing starts or paragraphs and sentences.
+    std::string additive = text.value;
+    if(!m_active_line->value.compare("        ")) {
+        m_active_line->value += std::toupper(additive.back());
+    } else if (!m_active_line->value.empty()) {
+        if(m_active_line->value.back() == '.') {
+            if(m_active_line->value.size() >= 2 && m_active_line->value[m_active_line->value.size() - 2] != '.') {
+                if(additive.back() != ' ') {
+                    if(additive.back() != '.') {
+                        m_active_line->value += " ";
+                    }
+                    m_active_line->value += std::toupper(additive.back());
+                } else {
+                    m_active_line->value += additive.back();
+                }
+            } else {
+                if(additive.back() != ' ') {
+                    if(additive.back() != '.') {
+                        m_active_line->value += " ";
+                    }
+                }
+                m_active_line->value += additive.back();
+            }
+        } else if (m_active_line->value.size() >= 3) {
+            if(m_active_line->value.back() == ' ' && m_active_line->value[m_active_line->value.size() - 2] == '.' && m_active_line->value[m_active_line->value.size() - 3] != '.') {
+                m_active_line->value += std::toupper(additive.back());
+            } else {
+                m_active_line->value += additive.back();
+            }
+        } else {
+            m_active_line->value += additive.back();
+        }
+    } else {
+        m_active_line->value += additive.back();
+    }
+
+    //
     if(m_font->calcStringPixelWidth(m_active_line->value, m_font_pixel_height) > m_active_line->label.getSize().x) {
         if(m_active_line->value[m_active_line->value.size() - 1] != ' ') {
             static std::string buffer;
