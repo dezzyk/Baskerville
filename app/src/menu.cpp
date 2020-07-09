@@ -11,7 +11,7 @@ Menu::Menu(Widget* parent) : Widget(parent) {
     m_draw_context = Draw::Context("pane");
 
     Draw::Quad quad;
-    quad.setColor({0.0f, 0.0f, 1.0f, 1.0f});
+    quad.setColor({0.17f, 0.34f, 0.59f, 1.0f});
     m_draw_context.quadUpload(quad);
 }
 

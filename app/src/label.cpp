@@ -69,6 +69,8 @@ void Label::setValue(const std::string& value, const Font* font, u32 pixel_heigh
 
             if (!boxes.empty()) {
                 m_draw_context.quadUpload(boxes);
+            } else {
+                m_draw_context.clear();
             }
 
             //m_size.x = xpos * m_font->calcScale(m_pixel_height);

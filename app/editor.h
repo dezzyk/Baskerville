@@ -35,8 +35,11 @@ private:
 
     Project m_project;
     const Font* m_font = nullptr;
-    std::array<Line, 3> m_lines;
-    Line* m_prev_line = nullptr;
+    std::array<Line, 6> m_lines;
+    Line* m_prev_line_4 = nullptr;
+    Line* m_prev_line_3 = nullptr;
+    Line* m_prev_line_2 = nullptr;
+    Line* m_prev_line_1 = nullptr;
     Line* m_active_line = nullptr;
     Line* m_next_line = nullptr;
     f32 m_font_pixel_height = 24.0f;

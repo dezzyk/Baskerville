@@ -8,48 +8,52 @@
 
 Editor::Editor(Widget* parent, CacheBank& cache) : Widget(parent), m_lines
         {
-            Label(this), "", nullptr,
-            Label(this), "", nullptr,
-            Label(this), "", nullptr
-        }
-        {
+                Label(this), "", nullptr,
+                Label(this), "", nullptr,
+                Label(this), "", nullptr,
+                Label(this), "", nullptr,
+                Label(this), "", nullptr,
+                Label(this), "", nullptr
+        } {
 
     m_project;
 
     anchor = Anchor::Center;
-    size.x = 700;
+    size.x = 800;
     size.y = getParent()->getSize().y;
     unscaled_width = true;
-    m_font_pixel_height = 36;
+    m_font_pixel_height = 30;
     offset = {0.0f, 0.0f};
 
     m_font = Font::Cache::fetch("editor");
 
     m_next_line = &m_lines[0];
     m_active_line = &m_lines[1];
-    m_prev_line = &m_lines[2];
+    m_prev_line_1 = &m_lines[2];
+    m_prev_line_2 = &m_lines[3];
+    m_prev_line_3 = &m_lines[4];
+    m_prev_line_4 = &m_lines[5];
 
     m_next_line->label.setWidth(size.x);
     m_active_line->label.setWidth(size.x);
-    m_prev_line->label.setWidth(size.x);
+    m_prev_line_1->label.setWidth(size.x);
+    m_prev_line_2->label.setWidth(size.x);
+    m_prev_line_3->label.setWidth(size.x);
+    m_prev_line_4->label.setWidth(size.x);
 
-    m_active_line->label.setValue(m_active_line->value, m_font, m_font_pixel_height);
-    m_active_line->label.setValue(m_active_line->value, m_font, m_font_pixel_height);
-    m_active_line->label.setValue(m_active_line->value, m_font, m_font_pixel_height);
-    m_active_line->label.getOffsetRef().y = 0.0;
-
-    m_prev_line->prev = m_active_line;
+    m_prev_line_4->prev = m_prev_line_3;
+    m_prev_line_3->prev = m_prev_line_2;
+    m_prev_line_2->prev = m_prev_line_1;
+    m_prev_line_1->prev = m_active_line;
     m_active_line->prev = m_next_line;
-    m_next_line->prev = m_prev_line;
+    m_next_line->prev = m_prev_line_4;
 
-    m_prev_line->value = m_project.getLastLine();
-    m_prev_line->label.setValue(m_prev_line->value, m_font, m_font_pixel_height);
-    m_active_line->label.setValue(m_active_line->value, m_font, m_font_pixel_height);
-    m_next_line->label.setValue(m_active_line->value, m_font, m_font_pixel_height);
-    m_prev_line->label.setAlpha(0.50f);
-
+    m_prev_line_4->label.getOffsetRef().y = m_font_pixel_height * 4;
+    m_prev_line_3->label.getOffsetRef().y = m_font_pixel_height * 3;
+    m_prev_line_2->label.getOffsetRef().y = m_font_pixel_height * 2;
+    m_prev_line_1->label.getOffsetRef().y = m_font_pixel_height;
+    m_active_line->label.getOffsetRef().y =0.0f;
     m_next_line->label.getOffsetRef().y = m_font_pixel_height * -1;
-    m_prev_line->label.getOffsetRef().y = m_font_pixel_height;
 
 }
 
@@ -68,17 +72,22 @@ Draw::RedrawFlag Editor::derivedUpdate(f64 delta) {
             m_line_lerp_accumulator += delta;
         }
 
-        m_active_line->label.getOffsetRef().y = (m_font_pixel_height * -1) +
-                                                (m_font_pixel_height * m_line_lerp_scaler);
+        m_active_line->label.getOffsetRef().y = (m_font_pixel_height * -1) + (m_font_pixel_height * m_line_lerp_scaler);
+        m_prev_line_1->label.getOffsetRef().y = (m_font_pixel_height * m_line_lerp_scaler);
+        m_prev_line_2->label.getOffsetRef().y = (m_font_pixel_height) + (m_font_pixel_height * m_line_lerp_scaler);
+        m_prev_line_3->label.getOffsetRef().y = (m_font_pixel_height * 2) + (m_font_pixel_height * m_line_lerp_scaler);
+        m_prev_line_4->label.getOffsetRef().y = (m_font_pixel_height * 3) + (m_font_pixel_height * m_line_lerp_scaler);
         m_active_line->label.setAlpha(m_line_lerp_scaler);
-        m_prev_line->label.getOffsetRef().y = (m_font_pixel_height * m_line_lerp_scaler);
-        m_prev_line->label.setAlpha(1.0f - (0.5f * m_line_lerp_scaler));
+        m_prev_line_1->label.setAlpha(1.0f - (0.2f * m_line_lerp_scaler));
+        m_prev_line_2->label.setAlpha(0.8f - (0.2f * m_line_lerp_scaler));
+        m_prev_line_3->label.setAlpha(0.6f - (0.2f * m_line_lerp_scaler));
+        m_prev_line_4->label.setAlpha(0.4f - (0.2f * m_line_lerp_scaler));
         if(m_line_lerp_scaler == 1.0f) {
             m_next_line->label.getOffsetRef().y = (m_font_pixel_height * -1);
             m_next_line->label.setAlpha(0.0f);
         } else {
-            m_next_line->label.getOffsetRef().y = m_font_pixel_height + (m_font_pixel_height * m_line_lerp_scaler);
-            m_next_line->label.setAlpha(0.5f * 1.0f - m_line_lerp_scaler);
+            m_next_line->label.getOffsetRef().y = (m_font_pixel_height * 4) + (m_font_pixel_height * m_line_lerp_scaler);
+            m_next_line->label.setAlpha(0.2f - (0.2f * m_line_lerp_scaler));
         }
         return true;
     }
@@ -103,7 +112,10 @@ Draw::RedrawFlag Editor::onTextInput(const Event::TextInput& text) {
             m_project.pushLine(m_active_line->value);
             m_active_line->label.setValue(m_active_line->value, m_font, m_font_pixel_height);
 
-            m_prev_line = m_prev_line->prev;
+            m_prev_line_4 = m_prev_line_4->prev;
+            m_prev_line_3 = m_prev_line_3->prev;
+            m_prev_line_2 = m_prev_line_2->prev;
+            m_prev_line_1 = m_prev_line_1->prev;
             m_active_line = m_active_line->prev;
             m_next_line = m_next_line->prev;
             m_line_lerp_scaler = 0.0f;
@@ -116,7 +128,10 @@ Draw::RedrawFlag Editor::onTextInput(const Event::TextInput& text) {
             m_active_line->label.setValue(m_active_line->value, m_font, m_font_pixel_height);
             m_project.pushLine(m_active_line->value);
 
-            m_prev_line = m_prev_line->prev;
+            m_prev_line_4 = m_prev_line_4->prev;
+            m_prev_line_3 = m_prev_line_3->prev;
+            m_prev_line_2 = m_prev_line_2->prev;
+            m_prev_line_1 = m_prev_line_1->prev;
             m_active_line = m_active_line->prev;
             m_next_line = m_next_line->prev;
             m_line_lerp_scaler = 0.0f;
@@ -140,18 +155,20 @@ Draw::RedrawFlag Editor::onMacro(const Event::Macro& macro) {
         m_active_line->label.setAlpha(1.0f);
         return true;
     } else if(macro == Event::Macro::Enter) {
-        if(!m_active_line->value.empty()) {
-            m_project.completeParagraph();
+        if(m_active_line->value.compare("        ")) {
+            //m_project.completeParagraph();
 
-            m_prev_line = m_prev_line->prev;
+            m_prev_line_4 = m_prev_line_4->prev;
+            m_prev_line_3 = m_prev_line_3->prev;
+            m_prev_line_2 = m_prev_line_2->prev;
+            m_prev_line_1 = m_prev_line_1->prev;
             m_active_line = m_active_line->prev;
             m_next_line = m_next_line->prev;
             m_line_lerp_scaler = 0.0f;
             m_line_lerp_accumulator = 0.0;
 
-            m_active_line->value = "";
+            m_active_line->value = "        ";
             m_active_line->label.setValue(m_active_line->value, m_font, m_font_pixel_height);
-            m_active_line->label.setAlpha(1.0f);
             m_active_line->label.getOffsetRef().y = 0.0;
             return true;
         }
@@ -159,9 +176,9 @@ Draw::RedrawFlag Editor::onMacro(const Event::Macro& macro) {
         m_project.save();
     } else if(macro == Event::Macro::Open) {
         m_project.open();
-        m_prev_line->value = m_project.getLastLine();
-        m_prev_line->label.setValue(m_prev_line->value, m_font, m_font_pixel_height);
-        m_prev_line->label.setAlpha(0.33f);
+        //m_prev_line->value = m_project.getLastLine();
+        //m_prev_line->label.setValue(m_prev_line->value, m_font, m_font_pixel_height);
+        //m_prev_line->label.setAlpha(0.33f);
         m_active_line->value = "";
         m_active_line->label.setValue(m_active_line->value, m_font, m_font_pixel_height);
         m_active_line->label.setAlpha(1.0f);
@@ -182,6 +199,9 @@ void Editor::derivedDraw(Draw::Queue& queue) {
 
     m_next_line->label.draw(queue);
     m_active_line->label.draw(queue);
-    m_prev_line->label.draw(queue);
+    m_prev_line_1->label.draw(queue);
+    m_prev_line_2->label.draw(queue);
+    m_prev_line_3->label.draw(queue);
+    m_prev_line_4->label.draw(queue);
 
 }

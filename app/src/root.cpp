@@ -49,6 +49,6 @@ void Root::derivedDraw(Draw::Queue &queue) {
 
     queue.push_back(&m_draw_context);
     m_editor->draw(queue);
-    m_menu->draw(queue);
+    //m_menu->draw(queue);
 
 }
