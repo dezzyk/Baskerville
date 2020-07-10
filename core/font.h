@@ -23,8 +23,6 @@ public:
     public:
         static const Font* load(std::string font_name,
                 std::string filename,
-                u32 start_codepoint,
-                u32 end_codepoint,
                 u32 pixel_height);
         static const Font* fetch(std::string font_name);
         void clear();
@@ -41,22 +39,6 @@ public:
             i32 y1 = 0;
         } bounding_box;
     };
-    //struct Glyph {
-        //u32 codepoint = 0;
-        //u32 index = 0;
-        /*struct {
-            glm::vec2 top_left;
-            glm::vec2 top_right;
-            glm::vec2 bottom_left;
-            glm::vec2 bottom_right;
-        } uv;*/
-        /*struct {
-            i32 x0 = 0;
-            i32 y0 = 0;
-            i32 x1 = 0;
-            i32 y1 = 0;
-        } bounding_box;*/
-    //};
     Font();
     Font(Font&& other) noexcept;
     ~Font();
@@ -74,7 +56,9 @@ public:
     i32 getSpecificGlyphLayer(u32 index) const;
     b32 generateBitmap(u32 index, std::vector<unsigned char>& data);
 private:
-    Font(std::string font_name, u32 start_codepoint, u32 end_codepoint, u32 pixel_height);
+    Font(std::string font_name, std::string filename, u32 pixel_height);
+    b32 loadFromCache(std::string font_name);
+    b32 loadFromFile(std::string font_name, std::string filename);
     stbtt_fontinfo m_font_info;
     std::vector<unsigned char> m_font_data;
     std::vector<Glyph> m_glyphs;

@@ -6,7 +6,7 @@
 #include "platform.h"
 
 #include "nfd/nfd.h"
-#include "flatbuffers/generated/project_semantics.h"
+#include "flatbuffers/generated/project_serialize.h"
 
 #include <iostream>
 
@@ -18,7 +18,7 @@ Project::Project() {
         b32 res = false;
         Platform::cautionOptionBox("Baskerville", "A previous session did no close correctly. Would you like to restore the cached project data?", res);
         if(res) {
-            std::vector<u8> buffer;
+            /*std::vector<u8> buffer;
             std::ifstream input;
             input.open(m_cache_path, std::ios::binary);
             input.seekg(0, input.end);
@@ -40,7 +40,7 @@ Project::Project() {
                 for(int i = 0; i < lines->size(); ++i) {
                     new_paragraph.lines[i] = lines->Get(i)->str();
                 }
-            }
+            }*/
         }
     } else {
         m_paragraphs.push_back({});
@@ -69,7 +69,7 @@ b32 Project::open() {
         std::filesystem::path path = outPath;
         free(outPath);
         if(std::filesystem::exists(path)) { // Redundant but doesnt hurt
-            m_paragraphs = {};
+            /*m_paragraphs = {};
 
             std::vector<u8> buffer;
             std::ifstream input;
@@ -95,7 +95,7 @@ b32 Project::open() {
                 }
                 m_paragraphs.push_back(std::move(new_paragraph));
             }
-            return true;
+            return true;*/
 
         }
 
@@ -111,7 +111,7 @@ b32 Project::save() {
     nfdchar_t* savePath = NULL;
     nfdresult_t result = NFD_SaveDialog("spt", NULL, &savePath);
     if (result == NFD_OKAY) {
-        std::filesystem::path path = savePath;
+        /*std::filesystem::path path = savePath;
         if(path.filename().extension() != ".spt") {
             path += ".spt";
         }
@@ -140,7 +140,7 @@ b32 Project::save() {
         save_file.write(reinterpret_cast<char*>(buf), size);
         save_file.flush();
 
-        return true;
+        return true;*/
     } else if (result == NFD_CANCEL) {
         std::cout <<"User pressed cancel." << std::endl;
     } else {

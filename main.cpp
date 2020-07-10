@@ -28,8 +28,8 @@ int main(int argc, char *argv[]) {
 
     if(platform.startup("Baskerville", "Saltpowered", 1080)) {
 
-        Font::Cache::load("editor", "editor.ttf", 33, 126, 24);
-        //Font::Cache::load("icons", "icons.ttf", 33, 126, 24);
+        Font::Cache::load("editor", "editor.ttf", 24);
+        Font::Cache::load("icons", "icons.ttf", 24);
 
         Shader::Cache::load("pane", ShaderSrc::pane_vert, ShaderSrc::pane_frag);
         Shader::Cache::load("msdf", ShaderSrc::msdf_vert, ShaderSrc::msdf_frag);

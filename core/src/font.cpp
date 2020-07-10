@@ -13,6 +13,7 @@
 #include "stb/stb_image_write.h"
 #include "msdfgen/msdfgen.h"
 #include "glad/glad.h"
+#include "flatbuffers/generated/font_cache_serialize.h"
 
 #include "gl_err.h"
 
@@ -23,11 +24,9 @@
 
 const Font* Font::Cache::load(std::string font_name,
                                 std::string filename,
-                                u32 start_codepoint,
-                                u32 end_codepoint,
                                 u32 pixel_height) {
     if(m_font_cache.find(font_name) == m_font_cache.end()) {
-        m_font_cache.emplace(font_name, Font(filename, start_codepoint, end_codepoint, pixel_height));
+        m_font_cache.emplace(font_name, Font(font_name, filename, pixel_height));
     }
     return fetch(font_name);
 }
@@ -63,23 +62,115 @@ Font::Font(Font&& other) noexcept :
     other.m_texture_handle = std::nullopt;
 }
 
-Font::Font(std::string font_name, u32 start_codepoint, u32 end_codepoint, u32 pixel_height) :
-        m_pixel_height(pixel_height){
-    std::string full_path = Platform::getDataPath() + "font/" + font_name;
-    if(std::filesystem::exists(full_path)) {
+Font::Font(std::string font_name, std::string filename, u32 pixel_height) : m_pixel_height(pixel_height) {
+    if(!loadFromCache(font_name)) {
+        loadFromFile(font_name, filename);
+    }
+}
 
-        //std::vector<char> buffer;
+b32 Font::loadFromCache(std::string font_name) {
+    std::string cached_font_path = Platform::getPrefPath().string() + "font/";
+    if(!std::filesystem::exists(cached_font_path)) {
+        std::filesystem::create_directory(cached_font_path);
+    }
+    cached_font_path += font_name + ".dat";
+    if(std::filesystem::exists(cached_font_path)) {
+
+        // Load cache file, parse the values
+        std::vector<u8> buffer;
+        std::ifstream input;
+        input.open(cached_font_path, std::ios::binary);
+        input.seekg(0, input.end);
+        u32 length = input.tellg();
+        input.seekg(0, input.beg);
+        buffer.resize(length);
+        input.read(reinterpret_cast<char*>(buffer.data()), buffer.size());
+        input.close();
+
+        auto font_cache = FontCacheSerialize::GetFontCache(buffer.data());
+        auto data_from_cache = font_cache->data();
+        auto cached_glyphs = font_cache->glyphs();
+        m_font_data.assign(data_from_cache->begin(), data_from_cache->end());
+        stbtt_InitFont(&m_font_info, m_font_data.data(), 0);
+
+        // Load base metrics
+        m_scale = stbtt_ScaleForPixelHeight(&m_font_info, m_pixel_height);
+        int x0, y0, x1, y1;
+        stbtt_GetFontBoundingBox(&m_font_info, &x0, &y0, &x1, &y1);
+        m_bounding_box = {x0, y0, x1, y1};
+        int ascent, descent, lineGap;
+        if(stbtt_GetFontVMetricsOS2(&m_font_info, &ascent, &descent, &lineGap) == 0) {
+            stbtt_GetFontVMetrics(&m_font_info, &ascent, &descent, &lineGap);
+        }
+        m_baseline = m_scale*-y0;
+
+        m_bitmap_size = {font_cache->bitmap_width(), font_cache->bitmap_height()};
+
+        // Load glyphs from font, followed by bitmaps from cache
+        m_glyphs.resize(m_font_info.numGlyphs);
+
+        u32 total_layers = 0;
+        for(int i = 0; i < m_glyphs.size(); ++i) {
+            m_glyphs[i].index = i;
+            stbtt_GetGlyphBox(&m_font_info, m_glyphs[i].index, &m_glyphs[i].bounding_box.x0,
+                    &m_glyphs[i].bounding_box.y0, &m_glyphs[i].bounding_box.x1, &m_glyphs[i].bounding_box.y1);
+            if(!stbtt_IsGlyphEmpty(&m_font_info, m_glyphs[i].index)) {
+                ++total_layers;
+            }
+        }
+
+        for (int i = 0; i < m_codepoints.size(); ++i) {
+            m_codepoints[i] = stbtt_FindGlyphIndex(&m_font_info, i + 1);
+        }
+
+        u32 texture;
+        glGenTextures(1, &texture);
+        CheckGLError();
+        glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
+        CheckGLError();
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        CheckGLError();
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        CheckGLError();
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGB8, m_bitmap_size.x, m_bitmap_size.y, total_layers);
+        CheckGLError();
+
+        for(int i = 0; i < cached_glyphs->size(); ++i) {
+            auto cached_glyph = cached_glyphs->Get(i);
+            m_glyphs[cached_glyph->index()].layer = i;
+            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, m_bitmap_size.x, m_bitmap_size.y, 1,
+                            GL_RGB, GL_UNSIGNED_BYTE, cached_glyph->bitmap()->data());
+        }
+
+        m_texture_handle = texture;
+        return true;
+    }
+    return false;
+}
+
+b32 Font::loadFromFile(std::string font_name, std::string filename) {
+
+    std::string raw_font_path = Platform::getDataPath() + "font/" + filename;
+    if(std::filesystem::exists(raw_font_path)) {
+
+        std::string cached_font_path = Platform::getPrefPath().string() + "font/" + font_name + ".dat";
+
+        // Load font file
         std::ifstream file;
-        file.open(full_path, std::ios::binary);
-        file.seekg (0, file.end);
+        file.open(raw_font_path, std::ios::binary);
+        file.seekg(0, file.end);
         u32 length = file.tellg();
-        file.seekg (0, file.beg);
+        file.seekg(0, file.beg);
         m_font_data.resize(length);
-        file.read(reinterpret_cast<char*>(m_font_data.data()), m_font_data.size());
+        file.read(reinterpret_cast<char *>(m_font_data.data()), m_font_data.size());
         file.close();
 
         stbtt_InitFont(&m_font_info, m_font_data.data(), 0);
-        m_scale = stbtt_ScaleForPixelHeight(&m_font_info, pixel_height);
+
+        // Load base metrics
+        m_scale = stbtt_ScaleForPixelHeight(&m_font_info, m_pixel_height);
         int x0, y0, x1, y1;
         stbtt_GetFontBoundingBox(&m_font_info, &x0, &y0, &x1, &y1);
         m_bounding_box = {x0, y0, x1, y1};
@@ -92,9 +183,10 @@ Font::Font(std::string font_name, u32 start_codepoint, u32 end_codepoint, u32 pi
         m_bitmap_size.x = (f32)(abs(m_bounding_box.x) + abs(m_bounding_box.z)) * m_scale;
         m_bitmap_size.y = (f32)(abs(ascent) + abs(descent)) * m_scale;
 
+        // JOHN FUCKING MADDEN
         const auto core_count = std::thread::hardware_concurrency();
 
-        if(m_font_info.numGlyphs > core_count) {
+        if (m_font_info.numGlyphs > core_count) {
 
             struct PendingGlyph {
                 std::vector<unsigned char> bitmap;
@@ -137,7 +229,7 @@ Font::Font(std::string font_name, u32 start_codepoint, u32 end_codepoint, u32 pi
                     for (auto &glyph : workload->glyphs) {
                         glyph.index = workload->index;
                         glyph.empty = !font->generateBitmap(glyph.index, glyph.bitmap);
-                        if(!glyph.empty) {
+                        if (!glyph.empty) {
                             workload->drawable_glyph_count++;
                         }
                         workload->index++;
@@ -149,7 +241,7 @@ Font::Font(std::string font_name, u32 start_codepoint, u32 end_codepoint, u32 pi
             for (auto &glyph : workloads[0].glyphs) {
                 glyph.index = workloads[0].index;
                 glyph.empty = !generateBitmap(glyph.index, glyph.bitmap);
-                if(!glyph.empty) {
+                if (!glyph.empty) {
                     workloads[0].drawable_glyph_count++;
                 }
                 workloads[0].index++;
@@ -160,50 +252,87 @@ Font::Font(std::string font_name, u32 start_codepoint, u32 end_codepoint, u32 pi
             }
 
             i32 total_layers = 0;
-            for(auto& workload : workloads) {
+            for (auto &workload : workloads) {
                 total_layers += workload.drawable_glyph_count;
             }
 
             // Generate array texture
             u32 texture;
-            glGenTextures(1, &texture); CheckGLError();
-            glBindTexture(GL_TEXTURE_2D_ARRAY, texture); CheckGLError();
-            glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR); CheckGLError();
-            glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR); CheckGLError();
+            glGenTextures(1, &texture);
+            CheckGLError();
+            glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
+            CheckGLError();
+            glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            CheckGLError();
+            glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            CheckGLError();
             glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGB8, m_bitmap_size.x, m_bitmap_size.y, total_layers); CheckGLError();
+            glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGB8, m_bitmap_size.x, m_bitmap_size.y, total_layers);
+            CheckGLError();
 
             m_glyphs.resize(m_font_info.numGlyphs);
 
+            // Build up the new cache while also building the array texture.
+            flatbuffers::FlatBufferBuilder builder;
+            std::vector<flatbuffers::Offset<FontCacheSerialize::Glyph>> serial_font_glyph_definitions;
+            serial_font_glyph_definitions.resize(total_layers);
+
             int layer = 0;
-            for(auto& workload : workloads) {
-                for(auto& pending_glyph : workload.glyphs) {
-                    Glyph& glyph = m_glyphs[pending_glyph.index];
-                    if(!pending_glyph.empty) {
-                        if(layer > total_layers) {
+            for (auto &workload : workloads) {
+                for (auto &pending_glyph : workload.glyphs) {
+                    Glyph &glyph = m_glyphs[pending_glyph.index];
+                    if (!pending_glyph.empty) {
+                        if (layer > total_layers) {
                             int i = 0;
                         }
-                        glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, layer, m_bitmap_size.x, m_bitmap_size.y, 1, GL_RGB, GL_UNSIGNED_BYTE, pending_glyph.bitmap.data()); CheckGLError();
+                        glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, layer, m_bitmap_size.x, m_bitmap_size.y, 1,
+                                        GL_RGB, GL_UNSIGNED_BYTE, pending_glyph.bitmap.data());
+                        CheckGLError();
                         glyph.layer = layer;
+
+                        auto new_serial_bitmap = builder.CreateVector(
+                                reinterpret_cast<i8 *>(pending_glyph.bitmap.data()), pending_glyph.bitmap.size());
+                        auto new_serial_glyph = FontCacheSerialize::CreateGlyph(builder, new_serial_bitmap, pending_glyph.index);
+                        serial_font_glyph_definitions[layer] = new_serial_glyph;
+
                         ++layer;
                     }
                     glyph.index = pending_glyph.index;
-                    stbtt_GetGlyphBox(&m_font_info, glyph.index, &glyph.bounding_box.x0, &glyph.bounding_box.y0, &glyph.bounding_box.x1, &glyph.bounding_box.y1);
+                    stbtt_GetGlyphBox(&m_font_info, glyph.index, &glyph.bounding_box.x0, &glyph.bounding_box.y0,
+                                      &glyph.bounding_box.x1, &glyph.bounding_box.y1);
+
                 }
             }
 
+            auto serial_font_data = builder.CreateVector(reinterpret_cast<i8 *>(m_font_data.data()),
+                                                         m_font_data.size());
+            auto serial_font_glyphs = builder.CreateVector(serial_font_glyph_definitions);
+            auto finalized = FontCacheSerialize::CreateFontCache(builder, serial_font_data, serial_font_glyphs,
+                                                                 m_bitmap_size.x, m_bitmap_size.y);
+
+            builder.Finish(finalized);
+            u8 *buf = builder.GetBufferPointer();
+            int size = builder.GetSize();
+
+            std::ofstream save_file(cached_font_path, std::ios::out | std::ios::binary);
+            save_file.write(reinterpret_cast<char *>(buf), size);
+            save_file.flush();
+
             m_texture_handle = texture;
 
-            for(int i = 0; i < m_codepoints.size(); ++i) {
-                m_codepoints[i] = stbtt_FindGlyphIndex(&m_font_info, i+1);
+            for (int i = 0; i < m_codepoints.size(); ++i) {
+                m_codepoints[i] = stbtt_FindGlyphIndex(&m_font_info, i + 1);
             }
 
+            return true;
         } else {
 
-        }
+            // TODO: Set a required glyph count before multithreading.
 
+        }
     }
+    return false;
 }
 
 Font::~Font() {
