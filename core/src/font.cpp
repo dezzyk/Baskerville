@@ -382,7 +382,7 @@ u32 Font::calcStringPixelWidth(std::string& str, u32 pixel_height) const {
 
         i32 advance;
         i32 lsb = 0;
-        getCodepointAdvance(32, str[i], advance, lsb);
+        getCodepointAdvance(pixel_height, str[i], advance, lsb);
 
         // Calc an offset for the glyph to orient it in accordence to the font metrics since they always render from the center.
         int xoffset = advance / 2;
@@ -393,7 +393,7 @@ u32 Font::calcStringPixelWidth(std::string& str, u32 pixel_height) const {
         xpos += advance;
         int kern = 0;
         if (i < str.size() - 1) {
-            xpos += getKernAdvance(32, str[i], str[i + 1]);
+            xpos += getKernAdvance(pixel_height, str[i], str[i + 1]);
         }
 
     }

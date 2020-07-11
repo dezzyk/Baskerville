@@ -169,7 +169,7 @@ glm::vec2 Widget::calcDrawSize() {
         glm::vec2 final_size = size;
         f32 scale = Platform::getViewportScaler();
         if(!unscaled_width) { final_size.x *= scale; }
-        if(!unscaled_height) { final_size.x *= scale; }
+        if(!unscaled_height) { final_size.y *= scale; }
         return final_size;
     }
     return size;

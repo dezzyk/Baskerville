@@ -35,7 +35,7 @@ private:
 
     Project m_project;
     const Font* m_font = nullptr;
-    std::array<Line, 6> m_lines;
+    std::vector<Line> m_lines;
     Line* m_prev_line_4 = nullptr;
     Line* m_prev_line_3 = nullptr;
     Line* m_prev_line_2 = nullptr;

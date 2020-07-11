@@ -30,7 +30,7 @@ void Label::setValue(const std::string& value, const Font* font, u32 pixel_heigh
 
                 i32 advance;
                 i32 lsb = 0;
-                m_font->getCodepointAdvance(32, value[i], advance, lsb);
+                m_font->getCodepointAdvance(m_pixel_height, value[i], advance, lsb);
 
                 // Calc an offset for the glyph to orient it in accordence to the font metrics since they always render from the center.
                 int xoffset = advance / 2;
@@ -58,7 +58,7 @@ void Label::setValue(const std::string& value, const Font* font, u32 pixel_heigh
                 xpos += advance;
                 int kern = 0;
                 if (i < value.size() - 1) {
-                    xpos += m_font->getKernAdvance(32, value[i], value[i + 1]);
+                    xpos += m_font->getKernAdvance(m_pixel_height, value[i], value[i + 1]);
                 }
 
                 if(xpos * m_font->calcScale(m_pixel_height) > size.x) {
@@ -100,6 +100,7 @@ void Label::derivedDraw(Draw::Queue& queue) {
         f32 scale = Platform::getViewportScaler();
 
         glm::vec2 draw_pos = calcDrawPos();
+        //glm::vec2 draw_size = calcDrawSize();
         m_draw_context.model = glm::mat4(1.0f);
         m_draw_context.model = glm::translate(m_draw_context.model, glm::vec3(draw_pos.x - draw_size.x / 2, draw_pos.y, 0.0f));
         m_draw_context.model = glm::scale(m_draw_context.model, glm::vec3(m_font->calcScale(m_pixel_height) * scale,

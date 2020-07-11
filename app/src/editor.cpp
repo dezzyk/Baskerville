@@ -6,29 +6,26 @@
 
 #include <filesystem>
 
-Editor::Editor(Widget* parent, CacheBank& cache) : Widget(parent), m_lines
-        {
-                Label(this), "", nullptr,
-                Label(this), "", nullptr,
-                Label(this), "", nullptr,
-                Label(this), "", nullptr,
-                Label(this), "", nullptr,
-                Label(this), "", nullptr
-        } {
+Editor::Editor(Widget* parent, CacheBank& cache) : Widget(parent) {
 
     m_project;
 
     anchor = Anchor::Center;
     size.x = 800;
     size.y = getParent()->getSize().y;
-    unscaled_width = true;
+    unscaled_height = true;
     m_font_pixel_height = 30;
     offset = {0.0f, 0.0f};
 
     m_font = Font::Cache::fetch("editor");
 
+    m_lines.reserve(6);
+    for(int i = 0; i < 6; ++i) {
+        m_lines.emplace_back(Line{Label(this), "", nullptr});
+    }
+
     m_next_line = &m_lines[0];
-    m_active_line = &m_lines[1];
+    m_active_line = &m_lines    [1];
     m_prev_line_1 = &m_lines[2];
     m_prev_line_2 = &m_lines[3];
     m_prev_line_3 = &m_lines[4];
