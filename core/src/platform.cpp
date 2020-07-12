@@ -112,6 +112,13 @@ b32 Platform::Manager::pollEvents(Event::Container& event) {
                 event.value.macro = Event::Macro::Enter;
             }
         } else if(e.type == SDL_MOUSEBUTTONDOWN) {
+            event.type = Meta::MakeType<Event::MouseClick>();
+            if(e.button.button == SDL_BUTTON_LEFT) {
+                event.value.mouseClick.button = true;
+            } else if (e.button.button == SDL_BUTTON_RIGHT) {
+                event.value.mouseClick.button = false;
+            }
+            event.value.mouseClick.pos = { e.button.x, e.button.y };
             // TODO mouse events
         } /*else if(e.type == SDL_WINDOWEVENT && e.window.event == SDL_WINDOWEVENT_RESIZED) {
             glm::vec2 size = getViewportSize();

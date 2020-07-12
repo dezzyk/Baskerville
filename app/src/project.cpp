@@ -42,9 +42,9 @@ Project::Project() {
                 }
             }*/
         }
-    } else {
-        m_paragraphs.push_back({});
-    }
+    } //else {
+        //m_paragraphs.push_back({});
+    //}
 
 }
 
@@ -187,7 +187,24 @@ b32 Project::exportToTXT() {
     return true;
 }
 
-std::string Project::getLastLine() {
+void Project::pushLine(std::string line) {
+    m_lines.push_back(line);
+}
+
+std::string* Project::getLineFromId(u32 id) {
+    if(id < m_lines.size()) {
+        return &m_lines[id];
+    }
+}
+
+
+void Project::destroyLineFromId(u32 id) {
+
+    // Is this really needed??
+
+}
+
+/*std::string Project::getLastLine() {
     if(!m_paragraphs.back().lines.empty()) {
         return m_paragraphs.back().lines.back();
     }
@@ -203,10 +220,10 @@ void Project::pushLine(std::string line) {
                 }
             }
         }
-    }*/
+    }
     m_paragraphs.back().lines.push_back(line);
 }
 
 void Project::completeParagraph() {
     m_paragraphs.push_back({});
-}
+}*/

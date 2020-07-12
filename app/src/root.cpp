@@ -28,7 +28,7 @@ Draw::RedrawFlag Root::onMacro(const Event::Macro& macro) {
 }
 
 Draw::RedrawFlag Root::onMouseClick(Event::MouseClick mouse_click) {
-    return false;
+    return m_editor->onMouseClick(mouse_click);
 }
 
 void Root::derivedDraw(Draw::Queue &queue) {

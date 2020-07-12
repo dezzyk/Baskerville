@@ -19,12 +19,21 @@ Editor::Editor(Widget* parent, CacheBank& cache) : Widget(parent) {
 
     m_font = Font::Cache::fetch("editor");
 
-    m_lines.reserve(6);
-    for(int i = 0; i < 6; ++i) {
-        m_lines.emplace_back(Line{Label(this), "", nullptr});
+    m_lines.reserve(32);
+    for(int i = 0; i < 32; ++i) {
+        m_lines.emplace_back(Line{Label(this), -1});
+        m_lines[i].label.setWidth(size.x);
+        m_lines[i].label.getOffsetRef().y = ((m_font_pixel_height * 32) / -2) + (m_font_pixel_height * i);
+        std::string test =  "TEST";
+        m_lines[i].label.setValue(&test, m_font, m_font_pixel_height);
+        /*std::string* val = m_project.getLineFromId(i);
+        if(val) {
+            m_lines[i].cur_id = i;
+            m_lines[i].label.setValue(val, m_font, m_font_pixel_height);
+        }*/
     }
 
-    m_next_line = &m_lines[0];
+    /*m_next_line = &m_lines[0];
     m_active_line = &m_lines    [1];
     m_prev_line_1 = &m_lines[2];
     m_prev_line_2 = &m_lines[3];
@@ -50,24 +59,18 @@ Editor::Editor(Widget* parent, CacheBank& cache) : Widget(parent) {
     m_prev_line_2->label.getOffsetRef().y = m_font_pixel_height * 2 + m_line_base_offset;
     m_prev_line_1->label.getOffsetRef().y = m_font_pixel_height + m_line_base_offset;
     m_active_line->label.getOffsetRef().y =0.0f + m_line_base_offset;
-    m_next_line->label.getOffsetRef().y = m_font_pixel_height * -1 + m_line_base_offset;
+    m_next_line->label.getOffsetRef().y = m_font_pixel_height * -1 + m_line_base_offset;*/
 
 }
 
 Draw::RedrawFlag Editor::derivedUpdate(f64 delta) {
-    if(m_line_lerp_scaler != 1.0f) {
+    /*if(m_line_lerp_scaler != 1.0f) {
         m_line_lerp_accumulator += delta;
         if(m_line_lerp_accumulator >= m_line_lerp_time) {
             m_line_lerp_scaler = 1.0f;
             m_line_lerp_accumulator = 0.0;
         } else {
             // Should be in a header eventually
-            //f32 t = (m_line_lerp_accumulator / m_line_lerp_time);
-            //f32 m = t-1.0f;
-            //f32 k = 1.70158;
-            //m_line_lerp_scaler = 1.0f + m*m*(  m*(k+1) + k);
-            //m_line_lerp_accumulator += delta;
-
             f32 t = (m_line_lerp_accumulator / m_line_lerp_time);
             f32 m = t-1.0f;
             m_line_lerp_scaler = glm::sqrt( 1.0f-m*m);
@@ -92,14 +95,14 @@ Draw::RedrawFlag Editor::derivedUpdate(f64 delta) {
             m_next_line->label.setAlpha(0.2f - (0.2f * m_line_lerp_scaler));
         }
         return true;
-    }
+    }*/
     return false;
 }
 
 Draw::RedrawFlag Editor::onTextInput(const Event::TextInput& text) {
 
     // Brute-force af impl for capitalizing starts or paragraphs and sentences.
-    std::string additive = text.value;
+    /*std::string additive = text.value;
     if(!m_active_line->value.compare("        ")) {
         m_active_line->value += std::toupper(additive.back());
     } else if (!m_active_line->value.empty()) {
@@ -182,12 +185,12 @@ Draw::RedrawFlag Editor::onTextInput(const Event::TextInput& text) {
     } else {
         m_active_line->label.setValue(m_active_line->value, m_font, m_font_pixel_height);
         //m_active_line->label.setAlpha(1.0f);
-    }
+    }*/
     return true;
 }
 
 Draw::RedrawFlag Editor::onMacro(const Event::Macro& macro) {
-    if(macro == Event::Macro::Backspace && !m_active_line->value.empty()) {
+    /*if(macro == Event::Macro::Backspace && !m_active_line->value.empty()) {
         m_active_line->value.pop_back();
         m_active_line->label.setValue(m_active_line->value, m_font, m_font_pixel_height);
         m_active_line->label.setAlpha(1.0f);
@@ -223,11 +226,17 @@ Draw::RedrawFlag Editor::onMacro(const Event::Macro& macro) {
         return true;
     } else if(macro == Event::Macro::Export) {
         m_project.exportToTXT();
-    }
+    }*/
     return false;
 }
 
 Draw::RedrawFlag Editor::onMouseClick(Event::MouseClick mouse_click) {
+    for(int i = 0; i < m_lines.size(); ++i) {
+        if(m_lines[i].label.pointIntersect(mouse_click.pos)) {
+            m_selected_line_index = i;
+            std::cout << i << std::endl;
+        }
+    }
     return false;
 }
 
@@ -235,11 +244,8 @@ void Editor::derivedDraw(Draw::Queue& queue) {
 
     size.y = getParent()->getSize().y;
 
-    m_next_line->label.draw(queue);
-    m_active_line->label.draw(queue);
-    m_prev_line_1->label.draw(queue);
-    m_prev_line_2->label.draw(queue);
-    m_prev_line_3->label.draw(queue);
-    m_prev_line_4->label.draw(queue);
+    for(auto& line : m_lines) {
+        line.label.draw(queue);
+    }
 
 }

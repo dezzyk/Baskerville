@@ -16,7 +16,7 @@ public:
     Label() = delete;
     explicit Label(Widget* parent);
     // string value is not stored internally to prevent conflicts.
-    void setValue(const std::string& value, const Font* font, u32 pixel_height);
+    void setValue(const std::string* value, const Font* font, u32 pixel_height);
     void setColor(glm::vec3 color);
     void setAlpha(f32 alpha);
     void setWidth(u32 width);

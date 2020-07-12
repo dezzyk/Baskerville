@@ -22,9 +22,11 @@ Widget::Widget(Widget&& other) noexcept :
 
 b32 Widget::pointIntersect(glm::vec2 pos) {
     glm::vec2 draw_size = calcDrawSize();
-    glm::vec2 draw_pos = calcDrawPos();
-    return pos.x >= (draw_pos.x - (draw_size.x / 2)) && pos.x <= (draw_pos.x + (draw_size.x / 2)) &&
-           pos.y >= (draw_pos.y - (draw_size.y / 2)) && pos.y <= (draw_pos.y + (draw_size.y / 2));
+    glm::vec2 detection_pos = calcDrawPos();
+    glm::vec2 viewport = Platform::getViewportSize();
+    detection_pos.y = viewport .y - detection_pos.y;
+    return pos.x >= (detection_pos.x - (draw_size.x / 2)) && pos.x <= (detection_pos.x + (draw_size.x / 2)) &&
+           pos.y >= (detection_pos.y - (draw_size.y / 2)) && pos.y <= (detection_pos.y + (draw_size.y / 2));
 }
 
 const glm::vec2& Widget::getSize() const {

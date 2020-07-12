@@ -11,8 +11,9 @@ Label::Label(Widget* parent) : Widget(parent) {
     unscaled_width = true;
 }
 
-void Label::setValue(const std::string& value, const Font* font, u32 pixel_height) {
+void Label::setValue(const std::string* value, const Font* font, u32 pixel_height) {
 
+    if(value == nullptr) { return; }
     //m_color = color;
     m_font = font;
     if(m_font != nullptr) {
@@ -20,17 +21,17 @@ void Label::setValue(const std::string& value, const Font* font, u32 pixel_heigh
         m_pixel_height = pixel_height;
         size.y = m_font->getPixelHeight() * (m_pixel_height / m_font->getPixelHeight());
 
-        if (!value.empty()) {
+        if (!value->empty()) {
 
             static std::vector<Draw::Quad> boxes;
             boxes.resize(0);
 
             i32 xpos = 0;
-            for (int i = 0; i < value.size(); ++i) {
+            for (int i = 0; i < value->size(); ++i) {
 
                 i32 advance;
                 i32 lsb = 0;
-                m_font->getCodepointAdvance(m_pixel_height, value[i], advance, lsb);
+                m_font->getCodepointAdvance(m_pixel_height, value->at(i), advance, lsb);
 
                 // Calc an offset for the glyph to orient it in accordence to the font metrics since they always render from the center.
                 int xoffset = advance / 2;
@@ -38,11 +39,11 @@ void Label::setValue(const std::string& value, const Font* font, u32 pixel_heigh
                     xoffset -= lsb; // lsb is always negative
                 }
 
-                if (value[i] != ' ' && m_font->getCodepointLayer((u32)value[i]) != -1) {
+                if (value->at(i) != ' ' && m_font->getCodepointLayer((u32)value->at(i)) != -1) {
 
                     Draw::Quad box;
                     box.setColor({1.0f, 1.0f, 1.0f, 1.0f});
-                    box.setUVDepth(m_font->getCodepointLayer((u32)value[i]));
+                    box.setUVDepth(m_font->getCodepointLayer((u32)value->at(i)));
 
                     glm::mat4 model = glm::mat4(1.0f);
                     glm::vec2 bounding_box_size = m_font->getBoundingBoxSize();
@@ -57,8 +58,8 @@ void Label::setValue(const std::string& value, const Font* font, u32 pixel_heigh
 
                 xpos += advance;
                 int kern = 0;
-                if (i < value.size() - 1) {
-                    xpos += m_font->getKernAdvance(m_pixel_height, value[i], value[i + 1]);
+                if (i < value->size() - 1) {
+                    xpos += m_font->getKernAdvance(m_pixel_height, value->at(i), value->at(i + 1));
                 }
 
                 if(xpos * m_font->calcScale(m_pixel_height) > size.x) {
