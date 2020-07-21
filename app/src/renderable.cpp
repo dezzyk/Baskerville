@@ -61,16 +61,6 @@ Renderable::~Renderable() {
     }
 }
 
-/*void Renderable::setShaderAndUpdateMatricesBlockIndex(const Shader* shader) {
-    if(shader) {
-        m_ubo_index = glGetUniformBlockIndex(m_shader->getHandle().value(), "matrices");
-        if(m_ubo_index == GL_INVALID_INDEX) {
-            m_ubo_index = std::nullopt;
-            m_shader = nullptr;
-        }
-    }
-}*/
-
 const std::optional<u32>& Renderable::getVBO() const {
     return m_vbo;
 }

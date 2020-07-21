@@ -77,14 +77,11 @@ std::optional<glm::vec2> Widget::calcDrawSize(entt::entity entity, entt::registr
 
     if(reg.has<Widget>(entity) && reg.valid(entity)) {
         Widget& widget = reg.get<Widget>(entity);
-        if(widget.parent.has_value()) {
-            glm::vec2 final_size = widget.size;
-            f32 scale = Platform::getViewportScaler();
-            if(!widget.unscaled_width) { final_size.x *= scale; }
-            if(!widget.unscaled_height) { final_size.y *= scale; }
-            return final_size;
-        }
-        return widget.size;
+        glm::vec2 final_size = widget.size;
+        f32 scale = Platform::getViewportScaler();
+        if(!widget.unscaled_width) { final_size.x *= scale; }
+        if(!widget.unscaled_height) { final_size.y *= scale; }
+        return final_size;
     }
     return std::nullopt;
 
