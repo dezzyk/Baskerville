@@ -11,6 +11,7 @@
 #include <optional>
 
 struct Widget {
+
     enum class Align {
         Top,
         Bottom,
@@ -22,6 +23,10 @@ struct Widget {
         BottomRight,
         Center
     };
+
+    static std::optional<glm::vec2> calcDrawPos(entt::entity entity, entt::registry &reg);
+    static std::optional<glm::vec2> calcDrawSize(entt::entity entity, entt::registry &reg);
+
     glm::vec2 size = { 1.0f, 1.0f };
     glm::vec2 offset = { 0.0f, 0.0f };
     b32 unscaled_width = false;
@@ -30,9 +35,3 @@ struct Widget {
     std::optional<entt::entity> parent;
 
 };
-
-namespace WidgetProcs {
-    std::optional<glm::vec2> calcDrawPos(entt::entity entity, entt::registry &reg);
-    std::optional<glm::vec2> calcDrawSize(entt::entity entity, entt::registry &reg);
-
-}

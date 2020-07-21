@@ -167,10 +167,10 @@ public:
     void quadUpload(std::array<Quad, C>& data) {
         if(valid()) {
             m_size = data.size();
-            u32 byte_size = m_size * sizeof(Draw::Quad);
+            u32 byte_size = m_size * sizeof(Quad);
             glBindBuffer(GL_ARRAY_BUFFER, m_vbo.value());
             if(byte_size > m_capacity) {
-                m_capacity = byte_size + (byte_size % sizeof(Draw::Quad)) + (sizeof(Draw::Quad) * 8);
+                m_capacity = byte_size + (byte_size % sizeof(Quad)) + (sizeof(Quad) * 8);
                 glBufferData(GL_ARRAY_BUFFER, m_capacity, nullptr, GL_DYNAMIC_DRAW);
             }
             glBufferSubData(GL_ARRAY_BUFFER, 0, byte_size, data.data());

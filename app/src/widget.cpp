@@ -5,7 +5,7 @@
 #include "widget.h"
 #include "platform.h"
 
-std::optional<glm::vec2> WidgetProcs::calcDrawPos(entt::entity entity, entt::registry &reg) {
+std::optional<glm::vec2> Widget::calcDrawPos(entt::entity entity, entt::registry &reg) {
 
     if(reg.has<Widget>(entity) && reg.valid(entity)) {
         Widget& widget = reg.get<Widget>(entity);
@@ -73,7 +73,7 @@ std::optional<glm::vec2> WidgetProcs::calcDrawPos(entt::entity entity, entt::reg
 
 }
 
-std::optional<glm::vec2> WidgetProcs::calcDrawSize(entt::entity entity, entt::registry &reg) {
+std::optional<glm::vec2> Widget::calcDrawSize(entt::entity entity, entt::registry &reg) {
 
     if(reg.has<Widget>(entity) && reg.valid(entity)) {
         Widget& widget = reg.get<Widget>(entity);
