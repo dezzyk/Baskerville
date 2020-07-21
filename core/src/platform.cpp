@@ -10,7 +10,7 @@
 
 #include <iostream>
 
-std::vector<const Draw::Context*> Platform::draw_queue;
+std::vector<const Renderable*> Platform::draw_queue;
 SDL_Window* Platform::window = nullptr;
 SDL_GLContext  Platform::context;
 f32 Platform::viewport_scaler = 1.0f;
@@ -82,37 +82,37 @@ b32 Platform::Manager::pollEvents(Event::Container& event) {
             e.text.text[ 0 ] == 'x' ||
             e.text.text[ 0 ] == 'X' ))) {
                 std::string_view str(e.text.text);
-                event.type = Meta::MakeType<Event::TextInput>();
+                event.type = TypeIndex::make<Event::TextInput>();
                 strcpy(event.value.text.value, e.text.text);
             }
         } else if( e.type == SDL_KEYDOWN ) {
             if( e.key.keysym.sym == SDLK_BACKSPACE) {
-                event.type = Meta::MakeType<Event::Macro>();
+                event.type = TypeIndex::make<Event::Macro>();
                 event.value.macro = Event::Macro::Backspace;
             } else if( e.key.keysym.sym == SDLK_c && SDL_GetModState() & KMOD_CTRL ) {
-                event.type = Meta::MakeType<Event::Macro>();
+                event.type = TypeIndex::make<Event::Macro>();
                 event.value.macro = Event::Macro::Copy;
             } else if( e.key.keysym.sym == SDLK_v && SDL_GetModState() & KMOD_CTRL ) {
-                event.type = Meta::MakeType<Event::Macro>();
+                event.type = TypeIndex::make<Event::Macro>();
                 event.value.macro = Event::Macro::Paste;
             } else if( e.key.keysym.sym == SDLK_s && SDL_GetModState() & KMOD_CTRL ) {
-                event.type = Meta::MakeType<Event::Macro>();
+                event.type = TypeIndex::make<Event::Macro>();
                 event.value.macro = Event::Macro::Save;
             } else if( e.key.keysym.sym == SDLK_o && SDL_GetModState() & KMOD_CTRL ) {
-                event.type = Meta::MakeType<Event::Macro>();
+                event.type = TypeIndex::make<Event::Macro>();
                 event.value.macro = Event::Macro::Open;
             } else if( e.key.keysym.sym == SDLK_n && SDL_GetModState() & KMOD_CTRL ) {
-                event.type = Meta::MakeType<Event::Macro>();
+                event.type = TypeIndex::make<Event::Macro>();
                 event.value.macro = Event::Macro::New;
             } else if( e.key.keysym.sym == SDLK_e && SDL_GetModState() & KMOD_CTRL ) {
-                event.type = Meta::MakeType<Event::Macro>();
+                event.type = TypeIndex::make<Event::Macro>();
                 event.value.macro = Event::Macro::Export;
             } else if( e.key.keysym.sym == SDLK_RETURN) {
-                event.type = Meta::MakeType<Event::Macro>();
+                event.type = TypeIndex::make<Event::Macro>();
                 event.value.macro = Event::Macro::Enter;
             }
         } else if(e.type == SDL_MOUSEBUTTONDOWN) {
-            event.type = Meta::MakeType<Event::MouseClick>();
+            event.type = TypeIndex::make<Event::MouseClick>();
             if(e.button.button == SDL_BUTTON_LEFT) {
                 event.value.mouseClick.button = true;
             } else if (e.button.button == SDL_BUTTON_RIGHT) {
@@ -137,7 +137,7 @@ b32 Platform::Manager::shouldQuit() {
     return should_close;
 }
 
-std::vector<const Draw::Context*>& Platform::Manager::getDrawQueue() {
+std::vector<const Renderable*>& Platform::Manager::getDrawQueue() {
     return draw_queue;
 }
 
@@ -167,42 +167,42 @@ void Platform::Manager::executeDrawCalls() {
                 glBindVertexArray(draw->getVAO().value());
                 glUseProgram(draw->getShader()->getHandle().value());
                 glBindBufferRange(GL_UNIFORM_BUFFER, 0, mat_ubo, 0, 2 * sizeof(glm::mat4));
-                for (int i = 0; i < draw->uniforms.size(); ++i) {
-                    if (draw->uniforms[i].type != Meta::MakeType<Meta::Empty>()) {
-                        Meta::Type type = draw->uniforms[i].type;
-                        if (type == Meta::MakeType<glm::mat4>()) {
-                            glUniformMatrix4fv(i, 1, GL_FALSE, glm::value_ptr(draw->uniforms[i].value.mat4));
-                        } else if (type == Meta::MakeType<glm::vec4>()) {
-                            glUniform4f(i, draw->uniforms[i].value.vec4.x, draw->uniforms[i].value.vec4.y,
-                                        draw->uniforms[i].value.vec4.z, draw->uniforms[i].value.vec4.w);
-                        } else if (type == Meta::MakeType<glm::vec3>()) {
-                            glUniform3f(i, draw->uniforms[i].value.vec3.x, draw->uniforms[i].value.vec3.y,
-                                        draw->uniforms[i].value.vec3.z);
-                        } else if (type == Meta::MakeType<glm::vec2>()) {
-                            glUniform2f(i, draw->uniforms[i].value.vec2.x, draw->uniforms[i].value.vec2.y);
-                        } else if (type == Meta::MakeType<f32>()) {
-                            glUniform1f(i, draw->uniforms[i].value.u_f32);
-                        } else if (type == Meta::MakeType<u32>()) {
-                            glUniform1ui(i, draw->uniforms[i].value.u_u32);
-                        } else if (type == Meta::MakeType<i32>()) {
-                            glUniform1i(i, draw->uniforms[i].value.u_i32);
-                        } else if (type == Meta::MakeType<Draw::Uniform::Texture>()) {
-                            glUniform1i(i, draw->uniforms[i].value.texture.index);
-                            glActiveTexture(GL_TEXTURE0 + draw->uniforms[i].value.texture.index);
-                            glBindTexture(GL_TEXTURE_2D, draw->uniforms[i].value.texture.handle);
-                        } else if (type == Meta::MakeType<Draw::Uniform::ArrayTexture>()) {
-                            glUniform1i(i, draw->uniforms[i].value.texture.index);
-                            glActiveTexture(GL_TEXTURE0 + draw->uniforms[i].value.array_texture.index);
-                            glBindTexture(GL_TEXTURE_2D_ARRAY, draw->uniforms[i].value.array_texture.handle);
+                for (int i = 0; i < draw->descriptors.size(); ++i) {
+                    if (draw->descriptors[i].type != TypeIndex::make<TypeIndex::Empty>()) {
+                        TypeIndex type = draw->descriptors[i].type;
+                        if (type == TypeIndex::make<glm::mat4>()) {
+                            glUniformMatrix4fv(i, 1, GL_FALSE, glm::value_ptr(draw->descriptors[i].value.mat4));
+                        } else if (type == TypeIndex::make<glm::vec4>()) {
+                            glUniform4f(i, draw->descriptors[i].value.vec4.x, draw->descriptors[i].value.vec4.y,
+                                        draw->descriptors[i].value.vec4.z, draw->descriptors[i].value.vec4.w);
+                        } else if (type == TypeIndex::make<glm::vec3>()) {
+                            glUniform3f(i, draw->descriptors[i].value.vec3.x, draw->descriptors[i].value.vec3.y,
+                                        draw->descriptors[i].value.vec3.z);
+                        } else if (type == TypeIndex::make<glm::vec2>()) {
+                            glUniform2f(i, draw->descriptors[i].value.vec2.x, draw->descriptors[i].value.vec2.y);
+                        } else if (type == TypeIndex::make<f32>()) {
+                            glUniform1f(i, draw->descriptors[i].value.u_f32);
+                        } else if (type == TypeIndex::make<u32>()) {
+                            glUniform1ui(i, draw->descriptors[i].value.u_u32);
+                        } else if (type == TypeIndex::make<i32>()) {
+                            glUniform1i(i, draw->descriptors[i].value.u_i32);
+                        } else if (type == TypeIndex::make<Renderable::Descriptor::Texture>()) {
+                            glUniform1i(i, draw->descriptors[i].value.texture.index);
+                            glActiveTexture(GL_TEXTURE0 + draw->descriptors[i].value.texture.index);
+                            glBindTexture(GL_TEXTURE_2D, draw->descriptors[i].value.texture.handle);
+                        } else if (type == TypeIndex::make<Renderable::Descriptor::ArrayTexture>()) {
+                            glUniform1i(i, draw->descriptors[i].value.texture.index);
+                            glActiveTexture(GL_TEXTURE0 + draw->descriptors[i].value.array_texture.index);
+                            glBindTexture(GL_TEXTURE_2D_ARRAY, draw->descriptors[i].value.array_texture.handle);
                         }
                     }
                 }
-                for (int i = 0; i < draw->buffers.size(); ++i) {
+                /*for (int i = 0; i < draw->buffers.size(); ++i) {
                     if (draw->buffers[i].handle != 0) {
                         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, i, draw->buffers[i].handle);
                     }
-                }
-                Draw::Quad size_quad; // I hate this
+                }*/
+                Renderable::Quad size_quad; // I hate this
                 glDrawArrays(GL_TRIANGLES, 0, draw->size() * size_quad.vertices.size());
                 CheckGLError();
             }

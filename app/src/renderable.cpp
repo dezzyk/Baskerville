@@ -1,14 +1,14 @@
 //
-// Created by Feed on 6/5/2020.
+// Created by Feed on 7/20/2020.
 //
 
-#include "draw_context.h"
+#include "renderable.h"
 
 #include <iostream>
 
-Draw::Context::Context() {}
+Renderable::Renderable() {}
 
-Draw::Context::Context(const char* shader_name) {
+Renderable::Renderable(const char* shader_name) {
     m_shader = Shader::Cache::fetch(shader_name);
     if(m_shader) {
         u32 vbo_handle, vao_handle;
@@ -16,7 +16,7 @@ Draw::Context::Context(const char* shader_name) {
         glGenVertexArrays(1, &vao_handle);
         if (vbo_handle != 0) {
             if (vao_handle != 0) {
-                m_capacity = sizeof(Draw::Quad) * 8;  // Preallocate for 8 boxes
+                m_capacity = sizeof(Quad) * 8;  // Preallocate for 8 boxes
                 m_vbo = vbo_handle;
                 m_vao = vao_handle;
                 glBindVertexArray(m_vao.value());
@@ -46,11 +46,11 @@ Draw::Context::Context(const char* shader_name) {
         }
     }
     if(!valid()) {
-        std::cout << "Failed to create draw context" << std::endl;
+        std::cout << "Failed to create valid renderable" << std::endl;
     }
 }
 
-Draw::Context& Draw::Context::operator=(Context&& other) {
+Renderable& Renderable::operator=(Renderable&& other) {
     m_vbo = other.m_vbo;
     m_vao = other.m_vao;
     m_shader = other.m_shader;
@@ -60,16 +60,16 @@ Draw::Context& Draw::Context::operator=(Context&& other) {
     return *this;
 }
 
-Draw::Context::Context(Context&& other) noexcept :
-    m_vbo(other.m_vbo),
-    m_vao(other.m_vao),
-    m_shader(other.m_shader){
+Renderable::Renderable(Renderable&& other) noexcept :
+        m_vbo(other.m_vbo),
+        m_vao(other.m_vao),
+        m_shader(other.m_shader){
     other.m_vbo = std::nullopt;
     other.m_vao = std::nullopt;
     other.m_shader = nullptr;
 }
 
-Draw::Context::~Context() {
+Renderable::~Renderable() {
     if(m_vao.has_value()){
         glDeleteVertexArrays(1, &m_vao.value());
     }
@@ -78,25 +78,25 @@ Draw::Context::~Context() {
     }
 }
 
-const std::optional<u32>& Draw::Context::getVBO() const {
+const std::optional<u32>& Renderable::getVBO() const {
     return m_vbo;
 }
 
-const std::optional<u32>& Draw::Context::getVAO() const {
+const std::optional<u32>& Renderable::getVAO() const {
     return m_vao;
 }
 
-const Shader* Draw::Context::getShader() const {
+const Shader* Renderable::getShader() const {
     return m_shader;
 }
 
-void Draw::Context::quadUpload(Draw::Quad& data) {
+void Renderable::quadUpload(Quad& data) {
     if(valid()) {
         m_size = 1;
-        u32 byte_size = sizeof(Draw::Quad);
+        u32 byte_size = sizeof(Quad);
         glBindBuffer(GL_ARRAY_BUFFER, m_vbo.value());
         if(byte_size > m_capacity) { // Should never happen
-            m_capacity = byte_size + (byte_size % sizeof(Draw::Quad)) + (sizeof(Draw::Quad) * 8);
+            m_capacity = byte_size + (byte_size % sizeof(Quad)) + (sizeof(Quad) * 8);
             glBufferData(GL_ARRAY_BUFFER, m_capacity, nullptr, GL_DYNAMIC_DRAW);
         }
         glBufferSubData(GL_ARRAY_BUFFER, 0, byte_size, &data);
@@ -104,13 +104,13 @@ void Draw::Context::quadUpload(Draw::Quad& data) {
     }
 }
 
-void Draw::Context::quadUpload(std::vector<Draw::Quad>& data) {
+void Renderable::quadUpload(std::vector<Quad>& data) {
     if(valid()) {
         m_size = data.size();
-        u32 byte_size = m_size * sizeof(Draw::Quad);
+        u32 byte_size = m_size * sizeof(Quad);
         glBindBuffer(GL_ARRAY_BUFFER, m_vbo.value());
         if(byte_size > m_capacity) {
-            m_capacity = byte_size + (byte_size % sizeof(Draw::Quad)) + (sizeof(Draw::Quad) * 8);
+            m_capacity = byte_size + (byte_size % sizeof(Quad)) + (sizeof(Quad) * 8);
             glBufferData(GL_ARRAY_BUFFER, m_capacity, nullptr, GL_DYNAMIC_DRAW);
         }
         glBufferSubData(GL_ARRAY_BUFFER, 0, byte_size, data.data());
@@ -118,14 +118,14 @@ void Draw::Context::quadUpload(std::vector<Draw::Quad>& data) {
     }
 }
 
-u32 Draw::Context::size() const {
+u32 Renderable::size() const {
     return m_size;
 }
 
-void Draw::Context::clear() {
+void Renderable::clear() {
     m_size = 0;
 }
 
-b32 Draw::Context::valid() const {
+b32 Renderable::valid() const {
     return (m_vao.has_value() && m_vbo.has_value() && m_shader);
 }

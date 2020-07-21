@@ -5,8 +5,8 @@
 #pragma once
 
 #include "common.h"
-#include "meta.h"
-#include "draw.h"
+#include "type_index.h"
+#include "redraw_flag.h"
 
 #include "glm/glm.hpp"
 
@@ -80,7 +80,7 @@ namespace Event {
     };
 
     struct Container {
-        Meta::Type type;
+        TypeIndex type;
         union Value {
             Value() {}
             TextInput text;
@@ -93,9 +93,9 @@ namespace Event {
 
     class Handler {
     public:
-        virtual Draw::RedrawFlag onTextInput(const Event::TextInput& text) = 0;
-        virtual Draw::RedrawFlag onMacro(const Event::Macro& macro) = 0;
-        virtual Draw::RedrawFlag onMouseClick(Event::MouseClick mouse_click) = 0;
+        virtual RedrawFlag onTextInput(const Event::TextInput& text) = 0;
+        virtual RedrawFlag onMacro(const Event::Macro& macro) = 0;
+        virtual RedrawFlag onMouseClick(Event::MouseClick mouse_click) = 0;
     };
 
 }

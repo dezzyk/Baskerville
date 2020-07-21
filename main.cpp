@@ -5,11 +5,8 @@
 #include "event.h"
 #include "platform.h"
 #include "font.h"
-#include "root.h"
 #include "shader.h"
-#include "project.h"
-#include "meta.h"
-#include "cache.h"
+#include "app.h"
 
 #include <iostream>
 #include <string>
@@ -18,9 +15,8 @@
 Platform::Manager platform;
 Shader::Cache shader_cache;
 Font::Cache font_cache;
-CacheBank cache;
 
-Root* root;
+App app;
 
 using timestamp = std::chrono::time_point<std::chrono::high_resolution_clock>;
 
@@ -34,12 +30,14 @@ int main(int argc, char *argv[]) {
         Shader::Cache::load("pane", ShaderSrc::pane_vert, ShaderSrc::pane_frag);
         Shader::Cache::load("msdf", ShaderSrc::msdf_vert, ShaderSrc::msdf_frag);
 
-        root = new Root(cache);
+        //root = new Root(cache);
 
         timestamp cur_time = std::chrono::high_resolution_clock::now();
 
         b32 first_frame = true;
         glm::vec2  last_viewport = Platform::getViewportSize();
+
+        app.startup();
 
         while (!platform.shouldQuit()) {
             timestamp new_time = std::chrono::high_resolution_clock::now();
@@ -60,23 +58,23 @@ int main(int argc, char *argv[]) {
             }
             platform.delay(total_delay);
 
-            Draw::RedrawFlag redraw;
+            RedrawFlag redraw;
             if (first_frame) {
                 redraw = true;
                 first_frame = false;
             }
 
-            redraw = root->update(frame_time);
+            //redraw = root->update(frame_time);
 
             Event::Container event;
             while (platform.pollEvents(event)) {
-                if (event.type == Meta::MakeType<Event::TextInput>()) {
+                /*if (event.type == Meta::MakeType<Event::TextInput>()) {
                     redraw = root->onTextInput(event.value.text);
                 } else if (event.type == Meta::MakeType<Event::Macro>()) {
                     redraw = root->onMacro(event.value.macro);
                 } else if (event.type == Meta::MakeType<Event::MouseClick>()) {
                     redraw = root->onMouseClick(event.value.mouseClick);
-                }
+                }*/
             }
 
             glm::vec2 cur_viewport = Platform::getViewportSize();
@@ -86,14 +84,14 @@ int main(int argc, char *argv[]) {
             }
 
             if(redraw) {
-                root->draw(platform.getDrawQueue());
+                //root->draw(platform.getDrawQueue());
                 platform.executeDrawCalls();
                 platform.swap();
             }
 
         }
 
-        delete root;
+        app.shutdown();
 
         shader_cache.clear();
         font_cache.clear();
