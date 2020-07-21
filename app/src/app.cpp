@@ -6,16 +6,37 @@
 
 void App::startup() {
 
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+    test = m_registry.create();
+    auto& widget = m_registry.emplace<Widget>(test);
+    widget = {};
+    widget.size = {512, 512};
+
+    auto& debug = m_registry.emplace<Debug>(test);
+
 }
 
 void App::shutdown() {
+
+    m_registry = {};
 
 }
 
 void App::update() {
 
+    auto view = m_registry.view<Widget, Debug>();
+    for(auto entity: view) {
+        Debug::update(entity, m_registry);
+    }
+
 }
 
-void App::draw() {
+void App::draw(std::vector<const Renderable*>& queue) {
+
+    auto view = m_registry.view<Widget, Debug>();
+    for(auto entity: view) {
+        Debug::draw(entity, m_registry, queue);
+    }
 
 }

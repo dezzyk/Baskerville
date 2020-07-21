@@ -6,47 +6,30 @@
 
 #include <iostream>
 
-Renderable::Renderable() {}
+Renderable::Renderable() {
+    u32 vbo_handle, vao_handle;
+    glGenBuffers(1, &vbo_handle);
+    glGenVertexArrays(1, &vao_handle);
+    if (vbo_handle != 0) {
+        if (vao_handle != 0) {
+            m_capacity = sizeof(Quad) * 8;  // Preallocate for 8 boxes
+            m_vbo = vbo_handle;
+            m_vao = vao_handle;
+            glBindVertexArray(m_vao.value());
+            glBindBuffer(GL_ARRAY_BUFFER, m_vbo.value());
+            glBufferData(GL_ARRAY_BUFFER, m_capacity, nullptr, GL_DYNAMIC_DRAW);
+            glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void *) 0);
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void *) (4 * sizeof(float)));
+            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void *) (7 * sizeof(float)));
+            glEnableVertexAttribArray(2);
+            glBindVertexArray(0);
 
-Renderable::Renderable(const char* shader_name) {
-    m_shader = Shader::Cache::fetch(shader_name);
-    if(m_shader) {
-        u32 vbo_handle, vao_handle;
-        glGenBuffers(1, &vbo_handle);
-        glGenVertexArrays(1, &vao_handle);
-        if (vbo_handle != 0) {
-            if (vao_handle != 0) {
-                m_capacity = sizeof(Quad) * 8;  // Preallocate for 8 boxes
-                m_vbo = vbo_handle;
-                m_vao = vao_handle;
-                glBindVertexArray(m_vao.value());
-                glBindBuffer(GL_ARRAY_BUFFER, m_vbo.value());
-                glBufferData(GL_ARRAY_BUFFER, m_capacity, nullptr, GL_DYNAMIC_DRAW);
-                glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void *) 0);
-                glEnableVertexAttribArray(0);
-                glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void *) (4 * sizeof(float)));
-                glEnableVertexAttribArray(1);
-                glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void *) (7 * sizeof(float)));
-                glEnableVertexAttribArray(2);
-                glBindVertexArray(0);
-
-                m_ubo_index = glGetUniformBlockIndex(m_shader->getHandle().value(), "matrices");
-                if(m_ubo_index == GL_INVALID_INDEX) {
-                    m_ubo_index = 0;
-                    glDeleteVertexArrays(1, &m_vao.value());
-                    glDeleteBuffers(1, &m_vbo.value());
-                    m_vbo = std::nullopt;
-                    m_vao = std::nullopt;
-                    m_shader = nullptr;
-                }
-            } else {
-                glDeleteBuffers(1, &vbo_handle);
-                m_shader = nullptr;
-            }
+        } else {
+            glDeleteBuffers(1, &vbo_handle);
+            m_shader = nullptr;
         }
-    }
-    if(!valid()) {
-        std::cout << "Failed to create valid renderable" << std::endl;
     }
 }
 
@@ -78,6 +61,16 @@ Renderable::~Renderable() {
     }
 }
 
+/*void Renderable::setShaderAndUpdateMatricesBlockIndex(const Shader* shader) {
+    if(shader) {
+        m_ubo_index = glGetUniformBlockIndex(m_shader->getHandle().value(), "matrices");
+        if(m_ubo_index == GL_INVALID_INDEX) {
+            m_ubo_index = std::nullopt;
+            m_shader = nullptr;
+        }
+    }
+}*/
+
 const std::optional<u32>& Renderable::getVBO() const {
     return m_vbo;
 }
@@ -87,6 +80,15 @@ const std::optional<u32>& Renderable::getVAO() const {
 }
 
 const Shader* Renderable::getShader() const {
+    if(m_shader && m_shader != m_prev_shader) {
+        m_ubo_index = glGetUniformBlockIndex(m_shader->getHandle().value(), "matrices");
+        if(m_ubo_index == GL_INVALID_INDEX) {
+            m_ubo_index = std::nullopt;
+            m_shader = nullptr;
+        } else {
+            m_prev_shader = m_shader;
+        }
+    }
     return m_shader;
 }
 

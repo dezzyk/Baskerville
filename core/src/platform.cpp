@@ -160,7 +160,7 @@ void Platform::Manager::executeDrawCalls() {
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
     for(auto draw : draw_queue) {
         if(draw->valid()) {
-            if(draw->size() > 0) {
+            if(draw->size() > 0 && draw->getShader()) {
                 glBindBuffer(GL_UNIFORM_BUFFER, mat_ubo);
                 glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(draw->model));
                 glBindBuffer(GL_UNIFORM_BUFFER, 0);

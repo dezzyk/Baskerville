@@ -38,6 +38,7 @@ public:
     static const b32 errorOptionBox(const char* title, const char* msg, b32& res);
     static const b32 cautionOptionBox(const char* title, const char* msg, b32& res);
     static const b32 infoOptionBox(const char* title, const char* msg, b32& res);
+
 private:
     static std::vector<const Renderable*> draw_queue;
     static SDL_Window* window;
@@ -47,4 +48,5 @@ private:
     static b32 should_close;
     static std::filesystem::path pref_path;
     static u32 mat_ubo;
+
 };

@@ -186,19 +186,18 @@ public:
 
 protected:
     Renderable();
-    Renderable(const char* shader_name);
     Renderable(const Renderable&) =delete;
     Renderable& operator=(const Renderable&) =delete;
 
-    const Shader* m_shader = nullptr;
+    //void setShaderAndUpdateMatricesBlockIndex(const Shader* shader);
+    mutable const Shader* m_shader = nullptr;
     std::optional<u32> m_vbo;
     std::optional<u32> m_vao;
+    mutable std::optional<u32> m_ubo_index;
     u32 m_capacity = 0;
     u32 m_size = 0;
-    u32 m_ubo_index = 0;
-
 private:
-
+    mutable const Shader* m_prev_shader = nullptr;
 };
 
 using RenderableQueue = std::vector<const Renderable* const>;

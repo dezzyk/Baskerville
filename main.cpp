@@ -65,6 +65,7 @@ int main(int argc, char *argv[]) {
             }
 
             //redraw = root->update(frame_time);
+            app.update();
 
             Event::Container event;
             while (platform.pollEvents(event)) {
@@ -83,11 +84,12 @@ int main(int argc, char *argv[]) {
                 last_viewport = cur_viewport;
             }
 
-            if(redraw) {
+            //if(redraw) {
                 //root->draw(platform.getDrawQueue());
+                app.draw(platform.getDrawQueue());
                 platform.executeDrawCalls();
                 platform.swap();
-            }
+            //}
 
         }
 
