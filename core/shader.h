@@ -29,7 +29,9 @@ public:
     Shader(const Shader&) =delete;
     Shader& operator=(const Shader&) =delete;
     const std::optional<u32>& getHandle() const;
+    const std::optional<u32>& getMatricesDescriptorBlockIndex();
 private:
     Shader(std::string vert, std::string frag);
     std::optional<u32> m_handle;
+    std::optional<u32> m_matrices_descriptor_block_index;
 };

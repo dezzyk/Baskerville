@@ -7,6 +7,7 @@
 #include "common.h"
 #include "widget.h"
 #include "debug.h"
+#include "draw.h"
 #include "platform.h"
 
 #include "entt/entt.hpp"
@@ -16,7 +17,7 @@ public:
     void startup();
     void shutdown();
     void update();
-    void draw(std::vector<const Renderable*>& queue);
+    void draw(std::vector<Draw>& queue);
 private:
     entt::registry m_registry;
     entt::entity test;

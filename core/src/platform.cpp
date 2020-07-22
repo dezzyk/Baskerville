@@ -10,7 +10,7 @@
 
 #include <iostream>
 
-std::vector<const Renderable*> Platform::draw_queue;
+std::vector<Draw> Platform::draw_queue;
 SDL_Window* Platform::window = nullptr;
 SDL_GLContext  Platform::context;
 f32 Platform::viewport_scaler = 1.0f;
@@ -137,7 +137,7 @@ b32 Platform::Manager::shouldQuit() {
     return should_close;
 }
 
-std::vector<const Renderable*>& Platform::Manager::getDrawQueue() {
+std::vector<Draw>& Platform::Manager::getDrawQueue() {
     return draw_queue;
 }
 
@@ -159,41 +159,41 @@ void Platform::Manager::executeDrawCalls() {
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(proj));
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
     for(auto draw : draw_queue) {
-        if(draw->valid()) {
-            if(draw->size() > 0 && draw->getShader()) {
+        if(draw.renderable->valid()) {
+            if(draw.renderable->size() > 0 && draw.shader) {
                 glBindBuffer(GL_UNIFORM_BUFFER, mat_ubo);
-                glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(draw->model));
+                glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(draw.renderable->model));
                 glBindBuffer(GL_UNIFORM_BUFFER, 0);
-                glBindVertexArray(draw->getVAO().value());
-                glUseProgram(draw->getShader()->getHandle().value());
+                glBindVertexArray(draw.renderable->getVAO().value());
+                glUseProgram(draw.shader->getHandle().value());
                 glBindBufferRange(GL_UNIFORM_BUFFER, 0, mat_ubo, 0, 2 * sizeof(glm::mat4));
-                for (int i = 0; i < draw->descriptors.size(); ++i) {
-                    if (draw->descriptors[i].type != TypeIndex::make<TypeIndex::Empty>()) {
-                        TypeIndex type = draw->descriptors[i].type;
+                for (int i = 0; i < draw.renderable->descriptors.size(); ++i) {
+                    if (draw.renderable->descriptors[i].type != TypeIndex::make<TypeIndex::Empty>()) {
+                        TypeIndex type = draw.renderable->descriptors[i].type;
                         if (type == TypeIndex::make<glm::mat4>()) {
-                            glUniformMatrix4fv(i, 1, GL_FALSE, glm::value_ptr(draw->descriptors[i].value.mat4));
+                            glUniformMatrix4fv(i, 1, GL_FALSE, glm::value_ptr(draw.renderable->descriptors[i].value.mat4));
                         } else if (type == TypeIndex::make<glm::vec4>()) {
-                            glUniform4f(i, draw->descriptors[i].value.vec4.x, draw->descriptors[i].value.vec4.y,
-                                        draw->descriptors[i].value.vec4.z, draw->descriptors[i].value.vec4.w);
+                            glUniform4f(i, draw.renderable->descriptors[i].value.vec4.x, draw.renderable->descriptors[i].value.vec4.y,
+                                        draw.renderable->descriptors[i].value.vec4.z, draw.renderable->descriptors[i].value.vec4.w);
                         } else if (type == TypeIndex::make<glm::vec3>()) {
-                            glUniform3f(i, draw->descriptors[i].value.vec3.x, draw->descriptors[i].value.vec3.y,
-                                        draw->descriptors[i].value.vec3.z);
+                            glUniform3f(i, draw.renderable->descriptors[i].value.vec3.x, draw.renderable->descriptors[i].value.vec3.y,
+                                        draw.renderable->descriptors[i].value.vec3.z);
                         } else if (type == TypeIndex::make<glm::vec2>()) {
-                            glUniform2f(i, draw->descriptors[i].value.vec2.x, draw->descriptors[i].value.vec2.y);
+                            glUniform2f(i, draw.renderable->descriptors[i].value.vec2.x, draw.renderable->descriptors[i].value.vec2.y);
                         } else if (type == TypeIndex::make<f32>()) {
-                            glUniform1f(i, draw->descriptors[i].value.u_f32);
+                            glUniform1f(i, draw.renderable->descriptors[i].value.u_f32);
                         } else if (type == TypeIndex::make<u32>()) {
-                            glUniform1ui(i, draw->descriptors[i].value.u_u32);
+                            glUniform1ui(i, draw.renderable->descriptors[i].value.u_u32);
                         } else if (type == TypeIndex::make<i32>()) {
-                            glUniform1i(i, draw->descriptors[i].value.u_i32);
+                            glUniform1i(i, draw.renderable->descriptors[i].value.u_i32);
                         } else if (type == TypeIndex::make<Renderable::Descriptor::Texture>()) {
-                            glUniform1i(i, draw->descriptors[i].value.texture.index);
-                            glActiveTexture(GL_TEXTURE0 + draw->descriptors[i].value.texture.index);
-                            glBindTexture(GL_TEXTURE_2D, draw->descriptors[i].value.texture.handle);
+                            glUniform1i(i, draw.renderable->descriptors[i].value.texture.index);
+                            glActiveTexture(GL_TEXTURE0 + draw.renderable->descriptors[i].value.texture.index);
+                            glBindTexture(GL_TEXTURE_2D, draw.renderable->descriptors[i].value.texture.handle);
                         } else if (type == TypeIndex::make<Renderable::Descriptor::ArrayTexture>()) {
-                            glUniform1i(i, draw->descriptors[i].value.texture.index);
-                            glActiveTexture(GL_TEXTURE0 + draw->descriptors[i].value.array_texture.index);
-                            glBindTexture(GL_TEXTURE_2D_ARRAY, draw->descriptors[i].value.array_texture.handle);
+                            glUniform1i(i, draw.renderable->descriptors[i].value.texture.index);
+                            glActiveTexture(GL_TEXTURE0 + draw.renderable->descriptors[i].value.array_texture.index);
+                            glBindTexture(GL_TEXTURE_2D_ARRAY, draw.renderable->descriptors[i].value.array_texture.handle);
                         }
                     }
                 }
@@ -203,7 +203,7 @@ void Platform::Manager::executeDrawCalls() {
                     }
                 }*/
                 Renderable::Quad size_quad; // I hate this
-                glDrawArrays(GL_TRIANGLES, 0, draw->size() * size_quad.vertices.size());
+                glDrawArrays(GL_TRIANGLES, 0, draw.renderable->size() * size_quad.vertices.size());
                 CheckGLError();
             }
         }

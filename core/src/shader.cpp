@@ -49,6 +49,10 @@ Shader::Shader(std::string vert, std::string frag) {
         std::cout << "Failed to create shader program \n" << info_log << std::endl;
     } else {
         m_handle = program_handle;
+        m_matrices_descriptor_block_index = glGetUniformBlockIndex(program_handle, "matrices");
+        if(m_matrices_descriptor_block_index == GL_INVALID_INDEX) {
+            m_matrices_descriptor_block_index = std::nullopt;
+        }
     }
     glDeleteShader(vert_handle); CheckGLError();
     glDeleteShader(frag_handle); CheckGLError();
@@ -70,4 +74,8 @@ Shader::~Shader() {
 
 const std::optional<u32>& Shader::getHandle() const {
     return m_handle;
+}
+
+const std::optional<u32>& Shader::getMatricesDescriptorBlockIndex() {
+    return m_matrices_descriptor_block_index;
 }

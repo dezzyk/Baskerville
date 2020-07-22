@@ -32,7 +32,7 @@ void App::update() {
 
 }
 
-void App::draw(std::vector<const Renderable*>& queue) {
+void App::draw(std::vector<Draw>& queue) {
 
     auto view = m_registry.view<Widget, Debug>();
     for(auto entity: view) {

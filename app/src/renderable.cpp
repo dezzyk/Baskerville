@@ -28,7 +28,6 @@ Renderable::Renderable() {
 
         } else {
             glDeleteBuffers(1, &vbo_handle);
-            m_shader = nullptr;
         }
     }
 }
@@ -36,20 +35,16 @@ Renderable::Renderable() {
 Renderable& Renderable::operator=(Renderable&& other) {
     m_vbo = other.m_vbo;
     m_vao = other.m_vao;
-    m_shader = other.m_shader;
     other.m_vbo = std::nullopt;
     other.m_vao = std::nullopt;
-    other.m_shader = nullptr;
     return *this;
 }
 
 Renderable::Renderable(Renderable&& other) noexcept :
         m_vbo(other.m_vbo),
-        m_vao(other.m_vao),
-        m_shader(other.m_shader){
+        m_vao(other.m_vao){
     other.m_vbo = std::nullopt;
     other.m_vao = std::nullopt;
-    other.m_shader = nullptr;
 }
 
 Renderable::~Renderable() {
@@ -67,19 +62,6 @@ const std::optional<u32>& Renderable::getVBO() const {
 
 const std::optional<u32>& Renderable::getVAO() const {
     return m_vao;
-}
-
-const Shader* Renderable::getShader() const {
-    if(m_shader && m_shader != m_prev_shader) {
-        m_ubo_index = glGetUniformBlockIndex(m_shader->getHandle().value(), "matrices");
-        if(m_ubo_index == GL_INVALID_INDEX) {
-            m_ubo_index = std::nullopt;
-            m_shader = nullptr;
-        } else {
-            m_prev_shader = m_shader;
-        }
-    }
-    return m_shader;
 }
 
 void Renderable::quadUpload(Quad& data) {
@@ -119,5 +101,5 @@ void Renderable::clear() {
 }
 
 b32 Renderable::valid() const {
-    return (m_vao.has_value() && m_vbo.has_value() && m_shader);
+    return (m_vao.has_value() && m_vbo.has_value());
 }

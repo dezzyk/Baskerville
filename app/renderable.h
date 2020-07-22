@@ -17,6 +17,9 @@
 class Renderable {
 public:
 
+    // For use as a redraw flagging component
+    struct Redraw {};
+
     struct Descriptor {
 
         struct Texture {
@@ -160,7 +163,6 @@ public:
 
     const std::optional<u32>& getVBO() const;
     const std::optional<u32>& getVAO() const;
-    const Shader* getShader() const;
     void quadUpload(Quad& data);
     void quadUpload(std::vector<Quad>& data);
     template <int C>
@@ -189,8 +191,6 @@ protected:
     Renderable(const Renderable&) =delete;
     Renderable& operator=(const Renderable&) =delete;
 
-    //void setShaderAndUpdateMatricesBlockIndex(const Shader* shader);
-    mutable const Shader* m_shader = nullptr;
     std::optional<u32> m_vbo;
     std::optional<u32> m_vao;
     mutable std::optional<u32> m_ubo_index;

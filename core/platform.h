@@ -6,7 +6,7 @@
 
 #include "common.h"
 #include "event.h"
-#include "renderable.h"
+#include "draw.h"
 
 #include "glm/glm.hpp"
 #include "glad/glad.h"
@@ -24,7 +24,7 @@ public:
         void swap();
         b32 shouldQuit();
         void executeDrawCalls();
-        std::vector<const Renderable*>& getDrawQueue();
+        std::vector<Draw>& getDrawQueue();
         void delay(u32 count);
     };
     static const glm::vec2 getViewportSize();
@@ -40,7 +40,7 @@ public:
     static const b32 infoOptionBox(const char* title, const char* msg, b32& res);
 
 private:
-    static std::vector<const Renderable*> draw_queue;
+    static std::vector<Draw> draw_queue;
     static SDL_Window* window;
     static SDL_GLContext context;
     static f32 viewport_scaler;

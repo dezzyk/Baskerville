@@ -6,48 +6,44 @@
 
 #include "common.h"
 
-namespace Draw {
-
-    struct RedrawFlag {
-        RedrawFlag() {}
-        RedrawFlag(const RedrawFlag& other) {
-            if(!val) {
-                val = other.val;
-            }
+struct RedrawFlag {
+    RedrawFlag() {}
+    RedrawFlag(const RedrawFlag& other) {
+        if(!val) {
+            val = other.val;
         }
-        RedrawFlag(RedrawFlag&& other) noexcept {
-            if(!val) {
-                val = other.val;
-            }
+    }
+    RedrawFlag(RedrawFlag&& other) noexcept {
+        if(!val) {
+            val = other.val;
         }
-        RedrawFlag(b32 v) {
-            if(!val) {
-                val = v;
-            }
+    }
+    RedrawFlag(b32 v) {
+        if(!val) {
+            val = v;
         }
-        RedrawFlag& operator=(const RedrawFlag& other) {
-            if(!val) {
-                val = other.val;
-            }
-            return *this;
+    }
+    RedrawFlag& operator=(const RedrawFlag& other) {
+        if(!val) {
+            val = other.val;
         }
-        RedrawFlag& operator=(RedrawFlag&& other) {
-            if(!val) {
-                val = other.val;
-            }
-            return *this;
+        return *this;
+    }
+    RedrawFlag& operator=(RedrawFlag&& other) {
+        if(!val) {
+            val = other.val;
         }
-        RedrawFlag& operator=(b32 v) {
-            if(!val) {
-                val = v;
-            }
-            return *this;
+        return *this;
+    }
+    RedrawFlag& operator=(b32 v) {
+        if(!val) {
+            val = v;
         }
-        operator b32() const{
-            return val;
-        }
-    private:
-        b32 val = false;
-    };
-
-}
+        return *this;
+    }
+    operator b32() const{
+        return val;
+    }
+private:
+    b32 val = false;
+};

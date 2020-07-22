@@ -69,7 +69,7 @@ void Debug::update(entt::entity entity, entt::registry &reg) {
 
 }
 
-void Debug::draw(entt::entity entity, entt::registry &reg, std::vector<const Renderable*>& queue) {
+void Debug::draw(entt::entity entity, entt::registry &reg, std::vector<Draw>& queue) {
     Debug& debug = reg.get<Debug>(entity);
-    queue.push_back(&debug);
+    queue.push_back({&debug, Shader::Cache::fetch("pane")});
 }
