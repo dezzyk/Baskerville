@@ -12,7 +12,7 @@
 // be standalone and reference an entities Renderable component rather than inherit from it
 struct Debug : public Renderable {
     Debug() : Renderable() {};
-    static void update(entt::entity entity, entt::registry &reg);
+    static void updateGeometry(entt::entity entity, entt::registry &reg);
     static void draw(entt::entity entity, entt::registry &reg, std::vector<Draw>& queue);
 
 };

@@ -65,17 +65,17 @@ int main(int argc, char *argv[]) {
             }
 
             //redraw = root->update(frame_time);
-            app.update();
+            app.update(frame_time);
 
             Event::Container event;
             while (platform.pollEvents(event)) {
-                /*if (event.type == Meta::MakeType<Event::TextInput>()) {
-                    redraw = root->onTextInput(event.value.text);
-                } else if (event.type == Meta::MakeType<Event::Macro>()) {
-                    redraw = root->onMacro(event.value.macro);
-                } else if (event.type == Meta::MakeType<Event::MouseClick>()) {
-                    redraw = root->onMouseClick(event.value.mouseClick);
-                }*/
+                if (event.type == TypeIndex::make<Event::TextInput>()) {
+                    app.onTextInput(event.value.text);
+                } else if (event.type == TypeIndex::make<Event::Macro>()) {
+                    app.onMacro(event.value.macro);
+                } else if (event.type == TypeIndex::make<Event::MouseClick>()) {
+                    app.onMouseClick(event.value.mouseClick);
+                }
             }
 
             glm::vec2 cur_viewport = Platform::getViewportSize();

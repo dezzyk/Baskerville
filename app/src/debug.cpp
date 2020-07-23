@@ -8,15 +8,15 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
-void Debug::update(entt::entity entity, entt::registry &reg) {
+void Debug::updateGeometry(entt::entity entity, entt::registry &reg) {
 
     Debug& debug = reg.get<Debug>(entity);
 
     static std::array<Renderable::Quad, 8> boxes;
     boxes = {};
 
-    glm::vec2 draw_size = Widget::calcDrawSize(entity, reg).value();
-    glm::vec2 draw_pos = Widget::calcDrawPos(entity, reg).value();
+    glm::vec2 draw_size = Widget::calcDrawSize(entity, reg);
+    glm::vec2 draw_pos = Widget::calcDrawPos(entity, reg);
 
     glm::mat4 model(1.0f);
     model = glm::translate(model, glm::vec3(draw_pos.x - (draw_size.x / 2) + 2.0f, draw_pos.y + (draw_size.y / 2) - 8.0, 0.0f));

@@ -14,9 +14,11 @@
 #include <string>
 
 struct Label {
+
     std::string value = "";
     glm::vec4 color = {0.0f, 0.0f, 0.0f, 1.0f};
     const Font* font = nullptr;
-    u32 pixel_height = 0;
+    i32 pixel_height = 0;
+
     static void draw(entt::entity entity, entt::registry &reg, std::vector<Draw>& queue);
 };

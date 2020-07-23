@@ -16,7 +16,10 @@ class App {
 public:
     void startup();
     void shutdown();
-    void update();
+    void update(f64 delta);
+    void onTextInput(const Event::TextInput& text);
+    void onMacro(const Event::Macro& macro);
+    void onMouseClick(const Event::MouseClick& mouse);
     void draw(std::vector<Draw>& queue);
 private:
     entt::registry m_registry;
