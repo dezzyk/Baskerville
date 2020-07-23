@@ -157,6 +157,9 @@ public:
                                           }};
     };
 
+    Renderable();
+    Renderable(const Renderable&) =delete;
+    Renderable& operator=(const Renderable&) =delete;
     Renderable(Renderable&& other) noexcept;
     Renderable& operator=(Renderable&& other);
     ~Renderable();
@@ -187,17 +190,12 @@ public:
     std::array<Descriptor, 6> descriptors;
 
 protected:
-    Renderable();
-    Renderable(const Renderable&) =delete;
-    Renderable& operator=(const Renderable&) =delete;
-
     std::optional<u32> m_vbo;
     std::optional<u32> m_vao;
     mutable std::optional<u32> m_ubo_index;
     u32 m_capacity = 0;
     u32 m_size = 0;
-private:
-    mutable const Shader* m_prev_shader = nullptr;
+
 };
 
 using RenderableQueue = std::vector<const Renderable* const>;
