@@ -69,6 +69,8 @@ void App::onTextInput(const Event::TextInput& text) {
 void App::onMacro(const Event::Macro& macro) {
     if(macro == Event::Macro::ToggleDebug) {
         m_show_debug = !m_show_debug;
+    } else {
+        Editor::handleMacro(macro, m_registry);
     }
 }
 

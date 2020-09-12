@@ -160,6 +160,68 @@ void Editor::handleText(const Event::TextInput& text, entt::registry& reg) {
 
 }
 
+void Editor::handleMacro(const Event::Macro& macro, entt::registry& reg) {
+
+    auto editor_view = reg.view<Editor>();
+    entt::entity editor_entity = editor_view.front();
+
+    Editor& editor = reg.get<Editor>(editor_entity);
+    Label* active_label = &reg.get<Label>(editor.label_entitys[1]);
+    Widget* active_widget = &reg.get<Widget>(editor.label_entitys[1]);
+
+    if (!active_label->value.empty()) {
+        if(macro == Event::Macro::Backspace) {
+            if(!active_label->value.empty()) {
+                active_label->value.pop_back();
+            }
+        } else if(macro == Event::Macro::Enter) {
+            const f32 animation_time = 0.5f;
+            entt::entity back = editor.label_entitys.back();
+            {
+                editor.label_entitys[5] = editor.label_entitys[4];
+                Widget& widget = reg.get<Widget>(editor.label_entitys[5]);
+                Label& label = reg.get<Label>(editor.label_entitys[5]);
+                reg.emplace_or_replace<Animation::Offset>(editor.label_entitys[5], glm::vec2(widget.offset.x, label.pixel_height * 3), glm::vec2(widget.offset.x, label.pixel_height * 4), 0.25f, 0.0f, animation_time, 0.0f);
+            }
+            {
+                editor.label_entitys[4] = editor.label_entitys[3];
+                Widget& widget = reg.get<Widget>(editor.label_entitys[4]);
+                Label& label = reg.get<Label>(editor.label_entitys[4]);
+                reg.emplace_or_replace<Animation::Offset>(editor.label_entitys[4], glm::vec2(widget.offset.x, label.pixel_height * 2), glm::vec2(widget.offset.x, label.pixel_height * 3), 0.50f, 0.25f, animation_time, 0.0f);
+            }
+            {
+                editor.label_entitys[3] = editor.label_entitys[2];
+                Widget& widget = reg.get<Widget>(editor.label_entitys[3]);
+                Label& label = reg.get<Label>(editor.label_entitys[3]);
+                reg.emplace_or_replace<Animation::Offset>(editor.label_entitys[3], glm::vec2(widget.offset.x, label.pixel_height), glm::vec2(widget.offset.x, label.pixel_height * 2), 0.75f, 0.50f, animation_time, 0.0f);
+            }
+            {
+                editor.label_entitys[2] = editor.label_entitys[1];
+                Widget& widget = reg.get<Widget>(editor.label_entitys[2]);
+                Label& label = reg.get<Label>(editor.label_entitys[2]);
+                reg.emplace_or_replace<Animation::Offset>(editor.label_entitys[2], glm::vec2(widget.offset.x, 0.0f), glm::vec2(widget.offset.x, label.pixel_height), 1.0f, 0.75f, animation_time, 0.0f);
+            }
+            {
+                editor.label_entitys[1] = editor.label_entitys[0];
+                Widget& widget = reg.get<Widget>(editor.label_entitys[1]);
+                Label& label = reg.get<Label>(editor.label_entitys[1]);
+                reg.emplace_or_replace<Animation::Offset>(editor.label_entitys[1], glm::vec2(widget.offset.x, label.pixel_height * -1), glm::vec2(widget.offset.x, 0), 0.0f, 1.0f, animation_time, 0.0f);
+            }
+            {
+                editor.label_entitys[0] = back;
+                Widget& widget = reg.get<Widget>(editor.label_entitys[0]);
+                Label& label = reg.get<Label>(editor.label_entitys[0]);
+                reg.emplace_or_replace<Animation::Offset>(editor.label_entitys[0], glm::vec2(widget.offset.x, label.pixel_height * 4), glm::vec2(widget.offset.x, ((int)label.pixel_height) * -1), 0.0f, 0.0f, animation_time, 0.0f);
+                reg.emplace_or_replace<Animation::Offset::Log>(editor.label_entitys[0]);
+            }
+
+            active_label = &reg.get<Label>(editor.label_entitys[1]);
+            active_widget = &reg.get<Widget>(editor.label_entitys[1]);
+            active_label->value = "";
+        }
+    }
+}
+
 entt::entity Editor::create(entt::registry& reg) {
 
     entt::entity entity = reg.create();
@@ -186,7 +248,7 @@ entt::entity Editor::create(entt::registry& reg) {
         //widget.unscaled_width = true;
 
         Label& label = reg.emplace<Label>(label_entity);
-        label.value = "Test";
+        //label.value = "Test";
         label.font = Font::Cache::fetch("editor");
         label.pixel_height = 32;
 
