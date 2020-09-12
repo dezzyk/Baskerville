@@ -67,7 +67,9 @@ void App::onTextInput(const Event::TextInput& text) {
 }
 
 void App::onMacro(const Event::Macro& macro) {
-
+    if(macro == Event::Macro::ToggleDebug) {
+        m_show_debug = !m_show_debug;
+    }
 }
 
 void App::onMouseClick(const Event::MouseClick& mouse) {
@@ -76,9 +78,11 @@ void App::onMouseClick(const Event::MouseClick& mouse) {
 
 void App::draw(std::vector<Draw>& queue) {
 
-    auto debug = m_registry.view<Debug>();
-    for (auto entity: debug) {
-        Debug::draw(entity, m_registry, queue);
+    if(m_show_debug) {
+        auto debug = m_registry.view<Debug>();
+        for (auto entity: debug) {
+            Debug::draw(entity, m_registry, queue);
+        }
     }
 
     auto label = m_registry.view<Label>();

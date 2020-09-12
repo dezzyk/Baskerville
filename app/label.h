@@ -16,7 +16,7 @@
 struct Label {
 
     std::string value = "";
-    glm::vec4 color = {0.0f, 0.0f, 0.0f, 1.0f};
+    glm::vec3 color = {0.0f, 0.0f, 0.0f};
     const Font* font = nullptr;
     i32 pixel_height = 0;
 

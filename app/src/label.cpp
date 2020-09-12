@@ -86,7 +86,7 @@ void Label::draw(entt::entity entity, entt::registry &reg, std::vector<Draw>& qu
             renderable.model = glm::scale(renderable.model, glm::vec3(label.font->calcScale(label.pixel_height) * scale,
                                                                       label.font->calcScale(label.pixel_height) * scale, 0.0f));
             renderable.descriptors[0].setValue(Renderable::Descriptor::ArrayTexture(label.font->getHandle().value(), 0));
-            renderable.descriptors[1].setValue(label.color);
+            renderable.descriptors[1].setValue(glm::vec4(label.color.x, label.color.y, label.color.z, widget.alpha));
 
             queue.push_back({&renderable, Shader::Cache::fetch("msdf")});
 

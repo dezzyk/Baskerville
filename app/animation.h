@@ -23,6 +23,8 @@ namespace Animation {
 
         glm::vec2 base_offset = {0.0f, 0.0f};
         glm::vec2 target_offset = {0.0f, 0.0f};
+        f32 base_alpha = 1.0f;
+        f32 target_alpha = 1.0f;
         f64 time = 0.0;
         f64 accumulator = 0.0;
 
@@ -40,6 +42,7 @@ namespace Animation {
                 f32 scaler = glm::sqrt(1.0f - m * m);
 
                 widget.offset = anim.base_offset + ((anim.target_offset - anim.base_offset) * scaler);
+                widget.alpha = anim.base_alpha + ((anim.target_alpha - anim.base_alpha) * scaler);
 
                 if(t == 1.0f) {
                     reg.remove<Offset>(entity);

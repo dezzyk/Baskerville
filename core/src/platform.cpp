@@ -110,6 +110,9 @@ b32 Platform::Manager::pollEvents(Event::Container& event) {
             } else if( e.key.keysym.sym == SDLK_RETURN) {
                 event.type = TypeIndex::make<Event::Macro>();
                 event.value.macro = Event::Macro::Enter;
+            } else if( e.key.keysym.sym == SDLK_F10) {
+                event.type = TypeIndex::make<Event::Macro>();
+                event.value.macro = Event::Macro::ToggleDebug;
             }
         } else if(e.type == SDL_MOUSEBUTTONDOWN) {
             event.type = TypeIndex::make<Event::MouseClick>();

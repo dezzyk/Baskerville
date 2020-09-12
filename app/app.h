@@ -24,4 +24,5 @@ public:
 private:
     entt::registry m_registry;
     entt::entity test;
+    b32 m_show_debug = false;
 };

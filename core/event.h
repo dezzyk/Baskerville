@@ -71,7 +71,8 @@ namespace Event {
         ArrowUp,
         ArrowDown,
         ArrowLeft,
-        ArrowRight
+        ArrowRight,
+        ToggleDebug
     };
 
     struct MouseClick {

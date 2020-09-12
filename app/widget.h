@@ -29,6 +29,7 @@ struct Widget {
 
     glm::vec2 size = { 1.0f, 1.0f };
     glm::vec2 offset = { 0.0f, 0.0f };
+    f32 alpha = 1.0f;
     b32 unscaled_width = false;
     b32 unscaled_height = false;
     Align alignment = Align::Center;
